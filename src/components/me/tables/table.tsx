@@ -115,7 +115,7 @@ export default function Table({ data, setIsOpen, setCurrentTable, tables, setTab
         <TableTimeout
           data={data}
           setIsOpen={setIsOpenTimeout}
-          onConfirm={async () => {
+          onConfirm={async (dataCb) => {
             if (!data?.out) {
               const getAmount = () => {
                 const inTime = dayjs(data.in);
@@ -176,6 +176,7 @@ export default function Table({ data, setIsOpen, setCurrentTable, tables, setTab
                   if (data?.id === item?.id) {
                     return {
                       ...item,
+                      ...dataCb,
                       status: "Timed out",
                     };
                   }
@@ -359,22 +360,22 @@ export default function Table({ data, setIsOpen, setCurrentTable, tables, setTab
                     }}
                   >
                     <FaClock className='h-4 w-4' />
-                    {!data?.is_open_time ? "Time Out" : "Calculate"}
+                    {!data?.is_open_time ? "Time Out" : "Calculate Time"}
                   </Button>
 
-                  {!(d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out)) && (
-                    <Button
-                      size='xl'
-                      className={clsx("flex-1 cursor-pointer font-bold", {})}
-                      variant={"outline"}
-                      onClick={() => {
-                        setIsOpenTransfer((prevState) => !prevState);
-                      }}
-                    >
-                      <FaExchangeAlt className='h-4 w-4' />
-                      Transfer
-                    </Button>
-                  )}
+                  {/* {!(d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out)) && ( */}
+                  <Button
+                    size='xl'
+                    className={clsx("flex-1 cursor-pointer font-bold", {})}
+                    variant={"outline"}
+                    onClick={() => {
+                      setIsOpenTransfer((prevState) => !prevState);
+                    }}
+                  >
+                    <FaExchangeAlt className='h-4 w-4' />
+                    Transfer
+                  </Button>
+                  {/* )} */}
 
                   {/* {d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out) && (
                     <Payment
