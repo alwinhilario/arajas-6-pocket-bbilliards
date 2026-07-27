@@ -332,14 +332,14 @@ export default function Table({ data, setIsOpen, setCurrentTable, tables, setTab
             <div className='flex gap-2'>
               <div className='relative flex-1'>
                 <Button
-                  size='xl'
+                  size='llg'
                   className={clsx("w-full cursor-pointer font-bold", {})}
                   onClick={() => {
                     setCurrentTable(data);
                     setIsOpen((prevState) => !prevState);
                   }}
                 >
-                  {(data?.in || data?.out) && <MdEdit className='h-4 w-4' />}
+                  {(data?.in || data?.out) && <MdEdit className='h-3 w-3' />}
                   {data?.in || data?.out ? "Manage" : "Time In"}
                 </Button>
               </div>
@@ -347,7 +347,7 @@ export default function Table({ data, setIsOpen, setCurrentTable, tables, setTab
               {(data?.in || data?.out) && (
                 <>
                   <Button
-                    size='xl'
+                    size='llg'
                     className={clsx("flex-1 cursor-pointer font-bold", {})}
                     variant={"outline"}
                     onClick={async () => {
@@ -359,20 +359,20 @@ export default function Table({ data, setIsOpen, setCurrentTable, tables, setTab
                       setIsOpenTimeout((prevState) => !prevState);
                     }}
                   >
-                    <FaClock className='h-4 w-4' />
-                    {!data?.is_open_time ? "Time Out" : "Calculate Time"}
+                    <FaClock className='h-3 w-3' />
+                    {!data?.is_open_time ? "Time Out" : "Calculate"}
                   </Button>
 
                   {/* {!(d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out)) && ( */}
                   <Button
-                    size='xl'
+                    size='llg'
                     className={clsx("flex-1 cursor-pointer font-bold", {})}
                     variant={"outline"}
                     onClick={() => {
                       setIsOpenTransfer((prevState) => !prevState);
                     }}
                   >
-                    <FaExchangeAlt className='h-4 w-4' />
+                    <FaExchangeAlt className='h-3 w-3' />
                     Transfer
                   </Button>
                   {/* )} */}

@@ -25,49 +25,28 @@ export default function Home() {
   }, []);
 
   return (
-    <div className='p-16 py-10 bg-gray-100 flex flex-col'>
+    <div className='p-5 py-2.5 bg-gray-100 flex flex-col'>
       <div className='flex items-center gap-3'>
         <div className='flex-1'>
-          <button
-            type='button'
-            className='px-3.5 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'
-          >
+          <button type='button' className='px-2 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'>
             Home
           </button>
-          <button
-            type='button'
-            className='px-3.5 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'
-          >
+          <button type='button' className='px-2 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'>
             Others
           </button>
-          <button
-            type='button'
-            className='px-3.5 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'
-          >
+          <button type='button' className='px-2 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'>
             Statistics
           </button>
-          <button
-            type='button'
-            className='px-3.5 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'
-          >
+          <button type='button' className='px-2 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'>
             Pending Payment
           </button>
-          <button
-            type='button'
-            className='px-3.5 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'
-          >
+          <button type='button' className='px-2 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'>
             Inventory
           </button>
-          <button
-            type='button'
-            className='px-3.5 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'
-          >
+          <button type='button' className='px-2 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'>
             Table History
           </button>
-          <button
-            type='button'
-            className='px-3.5 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'
-          >
+          <button type='button' className='px-2 p-1 rounded hover:text-yellow-600 font-medium cursor-pointer'>
             Out
           </button>
         </div>

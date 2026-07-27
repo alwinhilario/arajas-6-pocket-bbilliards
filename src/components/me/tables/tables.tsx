@@ -22,7 +22,7 @@ export default function Tables() {
       // const data3 = await storage.setItem("name_list", NAME_OPTS);
       // const data4 = await storage.setItem("other_orders", OTHER_ORDERS);
       // const data5 = await storage.setItem("out_list", OUT_LIST);
-      // const data6 = await storage.setItem("all-table-list", []);
+      // const data6 = await storage.setItem("all_tables_list", []);
       // const data7 = await storage.setItem("pending_payment", []);
 
       setTables(data);
