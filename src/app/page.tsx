@@ -89,6 +89,9 @@ export default function Home() {
       <InventoryList />
       <br />
       <NameList />
+      <br />
+
+      <div className='text-gray-100 fixed bottom-2 left-2 z-10'>Version: 0.0.1</div>
     </div>
   );
 }
