@@ -7,7 +7,7 @@ import storage from "@/lib/localforage";
 import { TTableOpts, TTableOptsData } from "./types";
 import OtherOrders from "../other-orders";
 import { isEmpty } from "lodash";
-import { INVENTORY_OPTS, NAME_OPTS, OTHER_ORDERS, TABLE_OPTS } from "@/app/constants";
+import { INVENTORY_OPTS, NAME_OPTS, OTHER_ORDERS, OUT_LIST, TABLE_OPTS } from "@/app/constants";
 
 export default function Tables() {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -21,6 +21,9 @@ export default function Tables() {
       // const data2 = await storage.setItem("inventory_list", INVENTORY_OPTS);
       // const data3 = await storage.setItem("name_list", NAME_OPTS);
       // const data4 = await storage.setItem("other_orders", OTHER_ORDERS);
+      // const data5 = await storage.setItem("out_list", OUT_LIST);
+      // const data6 = await storage.setItem("all-table-list", []);
+      // const data7 = await storage.setItem("pending_payment", []);
 
       setTables(data);
     };
@@ -49,12 +52,12 @@ export default function Tables() {
 
             await storage.setItem("tables", newTables);
 
-            const allListTable = ((await storage.getItem("all-tables-list")) || []) as TTableOpts;
+            const allListTable = ((await storage.getItem("all_tables_list")) || []) as TTableOpts;
             const x = tables?.find((x) => x?.value === data?.value);
 
             const exists = !isEmpty(allListTable?.find((x) => x?.id === data?.id));
             await storage.setItem(
-              "all-tables-list",
+              "all_tables_list",
               exists
                 ? allListTable?.map((item) => {
                     if (data?.id === item?.id) {

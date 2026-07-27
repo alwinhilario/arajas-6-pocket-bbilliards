@@ -10,7 +10,7 @@ export default function AllTableList() {
 
   React.useEffect(() => {
     const load = async () => {
-      const data = ((await storage.getItem("all-tables-list")) || []) as TTableOpts;
+      const data = ((await storage.getItem("all_tables_list")) || []) as TTableOpts;
       setTables(data);
     };
 
@@ -20,9 +20,9 @@ export default function AllTableList() {
   React.useEffect(() => {
     const t = setInterval(() => {
       const update = async () => {
-        const x = ((await storage.getItem("all-tables-list")) || []) as TTableOpts;
+        const x = ((await storage.getItem("all_tables_list")) || []) as TTableOpts;
 
-        await storage.setItem("all-tables-list", x);
+        await storage.setItem("all_tables_list", x);
 
         setTables(x);
       };

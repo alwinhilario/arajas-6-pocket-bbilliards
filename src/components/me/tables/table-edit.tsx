@@ -372,7 +372,13 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                               return {
                                 ...x,
                                 item: v,
-                                amount: getAmount?.amount,
+                                amount: (() => {
+                                  if (getAmount?.amount !== x?.amount && getAmount?.amount) {
+                                    return getAmount?.amount || "";
+                                  }
+
+                                  return x?.amount || "";
+                                })(),
                               };
                             }
 
@@ -446,90 +452,92 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
             <hr />
           </div>
 
-          <div className='flex gap-2'>
-            <div className='w-24 font-semibold'>Payment:</div>
+          {state?.out && (
+            <div className='flex gap-2'>
+              <div className='w-24 font-semibold'>Payment:</div>
 
-            <div className='flex flex-col gap-2'>
-              {state?.mop?.map((item, key) => (
-                <div className='flex items-center gap-2' key={key}>
-                  <Input
-                    placeholder='Amount'
-                    className='!w-48'
-                    type='number'
-                    value={item?.amount}
-                    onChange={(v) => {
-                      setState((prevState) => ({
-                        ...prevState,
-                        mop: prevState?.mop?.map((x, y) => {
-                          if (y === key) {
-                            return {
-                              ...x,
-                              amount: v.target.value,
-                            };
-                          }
-
-                          return x;
-                        }),
-                      }));
-                    }}
-                  />
-                  <Payment
-                    mop={item?.label}
-                    onPayClick={(type) => {
-                      setState((prevState) => ({
-                        ...prevState,
-                        mop: prevState?.mop?.map((x, y) => {
-                          if (y === key) {
-                            return {
-                              ...x,
-                              label: type,
-                            };
-                          }
-
-                          return x;
-                        }),
-                      }));
-                    }}
-                  />
-
-                  {state?.mop?.length === key + 1 && (
-                    <Button
-                      className='w-20 font-bold cursor-pointer'
-                      onClick={() => {
+              <div className='flex flex-col gap-2'>
+                {state?.mop?.map((item, key) => (
+                  <div className='flex items-center gap-2' key={key}>
+                    <Input
+                      placeholder='Amount'
+                      className='!w-48'
+                      type='number'
+                      value={item?.amount}
+                      onChange={(v) => {
                         setState((prevState) => ({
                           ...prevState,
-                          mop: [
-                            ...prevState?.mop,
-                            {
-                              label: "",
-                              amount: "",
-                              remarks: "",
-                            },
-                          ],
+                          mop: prevState?.mop?.map((x, y) => {
+                            if (y === key) {
+                              return {
+                                ...x,
+                                amount: v.target.value,
+                              };
+                            }
+
+                            return x;
+                          }),
                         }));
                       }}
-                    >
-                      <span>Add</span>
-                    </Button>
-                  )}
-                  {state?.mop?.length !== key + 1 && (
-                    <Button
-                      variant='destructive'
-                      className='w-20 font-bold cursor-pointer'
-                      onClick={() => {
+                    />
+                    <Payment
+                      mop={item?.label}
+                      onPayClick={(type) => {
                         setState((prevState) => ({
                           ...prevState,
-                          mop: prevState?.mop?.filter((x, y) => y !== key),
+                          mop: prevState?.mop?.map((x, y) => {
+                            if (y === key) {
+                              return {
+                                ...x,
+                                label: type,
+                              };
+                            }
+
+                            return x;
+                          }),
                         }));
                       }}
-                    >
-                      <span>Remove</span>
-                    </Button>
-                  )}
-                </div>
-              ))}
+                    />
+
+                    {state?.mop?.length === key + 1 && (
+                      <Button
+                        className='w-20 font-bold cursor-pointer'
+                        onClick={() => {
+                          setState((prevState) => ({
+                            ...prevState,
+                            mop: [
+                              ...prevState?.mop,
+                              {
+                                label: "",
+                                amount: "",
+                                remarks: "",
+                              },
+                            ],
+                          }));
+                        }}
+                      >
+                        <span>Add</span>
+                      </Button>
+                    )}
+                    {state?.mop?.length !== key + 1 && (
+                      <Button
+                        variant='destructive'
+                        className='w-20 font-bold cursor-pointer'
+                        onClick={() => {
+                          setState((prevState) => ({
+                            ...prevState,
+                            mop: prevState?.mop?.filter((x, y) => y !== key),
+                          }));
+                        }}
+                      >
+                        <span>Remove</span>
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className='flex gap-2'>
             <div className='w-24 font-semibold'>Remarks:</div>
@@ -584,7 +592,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                 amount:
                   getAmount() > 0 || totalOthers > 0 ? `${(getAmount() || 0) + (totalOthers || 0)}` : "",
                 table_rates: `${getAmount()}`,
-                id: state?.id || dayjs().format("YYYY/MM/DD HH:mm:ss"),
+                id: state?.id || dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
                 status: state?.status || "Active",
               });
             }}

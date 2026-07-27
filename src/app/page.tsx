@@ -8,7 +8,7 @@ import OtherOrders from "@/components/me/other-orders";
 import NotPaidList from "@/components/me/not-paid-list";
 import InventoryList from "@/components/me/inventory-list";
 import NameList from "@/components/me/name-list";
-import Outlist from "@/components/me/out-list";
+import OutList from "@/components/me/out-list";
 import Version from "@/components/me/version";
 
 export default function Home() {
@@ -81,11 +81,11 @@ export default function Home() {
       <br />
       <OtherOrders />
       <br />
-      <Outlist />
+      <NotPaidList />
+      <br />
+      <OutList />
       <br />
       <AllTableList />
-      <br />
-      <NotPaidList />
       <br />
       <InventoryList />
       <br />

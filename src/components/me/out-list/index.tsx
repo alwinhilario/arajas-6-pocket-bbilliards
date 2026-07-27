@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import dayjs from "dayjs";
 
-export default function Outlist() {
+export default function OutList() {
   const [otherOrders, setOtherOrders] = React.useState<TOutList>([]);
 
   React.useEffect(() => {

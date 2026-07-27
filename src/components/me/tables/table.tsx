@@ -153,7 +153,7 @@ export default function Table({ data, setIsOpen, setCurrentTable, tables, setTab
                     amount:
                       getAmount() > 0 || totalOthers > 0 ? `${(getAmount() || 0) + (totalOthers || 0)}` : "",
                     table_rates: `${getAmount()}`,
-                    id: data?.id || dayjs().format("YYYY/MM/DD HH:mm:ss"),
+                    id: data?.id || dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
                   };
                 }
 
@@ -166,12 +166,12 @@ export default function Table({ data, setIsOpen, setCurrentTable, tables, setTab
               return;
             }
 
-            const allListTable = ((await storage.getItem("all-tables-list")) || []) as TTableOpts;
+            const allListTable = ((await storage.getItem("all_tables_list")) || []) as TTableOpts;
             const exists = !isEmpty(allListTable?.find((x) => x?.id === data?.id));
 
             if (exists) {
               await storage.setItem(
-                "all-tables-list",
+                "all_tables_list",
                 allListTable?.map((item) => {
                   if (data?.id === item?.id) {
                     return {

@@ -9,13 +9,21 @@ export default function NotPaidList() {
   const [tables, setTables] = React.useState<TOtherOrdersOpts>([]);
 
   React.useEffect(() => {
+    const load = async () => {
+      const data = ((await storage.getItem("pending_payment")) || OTHER_ORDERS) as TOtherOrdersOpts;
+
+      setTables(data);
+    };
+
+    load();
+  }, []);
+
+  React.useEffect(() => {
     const t = setInterval(() => {
       const load = async () => {
-        const x = ((await storage.getItem("other_orders")) || OTHER_ORDERS) as TOtherOrdersOpts;
+        const x = ((await storage.getItem("pending_payment")) || OTHER_ORDERS) as TOtherOrdersOpts;
 
-        setTables(
-          x?.filter((x) => !x?.mop && (x?.amount?.length > 0 || x?.name?.length > 0 || x?.item?.length > 0)),
-        );
+        setTables(x);
       };
       load();
     }, 1000);
@@ -36,7 +44,6 @@ export default function NotPaidList() {
             <TableHead className='font-bold px-2 text-gray-600'>ITEM</TableHead>
             <TableHead className='font-bold px-2 text-gray-600'>AMOUNT</TableHead>
             <TableHead className='font-bold px-2 text-gray-600'>REMARKS</TableHead>
-            <TableHead className='font-bold px-2 text-gray-600'>MOP</TableHead>
             <TableHead className='font-bold px-2 text-gray-600'>DATE</TableHead>
           </TableRow>
         </TableHeader>
@@ -51,7 +58,6 @@ export default function NotPaidList() {
                   {parseInt(user.amount || "0") > 0 ? `PHP ${parseInt(user.amount || "0")}.00` : "--"}
                 </TableCell>
                 <TableCell>{user.remarks || "--"}</TableCell>
-                <TableCell className='capitalize'>{user.mop || "--"}</TableCell>
                 <TableCell className='capitalize'>{user.date || "--"}</TableCell>
               </TableRow>
             ))

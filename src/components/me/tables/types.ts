@@ -1,5 +1,3 @@
-import { OTHER_ORDERS } from "@/app/constants";
-
 export type TTableOptsData = {
   id: string;
   label: string;
@@ -37,6 +35,7 @@ export type TTableOptsData = {
 export type TTableOpts = TTableOptsData[];
 
 export type TOtherOrdersOptsData = {
+  id: string;
   item: string;
   name: string;
   mop: string;

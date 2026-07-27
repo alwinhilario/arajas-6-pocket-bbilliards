@@ -1,5 +1,8 @@
+import dayjs from "dayjs";
+
 export const OTHER_ORDERS = [
   {
+    id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
     item: "",
     name: "",
     mop: "",
@@ -213,9 +216,9 @@ export const TABLE_OPTS = [
   },
 ];
 
-export const INVENTORY_OPTS = [{ label: "", value: "", amount: 100 }];
+export const INVENTORY_OPTS = [{ label: "Fillet", value: "fillet", amount: 100 }];
 
-export const NAME_OPTS = [{ label: "", value: "" }];
+export const NAME_OPTS = [{ label: "Kuya omel", value: "Kuya omel" }];
 
 export const HOURLY_RATE = 150;
 export const MID_THRESHOLD_RATE = 9;

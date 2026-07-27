@@ -5,6 +5,7 @@ import { TInventoryList, TOptions, TOtherOrdersOpts } from "../tables/types";
 
 import OtherOrder from "./other-order";
 import { INVENTORY_OPTS, NAME_OPTS, OTHER_ORDERS } from "@/app/constants";
+import { isEmpty } from "lodash";
 
 export default function OtherOrders() {
   const [otherOrders, setOtherOrders] = React.useState<TOtherOrdersOpts>([]);
