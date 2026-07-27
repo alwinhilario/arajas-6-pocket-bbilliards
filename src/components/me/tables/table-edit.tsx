@@ -7,7 +7,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import duration from "dayjs/plugin/duration";
 import { InputSelect } from "../../ui/input-select";
 import { isEmpty } from "lodash";
-import { HOURLY_RATE, INVENTORY_OPTS, MID_THRESHOLD_RATE } from "@/app/constants";
+import { HOURLY_RATE, INVENTORY_OPTS, MID_THRESHOLD_RATE, NAME_OPTS } from "@/app/constants";
 import Payment from "../payment";
 import { Textarea } from "@/components/ui/textarea";
 import { TInventoryList, TOptions, TTableOptsData } from "./types";
@@ -57,8 +57,8 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
 
   React.useEffect(() => {
     const load = async () => {
-      const data1 = (await storage.getItem("name_list")) as TOptions;
-      const data2 = (await storage.getItem("inventory_list")) as TInventoryList;
+      const data1 = ((await storage.getItem("name_list")) || NAME_OPTS) as TOptions;
+      const data2 = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
 
       setNameOpts(data1);
       setInventoryOpts(data2);

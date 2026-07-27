@@ -4,13 +4,14 @@ import storage from "@/lib/localforage";
 import { TInventoryList } from "../tables/types";
 
 import { TableBody, TableCell, TableHead, Table, TableHeader, TableRow } from "@/components/ui/table";
+import { INVENTORY_OPTS } from "@/app/constants";
 
 export default function InventoryList() {
   const [otherOrders, setOtherOrders] = React.useState<TInventoryList>([]);
 
   React.useEffect(() => {
     const load = async () => {
-      const data = (await storage.getItem("inventory_list")) as TInventoryList;
+      const data = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
 
       setOtherOrders(data);
     };
@@ -21,7 +22,7 @@ export default function InventoryList() {
   React.useEffect(() => {
     const t = setInterval(() => {
       const update = async () => {
-        const x = (await storage.getItem("inventory_list")) as TInventoryList;
+        const x = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
 
         await storage.setItem("inventory_list", x);
 

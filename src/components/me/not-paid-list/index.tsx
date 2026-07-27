@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import storage from "@/lib/localforage";
 import { TOtherOrdersOpts } from "../tables/types";
+import { OTHER_ORDERS } from "@/app/constants";
 
 export default function NotPaidList() {
   const [tables, setTables] = React.useState<TOtherOrdersOpts>([]);
@@ -10,7 +11,7 @@ export default function NotPaidList() {
   React.useEffect(() => {
     const t = setInterval(() => {
       const load = async () => {
-        const x = (await storage.getItem("other_orders")) as TOtherOrdersOpts;
+        const x = ((await storage.getItem("other_orders")) || OTHER_ORDERS) as TOtherOrdersOpts;
 
         setTables(
           x?.filter((x) => !x?.mop && (x?.amount?.length > 0 || x?.name?.length > 0 || x?.item?.length > 0)),

@@ -9,6 +9,7 @@ import NotPaidList from "@/components/me/not-paid-list";
 import InventoryList from "@/components/me/inventory-list";
 import NameList from "@/components/me/name-list";
 import Outlist from "@/components/me/out-list";
+import Version from "@/components/me/version";
 
 export default function Home() {
   const [currentDay, setCurrentDay] = React.useState(dayjs().add(1, "second"));
@@ -91,7 +92,7 @@ export default function Home() {
       <NameList />
       <br />
 
-      <div className='text-gray-100 fixed bottom-2 left-2 z-10'>Version: 0.0.1</div>
+      <Version />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import storage from "@/lib/localforage";
 import { TInventoryList, TOptions, TOtherOrdersOpts } from "../tables/types";
 
 import OtherOrder from "./other-order";
-import { OTHER_ORDERS } from "@/app/constants";
+import { INVENTORY_OPTS, NAME_OPTS, OTHER_ORDERS } from "@/app/constants";
 
 export default function OtherOrders() {
   const [otherOrders, setOtherOrders] = React.useState<TOtherOrdersOpts>([]);
@@ -13,9 +13,9 @@ export default function OtherOrders() {
 
   React.useEffect(() => {
     const load = async () => {
-      const data = (await storage.getItem("other_orders")) as TOtherOrdersOpts;
-      const data1 = (await storage.getItem("name_list")) as TOptions;
-      const data2 = (await storage.getItem("inventory_list")) as TInventoryList;
+      const data = ((await storage.getItem("other_orders")) || OTHER_ORDERS) as TOtherOrdersOpts;
+      const data1 = ((await storage.getItem("name_list")) || NAME_OPTS) as TOptions;
+      const data2 = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
 
       setOtherOrders(data);
       setNameOpts(data1);

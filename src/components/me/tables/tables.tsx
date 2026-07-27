@@ -16,7 +16,7 @@ export default function Tables() {
 
   React.useEffect(() => {
     const load = async () => {
-      const data = (await storage.getItem("tables")) as TTableOpts;
+      const data = ((await storage.getItem("tables")) || TABLE_OPTS) as TTableOpts;
       // const data1 = await storage.setItem("tables", TABLE_OPTS);
       // const data2 = await storage.setItem("inventory_list", INVENTORY_OPTS);
       // const data3 = await storage.setItem("name_list", NAME_OPTS);
