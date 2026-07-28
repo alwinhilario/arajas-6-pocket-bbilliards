@@ -150,13 +150,13 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
 
   return (
     <div
-      className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 max-h-screen overflow-scroll p-20'
+      className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 max-h-screen overflow-scroll pt-60'
       onClick={() => {
         setIsOpen((prevState) => !prevState);
       }}
     >
       <Card
-        className='min-w-md p-5 cursor-default mt-28'
+        className='min-w-md p-5 cursor-default'
         onClick={(e) => {
           e.stopPropagation();
         }}
@@ -353,6 +353,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                         const v = [
                           ...(inventoryOpts || []),
                           {
+                            id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
                             label: capitalizeFirstLetter(add),
                             value: capitalizeFirstLetter(add),
                           },

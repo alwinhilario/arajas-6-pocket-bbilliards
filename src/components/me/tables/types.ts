@@ -52,8 +52,9 @@ export type TOutList = {
   remarks: string;
 }[];
 
-export type TOptions = { label: string; value: string }[];
+export type TOptions = { id: string; label: string; value: string }[];
 export type TInventoryData = {
+  id: string;
   label: string;
   value: string;
   amount: string;
@@ -62,3 +63,11 @@ export type TInventoryData = {
   remarks: string;
 };
 export type TInventoryList = TInventoryData[];
+
+export type TPendingPaymentData = {
+  name: string;
+  mop: string;
+  items: TOtherOrdersOpts;
+  total: number;
+};
+export type TPendingPaymentOpts = TPendingPaymentData[];

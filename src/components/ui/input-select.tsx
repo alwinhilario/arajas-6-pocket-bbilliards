@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/command";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 
-// 1. Define the new Option type
 export type InputSelectOption = {
   label: string;
   value: string;
@@ -34,8 +33,6 @@ type InputSelectProps = Omit<React.ComponentProps<"input">, "value" | "defaultVa
   className?: string;
   onAddClick?: (arg: string) => void;
 };
-
-// Default options updated to match the new object structure
 
 function InputSelect({
   value: valueProp,
@@ -69,12 +66,11 @@ function InputSelect({
   const onReset = () => {
     setSearch("");
   };
+
   const handleOpenChange = React.useCallback(
     (nextOpen: boolean) => {
       setOpen(nextOpen);
       if (nextOpen) {
-        // Find the label for the current value to pre-fill the search if desired
-        // Or keep it as the raw value if it's a custom created item
         const selected = options.find((opt) => opt.value === value);
         setSearch(selected ? selected.label : value);
       }
@@ -90,7 +86,6 @@ function InputSelect({
     [setValue],
   );
 
-  // 2. Update filtering to check both label and value
   const filteredOptions = React.useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) return options;
@@ -100,7 +95,6 @@ function InputSelect({
     );
   }, [options, search]);
 
-  // 3. Update showCreate to check against objects
   const showCreate =
     allowCreate &&
     search.trim().length > 0 &&
@@ -110,11 +104,6 @@ function InputSelect({
         option.value.toLowerCase() === search.trim().toLowerCase(),
     );
 
-  const keepOpenOnInputInteraction = React.useCallback((event: React.SyntheticEvent) => {
-    event.stopPropagation();
-  }, []);
-
-  // 4. Derive display value so the input shows "Apple" instead of "apple" when selected
   const selectedOption = React.useMemo(() => options.find((opt) => opt.value === value), [options, value]);
   const displayValue = selectedOption ? selectedOption.label : value;
 
@@ -131,7 +120,7 @@ function InputSelect({
               disabled={disabled}
               onChange={(event) => {
                 setValue(event.target.value);
-                setOpen(true); // Open automatically when the user starts typing
+                setOpen(true);
               }}
               {...inputProps}
               readOnly
@@ -147,16 +136,18 @@ function InputSelect({
         data-slot='combobox-content'
         className='w-(--anchor-width) p-0'
         align='start'
+        onOpenAutoFocus={(e) => e.preventDefault()}
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
-        <Command shouldFilter={false}>
+        {/* Pass value="" to stop cmdk from auto-selecting & scrolling list items */}
+        <Command shouldFilter={false} value=''>
           <CommandInput
             placeholder={searchPlaceholder}
             value={search}
             onValueChange={setSearch}
             onReset={onReset}
           />
-          <CommandList>
+          <CommandList className='max-h-[300px] overflow-y-auto'>
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
               {filteredOptions.map((option) => (
@@ -167,7 +158,6 @@ function InputSelect({
                   onSelect={() => handleSelect(option.value)}
                   className='flex items-center justify-between'
                 >
-                  {/* 5. Render label and conditionally render amount */}
                   <span>{option.label}</span>
                   {option.amount !== undefined && (
                     <span className='text-muted-foreground text-xs'>PHP {option.amount}.00</span>

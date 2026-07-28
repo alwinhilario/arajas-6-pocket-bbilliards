@@ -7,9 +7,10 @@ interface IProps {
   mop: string;
   variant?: "default" | "table";
   onPayClick: (arg: string) => void;
+  withBorder?: boolean;
 }
 
-export default function Payment({ mop, onPayClick, variant = "default" }: IProps) {
+export default function Payment({ mop, onPayClick, variant = "default", withBorder = true }: IProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const onPay = (type: string) => {
@@ -37,7 +38,7 @@ export default function Payment({ mop, onPayClick, variant = "default" }: IProps
   return (
     <div className='relative' ref={dropdownRef}>
       {isOpen && (
-        <div className='absolute top-[-100px] left-0 w-full bg-white border-2 border-yellow-500 rounded mt-0.5 z-10 overflow-hidden border-b-2 border-gray-100 rounded-b-none'>
+        <div className='absolute top-[-78px] left-0 w-full bg-white border-2 border-yellow-500 rounded mt-0.5 z-10 overflow-hidden border-b-2 border-gray-100 rounded-b-none'>
           {mop !== "gcash" && (
             <button
               className='p-2 py-1.5 w-full cursor-pointer font-bold bg-[#0479f7] text-white'
@@ -86,6 +87,7 @@ export default function Payment({ mop, onPayClick, variant = "default" }: IProps
         className={clsx(
           variant === "default" ? "w-24" : "min-w-28 flex-1",
           "font-bold cursor-pointer flex items-center gap-2",
+          { "border-0": !withBorder },
           {
             gcash: "bg-[#0479f7] text-white hover:bg-[#0479f7] hover:text-white",
             maya: "bg-black text-[#1aec96] hover:bg-black hover:text-[#1aec96]",

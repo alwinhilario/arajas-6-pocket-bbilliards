@@ -216,9 +216,9 @@ export const TABLE_OPTS = [
   },
 ];
 
-export const INVENTORY_OPTS = [{ label: "Fillet", value: "fillet", amount: 100 }];
+export const INVENTORY_OPTS = [];
 
-export const NAME_OPTS = [{ label: "Kuya omel", value: "Kuya omel" }];
+export const NAME_OPTS = [];
 
 export const HOURLY_RATE = 150;
 export const MID_THRESHOLD_RATE = 9;

@@ -7,7 +7,7 @@ import { Button } from "../../ui/button";
 import { Card } from "../../ui/card";
 import clsx from "clsx";
 import dayjs from "dayjs";
-import { TTableOpts, TTableOptsData } from "./types";
+import { TOtherOrdersOpts, TTableOpts, TTableOptsData } from "./types";
 import { HOURLY_RATE, MID_THRESHOLD_RATE, TABLE_OPTS } from "@/app/constants";
 import { MdEdit } from "react-icons/md";
 import { FaClock, FaExchangeAlt } from "react-icons/fa";
@@ -185,6 +185,18 @@ export default function Table({ data, setIsOpen, setCurrentTable, tables, setTab
                 }),
               );
             }
+
+            const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
+            await storage.setItem("pending_payment", [
+              ...pendingPayment,
+              {
+                ...data,
+                name: data?.label,
+                item: "N/A",
+                amount: parseInt(data?.amount),
+                date: dayjs().format("YYYY/MM/DD hh:mm A"),
+              },
+            ]);
 
             const newTables = tables?.map((item) => {
               const myTable = TABLE_OPTS?.find((x) => x?.value === data?.value);

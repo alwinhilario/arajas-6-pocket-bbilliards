@@ -34,7 +34,7 @@ export default function OutList() {
   return (
     <div>
       <Card className='p-5 w-full'>
-        <div className='flex-1 text-lg font-bold'>Out </div>
+        <div className='flex-1 text-lg font-bold'>Expenses</div>
 
         <div>
           <div className='space-y-1'>
@@ -82,7 +82,7 @@ export default function OutList() {
                   }}
                 />
                 <Input
-                  placeholder='Remarks'
+                  placeholder='Remarks...'
                   className='w-60'
                   value={item?.remarks}
                   onChange={(v) => {

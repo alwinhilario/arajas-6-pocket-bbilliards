@@ -72,6 +72,9 @@ export default function Home() {
       <br />
 
       <Version />
+      <br />
+      <br />
+      <br />
     </div>
   );
 }

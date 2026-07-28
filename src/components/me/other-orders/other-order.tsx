@@ -33,6 +33,12 @@ export default function OtherOrder({
   setNameOpts: React.Dispatch<React.SetStateAction<TOptions>>;
   setInventoryOpts: React.Dispatch<React.SetStateAction<TInventoryList>>;
 }) {
+  // const [state, setState] = React.useState(data);
+
+  // React.useEffect(() => {
+  //   setState(data);
+  // }, [JSON.stringify(data)]);
+
   return (
     <div className='flex items-center gap-2'>
       <InputSelect
@@ -44,6 +50,7 @@ export default function OtherOrder({
           const v = [
             ...(nameOpts || []),
             {
+              id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
               label: capitalizeFirstLetter(add),
               value: capitalizeFirstLetter(add),
             },
@@ -104,6 +111,7 @@ export default function OtherOrder({
           const v = [
             ...(inventoryOpts || []),
             {
+              id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
               label: capitalizeFirstLetter(add),
               value: capitalizeFirstLetter(add),
             },
@@ -231,6 +239,56 @@ export default function OtherOrder({
           );
         }}
       />
+      <Input
+        placeholder='Remarks...'
+        className='w-60'
+        value={data?.remarks}
+        onChange={(v) => {
+          const xx = async (remarks: string) => {
+            const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
+            const dataExists = !isEmpty(pendingPayment?.find((x) => x?.id === data?.id));
+            await storage.setItem(
+              "pending_payment",
+              dataExists
+                ? pendingPayment?.map((x) => {
+                    if (x?.id === data?.id) {
+                      return {
+                        ...data,
+                        remarks,
+                        date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                      };
+                    }
+
+                    return x;
+                  })
+                : [
+                    ...pendingPayment,
+                    {
+                      ...data,
+                      remarks,
+                      date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                    },
+                  ],
+            );
+          };
+
+          setOtherOrders((prevState) =>
+            prevState?.map((x, y) => {
+              if (y === key) {
+                xx(v.target.value);
+
+                return {
+                  ...x,
+                  remarks: v.target.value,
+                  date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                };
+              }
+
+              return x;
+            }),
+          );
+        }}
+      />
       <Input value={data?.date} placeholder='Date' className='w-40' disabled />
 
       <Payment
@@ -288,13 +346,17 @@ export default function OtherOrder({
           <Button
             variant={"outline"}
             className='w-20 font-bold cursor-pointer'
-            onClick={async () => {
-              const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
+            onClick={() => {
+              const xx = async () => {
+                const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
 
-              await storage.setItem(
-                "pending_payment",
-                pendingPayment?.filter((x) => x?.id === data?.id),
-              );
+                await storage.setItem(
+                  "pending_payment",
+                  pendingPayment?.filter((x) => x?.id !== data?.id),
+                );
+              };
+
+              xx();
 
               setOtherOrders((prevState) =>
                 prevState?.map((x, y) => {
@@ -304,6 +366,7 @@ export default function OtherOrder({
                       amount: "",
                       date: "",
                       name: "",
+                      remarks: "",
                       mop: "",
                       item: "",
                     };
@@ -328,7 +391,7 @@ export default function OtherOrder({
 
             await storage.setItem(
               "pending_payment",
-              pendingPayment?.filter((x) => x?.id === data?.id),
+              pendingPayment?.filter((x) => x?.id !== data?.id),
             );
 
             setOtherOrders((prevState) => prevState?.filter((x, y) => y !== key));
