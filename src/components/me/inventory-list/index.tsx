@@ -10,6 +10,7 @@ import { MdEdit } from "react-icons/md";
 import { Input } from "@/components/ui/input";
 import { IoClose } from "react-icons/io5";
 import { Button } from "@/components/ui/button";
+import dayjs from "dayjs";
 
 export default function InventoryList() {
   const [otherOrders, setOtherOrders] = React.useState<TInventoryList>([]);
@@ -51,7 +52,14 @@ export default function InventoryList() {
             className='flex items-center gap-1 cursor-pointer'
             onClick={async () => {
               const il = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
-              await storage.setItem("inventory_list", [...il, INVENTORY_OPTS[0]]);
+              await storage.setItem("inventory_list", [
+                ...il,
+                {
+                  label: "",
+                  value: "",
+                  id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
+                },
+              ]);
             }}
           >
             <FaPlus className='h-5 w-5' />
@@ -162,7 +170,7 @@ const Inventory = ({ index, user }: IInventoryProps) => {
               />
             </div>
           ) : (
-            user.label || "--"
+            state?.label || "--"
           )}
         </TableCell>
         <TableCell>
@@ -182,7 +190,7 @@ const Inventory = ({ index, user }: IInventoryProps) => {
               />
             </div>
           ) : (
-            user.amount || "--"
+            state?.amount || "--"
           )}
         </TableCell>
         <TableCell>
@@ -202,7 +210,7 @@ const Inventory = ({ index, user }: IInventoryProps) => {
               />
             </div>
           ) : (
-            user.total_stock || "--"
+            state?.total_stock || "--"
           )}
         </TableCell>
         <TableCell>
@@ -222,7 +230,7 @@ const Inventory = ({ index, user }: IInventoryProps) => {
               />
             </div>
           ) : (
-            user.remaining || "--"
+            state?.remaining || "--"
           )}
         </TableCell>
         <TableCell>
@@ -242,7 +250,7 @@ const Inventory = ({ index, user }: IInventoryProps) => {
               />
             </div>
           ) : (
-            user.remarks || "--"
+            state?.remarks || "--"
           )}
         </TableCell>
 

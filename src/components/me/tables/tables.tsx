@@ -8,6 +8,7 @@ import { TTableOpts, TTableOptsData } from "./types";
 import OtherOrders from "../other-orders";
 import { isEmpty } from "lodash";
 import { INVENTORY_OPTS, NAME_OPTS, OTHER_ORDERS, OUT_LIST, TABLE_OPTS } from "@/app/constants";
+import dayjs from "dayjs";
 
 export default function Tables() {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -18,7 +19,14 @@ export default function Tables() {
     const load = async () => {
       const data = ((await storage.getItem("tables")) || TABLE_OPTS) as TTableOpts;
       // const data1 = await storage.setItem("tables", TABLE_OPTS);
-      // const data2 = await storage.setItem("inventory_list", INVENTORY_OPTS);
+      // const data2 = await storage.setItem("inventory_list", [
+      //   {
+      //     id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
+      //     label: "Fillet",
+      //     value: "fillet",
+      //     amount: "100",
+      //   },
+      // ]);
       // const data3 = await storage.setItem("name_list", NAME_OPTS);
       // const data4 = await storage.setItem("other_orders", OTHER_ORDERS);
       // const data5 = await storage.setItem("out_list", OUT_LIST);

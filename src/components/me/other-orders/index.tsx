@@ -27,6 +27,24 @@ export default function OtherOrders() {
   }, []);
 
   React.useEffect(() => {
+    const t = setInterval(() => {
+      const update = async () => {
+        const data1 = ((await storage.getItem("name_list")) || NAME_OPTS) as TOptions;
+        const data2 = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
+
+        setNameOpts(data1);
+        setInventoryOpts(data2);
+      };
+
+      update();
+    }, 1000);
+
+    return () => {
+      clearInterval(t);
+    };
+  }, []);
+
+  React.useEffect(() => {
     if (!Array.isArray(otherOrders) || (otherOrders || [])?.length <= 0) return;
 
     const update = async () => {
