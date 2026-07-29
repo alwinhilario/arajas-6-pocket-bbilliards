@@ -39,6 +39,8 @@ export default function OtherOrder({
   //   setState(data);
   // }, [JSON.stringify(data)]);
 
+  console.log({ inventoryOpts });
+
   return (
     <div className='flex items-center gap-2'>
       <InputSelect
@@ -90,7 +92,7 @@ export default function OtherOrder({
           // @ts-expect-error
           setOtherOrders((prevState) =>
             prevState?.map((x, y) => {
-              if (y === key) {
+              if (x?.id === data?.id) {
                 return {
                   ...x,
                   name: v,
@@ -168,7 +170,7 @@ export default function OtherOrder({
             prevState?.map((x, y) => {
               const getAmount = inventoryOpts?.find((x) => x?.value === v);
 
-              if (y === key) {
+              if (x?.id === data?.id) {
                 return {
                   ...x,
                   item: v,
@@ -224,7 +226,7 @@ export default function OtherOrder({
 
           setOtherOrders((prevState) =>
             prevState?.map((x, y) => {
-              if (y === key) {
+              if (x?.id === data?.id) {
                 xx(v.target.value);
 
                 return {
@@ -274,7 +276,7 @@ export default function OtherOrder({
 
           setOtherOrders((prevState) =>
             prevState?.map((x, y) => {
-              if (y === key) {
+              if (x?.id === data?.id) {
                 xx(v.target.value);
 
                 return {
@@ -310,7 +312,7 @@ export default function OtherOrder({
 
           setOtherOrders((prevState) => {
             const v = prevState?.map((x, y) => {
-              if (y === key) {
+              if (x?.id === data?.id) {
                 return {
                   ...x,
                   mop: type,
@@ -330,7 +332,7 @@ export default function OtherOrder({
 
       {otherOrders?.length === key + 1 && (
         <div className='flex items-center gap-0.5'>
-          <Button
+          {/* <Button
             className='w-20 font-bold cursor-pointer'
             onClick={async () => {
               const v = {
@@ -342,7 +344,7 @@ export default function OtherOrder({
             }}
           >
             <span>Add</span>
-          </Button>
+          </Button> */}
           <Button
             variant={"outline"}
             className='w-20 font-bold cursor-pointer'
@@ -394,7 +396,7 @@ export default function OtherOrder({
               pendingPayment?.filter((x) => x?.id !== data?.id),
             );
 
-            setOtherOrders((prevState) => prevState?.filter((x, y) => y !== key));
+            setOtherOrders((prevState) => prevState?.filter((x, y) => x?.id === data?.id));
           }}
         >
           <span>Remove</span>

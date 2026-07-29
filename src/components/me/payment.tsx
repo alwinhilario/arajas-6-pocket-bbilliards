@@ -75,7 +75,7 @@ export default function Payment({ mop, onPayClick, variant = "default", withBord
               type='button'
               onClick={() => onPay("")}
             >
-              Not Paid
+              MOP
             </button>
           )}
         </div>
@@ -106,7 +106,7 @@ export default function Payment({ mop, onPayClick, variant = "default", withBord
             gcash: "Gcash",
             maya: "Maya",
             cash: "Cash",
-          }?.[mop] || "Not Paid"}
+          }?.[mop] || "MOP"}
         </div>
         <div>
           <IoChevronDownOutline className='h-4 w-4' />

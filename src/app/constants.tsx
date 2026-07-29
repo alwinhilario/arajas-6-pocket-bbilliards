@@ -14,6 +14,7 @@ export const OTHER_ORDERS = [
 
 export const OUT_LIST = [
   {
+    id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
     label: "",
     amount: "",
     date: "",

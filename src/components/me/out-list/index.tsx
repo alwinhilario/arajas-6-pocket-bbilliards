@@ -6,9 +6,13 @@ import { OUT_LIST } from "@/app/constants";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import dayjs from "dayjs";
+import { FaPlus } from "react-icons/fa";
+import { filterObject } from "@/lib/utils";
+import { SESSION_CONTEXT } from "@/app/provider";
 
 export default function OutList() {
   const [otherOrders, setOtherOrders] = React.useState<TOutList>([]);
+  const { value } = React.useContext(SESSION_CONTEXT);
 
   React.useEffect(() => {
     const load = async () => {
@@ -31,14 +35,33 @@ export default function OutList() {
 
   const totalAmount = otherOrders?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
 
+  const filtered = filterObject({
+    object: otherOrders,
+    filter_from: value?.date?.date_from,
+    filter_to: value?.date?.date_to,
+    propertyName: "date",
+  });
+
   return (
     <div>
       <Card className='p-5 w-full'>
-        <div className='flex-1 text-lg font-bold'>Expenses</div>
+        <div className='flex gap-2'>
+          <div className='text-lg font-bold'>Expenses </div>
+          <Button
+            className='w-20 font-bold cursor-pointer'
+            onClick={() => {
+              setOtherOrders((prevState) => [...prevState, OUT_LIST[0]]);
+            }}
+          >
+            <FaPlus className='h-5 w-5' />
+
+            <div>Add</div>
+          </Button>
+        </div>
 
         <div>
           <div className='space-y-1'>
-            {otherOrders?.map((item, key) => (
+            {filtered?.map((item, key) => (
               <div className='flex gap-2' key={key}>
                 <Input
                   placeholder='Label'
@@ -47,7 +70,7 @@ export default function OutList() {
                   onChange={(v) => {
                     setOtherOrders((prevState) =>
                       prevState?.map((x, y) => {
-                        if (y === key) {
+                        if (item?.id === x?.id) {
                           return {
                             ...x,
                             label: v.target.value,
@@ -68,7 +91,7 @@ export default function OutList() {
                   onChange={(v) => {
                     setOtherOrders((prevState) =>
                       prevState?.map((x, y) => {
-                        if (y === key) {
+                        if (item?.id === x?.id) {
                           return {
                             ...x,
                             amount: v.target.value,
@@ -88,7 +111,7 @@ export default function OutList() {
                   onChange={(v) => {
                     setOtherOrders((prevState) =>
                       prevState?.map((x, y) => {
-                        if (y === key) {
+                        if (item?.id === x?.id) {
                           return {
                             ...x,
                             remarks: v.target.value,
@@ -105,14 +128,6 @@ export default function OutList() {
 
                 {otherOrders?.length === key + 1 && (
                   <div className='flex items-center gap-0.5'>
-                    <Button
-                      className='w-20 font-bold cursor-pointer'
-                      onClick={() => {
-                        setOtherOrders((prevState) => [...prevState, OUT_LIST[0]]);
-                      }}
-                    >
-                      <span>Add</span>
-                    </Button>
                     <Button
                       variant={"outline"}
                       className='w-20 font-bold cursor-pointer'
@@ -144,7 +159,7 @@ export default function OutList() {
                     variant='destructive'
                     className='w-20 font-bold cursor-pointer'
                     onClick={() => {
-                      setOtherOrders((prevState) => prevState?.filter((x, y) => y !== key));
+                      setOtherOrders((prevState) => prevState?.filter((x, y) => item?.id === x?.id));
                     }}
                   >
                     <span>Remove</span>

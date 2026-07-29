@@ -47,9 +47,9 @@ export default function InventoryList() {
     <div>
       <Card className='pt-0'>
         <div className='flex gap-2  p-5 pb-0'>
-          <div className='text-lg font-bold flex-1'>Inventory </div>
+          <div className='text-lg font-bold'>Inventory </div>
           <Button
-            className='flex items-center gap-1 cursor-pointer'
+            className='flex items-center gap-1 cursor-pointer px-4'
             onClick={async () => {
               const il = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
               await storage.setItem("inventory_list", [

@@ -5,12 +5,17 @@ import { TInventoryList, TOptions, TOtherOrdersOpts } from "../tables/types";
 
 import OtherOrder from "./other-order";
 import { INVENTORY_OPTS, NAME_OPTS, OTHER_ORDERS } from "@/app/constants";
-import { isEmpty } from "lodash";
+import { filterObject } from "@/lib/utils";
+import { SESSION_CONTEXT } from "@/app/provider";
+import { Button } from "@/components/ui/button";
+import { FaPlus } from "react-icons/fa";
+import dayjs from "dayjs";
 
 export default function OtherOrders() {
   const [otherOrders, setOtherOrders] = React.useState<TOtherOrdersOpts>([]);
   const [nameOpts, setNameOpts] = React.useState<TOptions>([]);
   const [inventoryOpts, setInventoryOpts] = React.useState<TOptions>([]);
+  const { value } = React.useContext(SESSION_CONTEXT);
 
   React.useEffect(() => {
     const load = async () => {
@@ -55,26 +60,53 @@ export default function OtherOrders() {
 
   const totalAmount = otherOrders?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
 
+  const filtered = filterObject({
+    object: otherOrders,
+    filter_from: value?.date?.date_from,
+    filter_to: value?.date?.date_to,
+    propertyName: "date",
+  });
+
   return (
     <div>
       <Card className='p-5 w-full'>
-        <div className='flex-1 text-lg font-bold'>Others</div>
+        <div className='flex gap-2'>
+          <div className='text-lg font-bold'>Others </div>
+          <Button
+            className='w-20 font-bold cursor-pointer'
+            onClick={async () => {
+              const v = {
+                ...OTHER_ORDERS[0],
+                id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSS"),
+              };
+
+              setOtherOrders((prevState) => [...prevState, v]);
+            }}
+          >
+            <FaPlus className='h-5 w-5' />
+            <div>Add</div>
+          </Button>
+        </div>
 
         <div>
           <div className='space-y-1'>
-            {otherOrders?.map((item, key) => (
-              <OtherOrder
-                index={key}
-                key={key}
-                data={item}
-                setOtherOrders={setOtherOrders}
-                otherOrders={otherOrders}
-                nameOpts={nameOpts}
-                inventoryOpts={inventoryOpts}
-                setNameOpts={setNameOpts}
-                setInventoryOpts={setInventoryOpts}
-              />
-            ))}
+            {filtered?.map((item, key) => {
+              console.log(key, item);
+
+              return (
+                <OtherOrder
+                  index={key}
+                  key={key}
+                  data={item}
+                  setOtherOrders={setOtherOrders}
+                  otherOrders={otherOrders}
+                  nameOpts={nameOpts}
+                  inventoryOpts={inventoryOpts}
+                  setNameOpts={setNameOpts}
+                  setInventoryOpts={setInventoryOpts}
+                />
+              );
+            })}
           </div>
         </div>
 

@@ -22,13 +22,21 @@ dayjs.extend(customParseFormat);
 
 interface IProps {
   data: TTableOptsData;
-  tables: TTableOpts;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setTables: React.Dispatch<React.SetStateAction<TTableOpts>>;
-  setCurrentTable: React.Dispatch<React.SetStateAction<TTableOptsData>>;
+  tables?: TTableOpts;
+  isView?: boolean;
+  setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  setTables?: React.Dispatch<React.SetStateAction<TTableOpts>>;
+  setCurrentTable?: React.Dispatch<React.SetStateAction<TTableOptsData>>;
 }
 
-export default function Table({ data, setIsOpen, setCurrentTable, tables, setTables }: IProps) {
+export default function Table({
+  isView = false,
+  data,
+  setIsOpen,
+  setCurrentTable,
+  tables,
+  setTables,
+}: IProps) {
   const [isOpenTimeout, setIsOpenTimeout] = React.useState(false);
   const [isOpenTransfer, setIsOpenTransfer] = React.useState(false);
 
@@ -186,17 +194,26 @@ export default function Table({ data, setIsOpen, setCurrentTable, tables, setTab
               );
             }
 
-            const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
-            await storage.setItem("pending_payment", [
-              ...pendingPayment,
-              {
-                ...data,
-                name: data?.label,
-                item: "N/A",
-                amount: parseInt(data?.amount),
-                date: dayjs().format("YYYY/MM/DD hh:mm A"),
-              },
-            ]);
+            const mopTotalAmount = dataCb?.mop?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
+
+            console.log(parseInt(data?.amount || "0"), mopTotalAmount);
+
+            if (parseInt(data?.amount || "0") > mopTotalAmount) {
+              const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
+              await storage.setItem("pending_payment", [
+                ...pendingPayment,
+                {
+                  ...data,
+                  name: data?.label,
+                  value: data?.label,
+                  item: "N/A",
+                  amount: parseInt(data?.amount || "0") - mopTotalAmount,
+                  date: dayjs().format("YYYY/MM/DD hh:mm A"),
+                  remarks: dataCb?.remarks,
+                  mop: "",
+                },
+              ]);
+            }
 
             const newTables = tables?.map((item) => {
               const myTable = TABLE_OPTS?.find((x) => x?.value === data?.value);
@@ -260,15 +277,17 @@ export default function Table({ data, setIsOpen, setCurrentTable, tables, setTab
         <div className='flex items-center gap-2 p-5 pb-0 pt-2 '>
           <div className='flex-1 text-2xl font-bold'>{data.label}</div>
 
-          <div className='text-sm'>
-            {data?.is_open_time ? (
-              <div className='font-bold text-yellow-600'>OPEN TIME</div>
-            ) : (
-              <>
-                Remaining Time: <span className='font-semibold'>{remaining}</span>
-              </>
-            )}
-          </div>
+          {!isView && (
+            <div className='text-sm'>
+              {data?.is_open_time ? (
+                <div className='font-bold text-yellow-600'>OPEN TIME</div>
+              ) : (
+                <>
+                  Remaining Time: <span className='font-semibold'>{remaining}</span>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <hr />
@@ -340,56 +359,57 @@ export default function Table({ data, setIsOpen, setCurrentTable, tables, setTab
             </div>
           </div>
 
-          <div className='flex flex-col'>
-            <div className='flex gap-2'>
-              <div className='relative flex-1'>
-                <Button
-                  size='llg'
-                  className={clsx("w-full cursor-pointer font-bold", {})}
-                  onClick={() => {
-                    setCurrentTable(data);
-                    setIsOpen((prevState) => !prevState);
-                  }}
-                >
-                  {(data?.in || data?.out) && <MdEdit className='h-3 w-3' />}
-                  {data?.in || data?.out ? "Manage" : "Time In"}
-                </Button>
-              </div>
-
-              {(data?.in || data?.out) && (
-                <>
+          {!isView && (
+            <div className='flex flex-col'>
+              <div className='flex gap-2'>
+                <div className='relative flex-1'>
                   <Button
                     size='llg'
-                    className={clsx("flex-1 cursor-pointer font-bold", {})}
-                    variant={"outline"}
-                    onClick={async () => {
-                      // if (!data?.out) {
-
-                      //   return;
-                      // }
-
-                      setIsOpenTimeout((prevState) => !prevState);
-                    }}
-                  >
-                    <FaClock className='h-3 w-3' />
-                    {!data?.is_open_time ? "Time Out" : "Calculate"}
-                  </Button>
-
-                  {/* {!(d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out)) && ( */}
-                  <Button
-                    size='llg'
-                    className={clsx("flex-1 cursor-pointer font-bold", {})}
-                    variant={"outline"}
+                    className={clsx("w-full cursor-pointer font-bold", {})}
                     onClick={() => {
-                      setIsOpenTransfer((prevState) => !prevState);
+                      setCurrentTable(data);
+                      setIsOpen((prevState) => !prevState);
                     }}
                   >
-                    <FaExchangeAlt className='h-3 w-3' />
-                    Transfer
+                    {(data?.in || data?.out) && <MdEdit className='h-3 w-3' />}
+                    {data?.in || data?.out ? "Manage" : "Time In"}
                   </Button>
-                  {/* )} */}
+                </div>
 
-                  {/* {d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out) && (
+                {(data?.in || data?.out) && (
+                  <>
+                    <Button
+                      size='llg'
+                      className={clsx("flex-1 cursor-pointer font-bold", {})}
+                      variant={"outline"}
+                      onClick={async () => {
+                        // if (!data?.out) {
+
+                        //   return;
+                        // }
+
+                        setIsOpenTimeout((prevState) => !prevState);
+                      }}
+                    >
+                      <FaClock className='h-3 w-3' />
+                      {!data?.is_open_time ? "Time Out" : "Calculate"}
+                    </Button>
+
+                    {/* {!(d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out)) && ( */}
+                    <Button
+                      size='llg'
+                      className={clsx("flex-1 cursor-pointer font-bold", {})}
+                      variant={"outline"}
+                      onClick={() => {
+                        setIsOpenTransfer((prevState) => !prevState);
+                      }}
+                    >
+                      <FaExchangeAlt className='h-3 w-3' />
+                      Transfer
+                    </Button>
+                    {/* )} */}
+
+                    {/* {d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out) && (
                     <Payment
                       mop={data?.mop}
                       onPayClick={async (type) => {
@@ -410,10 +430,11 @@ export default function Table({ data, setIsOpen, setCurrentTable, tables, setTab
                       variant='table'
                     />
                   )} */}
-                </>
-              )}
+                  </>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </Card>
     </>

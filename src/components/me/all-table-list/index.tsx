@@ -4,6 +4,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import storage from "@/lib/localforage";
 import { TTableOpts } from "../tables/types";
 import { Badge } from "@/components/ui/badge";
+import { filterObject } from "@/lib/utils";
+import { SESSION_CONTEXT } from "@/app/provider";
+import dayjs from "dayjs";
 
 export default function AllTableList() {
   const [tables, setTables] = React.useState<TTableOpts>([]);
@@ -35,6 +38,14 @@ export default function AllTableList() {
     };
   }, []);
 
+  const { value } = React.useContext(SESSION_CONTEXT);
+  const filtered = filterObject({
+    object: tables,
+    filter_from: value?.date?.date_from,
+    filter_to: value?.date?.date_to,
+    propertyName: "in",
+  });
+
   return (
     <Card className='pt-0'>
       <div className='text-lg font-bold p-5 pb-0'>Table History </div>
@@ -53,12 +64,16 @@ export default function AllTableList() {
         </TableHeader>
 
         <TableBody>
-          {tables?.length > 0 ? (
-            tables.map((user, key) => (
+          {filtered?.length > 0 ? (
+            filtered.map((user, key) => (
               <TableRow key={key}>
                 <TableCell className='font-medium'>{user.label}</TableCell>
-                <TableCell>{user.in || "--"}</TableCell>
-                <TableCell>{user.out || "--"}</TableCell>
+                <TableCell>
+                  {dayjs(user.in)?.isValid() ? dayjs(user.in).format("MMM DD, YYYY hh:mm A") : "--"}
+                </TableCell>
+                <TableCell>
+                  {dayjs(user.out)?.isValid() ? dayjs(user.out).format("MMM DD, YYYY hh:mm A") : "--"}
+                </TableCell>
                 <TableCell className='capitalize break-all'>
                   {user.mop?.some((x) => parseInt(x?.amount || "0") > 0)
                     ? user?.mop?.map((y) => `${y?.label} (PHP ${y?.amount}.00)`)?.join("/")
