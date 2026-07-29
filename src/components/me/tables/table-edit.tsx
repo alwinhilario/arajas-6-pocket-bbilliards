@@ -303,9 +303,59 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
               >
                 3 hours
               </Button>
+            </div>
+            <div className='flex gap-2 !-mt-1.5'>
               <Button
                 // size='sm'
-                className={"cursor-pointer bg-gray-700"}
+                className={"cursor-pointer bg-gray-500"}
+                onClick={() => {
+                  setState((prevState) => {
+                    const newTime = dayjs(prevState?.out).add(2, "minute").format("YYYY/MM/DD HH:mm:ss");
+
+                    return {
+                      ...prevState,
+                      out: newTime,
+                    };
+                  });
+                }}
+              >
+                +2 minutes
+              </Button>
+              <Button
+                // size='sm'
+                className={"cursor-pointer bg-gray-500"}
+                onClick={() => {
+                  setState((prevState) => {
+                    const newTime = dayjs(prevState?.out).add(3, "minute").format("YYYY/MM/DD HH:mm:ss");
+
+                    return {
+                      ...prevState,
+                      out: newTime,
+                    };
+                  });
+                }}
+              >
+                +3 minutes
+              </Button>
+              <Button
+                // size='sm'
+                className={"cursor-pointer bg-gray-500"}
+                onClick={() => {
+                  setState((prevState) => {
+                    const newTime = dayjs(prevState?.out).add(5, "minute").format("YYYY/MM/DD HH:mm:ss");
+
+                    return {
+                      ...prevState,
+                      out: newTime,
+                    };
+                  });
+                }}
+              >
+                +5 minutes
+              </Button>
+              <Button
+                // size='sm'
+                className={"cursor-pointer bg-gray-500"}
                 onClick={() => {
                   setState((prevState) => {
                     const newTime = dayjs(prevState?.out ? prevState?.out : prevState?.in)
