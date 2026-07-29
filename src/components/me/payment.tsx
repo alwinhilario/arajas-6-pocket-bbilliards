@@ -8,9 +8,16 @@ interface IProps {
   variant?: "default" | "table";
   onPayClick: (arg: string) => void;
   withBorder?: boolean;
+  className: string;
 }
 
-export default function Payment({ mop, onPayClick, variant = "default", withBorder = true }: IProps) {
+export default function Payment({
+  className = "",
+  mop,
+  onPayClick,
+  variant = "default",
+  withBorder = true,
+}: IProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const onPay = (type: string) => {
@@ -86,7 +93,7 @@ export default function Payment({ mop, onPayClick, variant = "default", withBord
         size={"xl"}
         className={clsx(
           variant === "default" ? "w-24" : "min-w-28 flex-1",
-          "font-bold cursor-pointer flex items-center gap-2",
+          "font-bold cursor-pointer flex items-center gap-2 rounded",
           { "border-0": !withBorder },
           {
             gcash: "bg-[#0479f7] text-white hover:bg-[#0479f7] hover:text-white",
@@ -96,6 +103,7 @@ export default function Payment({ mop, onPayClick, variant = "default", withBord
           {
             "rounded-t-none border-yellow-500 border-2 border-t-0": isOpen,
           },
+          className,
         )}
         onClick={() => {
           setIsOpen(!isOpen);

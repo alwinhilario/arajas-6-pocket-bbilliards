@@ -5,6 +5,7 @@ import { Card } from "../../ui/card";
 import { TTableOptsData } from "./types";
 import Payment from "../payment";
 import { Textarea } from "@/components/ui/textarea";
+import clsx from "clsx";
 
 interface IProps {
   data: TTableOptsData;
@@ -59,85 +60,103 @@ export default function TableTimeout({ data, setIsOpen, onConfirm }: IProps) {
               <div className='flex flex-col gap-2 flex-1'>
                 {state?.mop?.map((item, key) => (
                   <div className='flex items-center gap-2' key={key}>
-                    <Input
-                      placeholder='Amount'
-                      className='!w-48'
-                      type='number'
-                      value={item?.amount}
-                      onChange={(v) => {
-                        // @ts-expect-error
-                        setState((prevState) => ({
-                          ...prevState,
-                          mop: prevState?.mop?.map((x, y) => {
-                            if (y === key) {
-                              return {
-                                ...x,
-                                amount: v.target.value,
-                              };
-                            }
-
-                            return x;
-                          }),
-                        }));
-                      }}
-                    />
-                    <Payment
-                      mop={item?.label}
-                      onPayClick={(type) => {
-                        // @ts-expect-error
-                        setState((prevState) => ({
-                          ...prevState,
-                          mop: prevState?.mop?.map((x, y) => {
-                            if (y === key) {
-                              return {
-                                ...x,
-                                label: type,
-                              };
-                            }
-
-                            return x;
-                          }),
-                        }));
-                      }}
-                    />
-
-                    {state?.mop?.length === key + 1 && (
-                      <Button
-                        className='w-20 font-bold cursor-pointer'
-                        onClick={() => {
+                    <div className='flex flex-col'>
+                      <Input
+                        placeholder='Amount'
+                        className='!w-48'
+                        type='number'
+                        value={item?.amount}
+                        onChange={(v) => {
                           // @ts-expect-error
                           setState((prevState) => ({
                             ...prevState,
-                            mop: [
-                              ...prevState?.mop,
-                              {
-                                label: "",
-                                amount: "",
-                                remarks: "",
-                              },
-                            ],
+                            mop: prevState?.mop?.map((x, y) => {
+                              if (y === key) {
+                                return {
+                                  ...x,
+                                  amount: v.target.value,
+                                };
+                              }
+
+                              return x;
+                            }),
                           }));
                         }}
-                      >
-                        <span>Add</span>
-                      </Button>
-                    )}
-                    {state?.mop?.length !== key + 1 && (
-                      <Button
-                        variant='destructive'
-                        size={"xl"}
-                        className='w-20 font-bold cursor-pointer'
-                        onClick={() => {
+                      />
+                      <small className='pt-px text-red-500 opacity-0'>RA</small>
+                    </div>
+                    <div className='flex flex-col'>
+                      <Payment
+                        mop={item?.label}
+                        className={clsx({
+                          "border-red-500":
+                            parseInt(item?.amount || "0") > 0 && (item?.label || "")?.length <= 0,
+                        })}
+                        onPayClick={(type) => {
                           // @ts-expect-error
                           setState((prevState) => ({
                             ...prevState,
-                            mop: prevState?.mop?.filter((x, y) => y !== key),
+                            mop: prevState?.mop?.map((x, y) => {
+                              if (y === key) {
+                                return {
+                                  ...x,
+                                  label: type,
+                                };
+                              }
+
+                              return x;
+                            }),
                           }));
                         }}
-                      >
-                        <span>Remove</span>
-                      </Button>
-                    )}
+                      />
+                      {parseInt(item?.amount || "0") > 0 && (item?.label || "")?.length <= 0 ? (
+                        <small className='pt-px text-red-500'>MOP is required.</small>
+                      ) : (
+                        <small className='pt-px text-red-500 opacity-0'>RA</small>
+                      )}
+                    </div>
+
+                    <div className='flex flex-col'>
+                      {state?.mop?.length === key + 1 && (
+                        <Button
+                          size={"xl"}
+                          className='w-20 font-bold cursor-pointer'
+                          onClick={() => {
+                            // @ts-expect-error
+                            setState((prevState) => ({
+                              ...prevState,
+                              mop: [
+                                ...prevState?.mop,
+                                {
+                                  label: "",
+                                  amount: "",
+                                  remarks: "",
+                                },
+                              ],
+                            }));
+                          }}
+                        >
+                          <span>Add</span>
+                        </Button>
+                      )}
+                      {state?.mop?.length !== key + 1 && (
+                        <Button
+                          variant='destructive'
+                          size={"xl"}
+                          className='w-20 font-bold cursor-pointer'
+                          onClick={() => {
+                            // @ts-expect-error
+                            setState((prevState) => ({
+                              ...prevState,
+                              mop: prevState?.mop?.filter((x, y) => y !== key),
+                            }));
+                          }}
+                        >
+                          <span>Remove</span>
+                        </Button>
+                      )}
+                      <small className='pt-px text-red-500 opacity-0'>RA</small>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -171,7 +190,9 @@ export default function TableTimeout({ data, setIsOpen, onConfirm }: IProps) {
             onClick={() => {
               onConfirm(state);
             }}
-            // disabled={!state?.mop?.some((x) => x?.amount)}
+            disabled={state?.mop?.some(
+              (x) => parseInt(x?.amount || "0") > 0 && (x?.label || "")?.length <= 0,
+            )}
           >
             Confirm
           </Button>

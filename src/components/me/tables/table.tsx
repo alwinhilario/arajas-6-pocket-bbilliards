@@ -269,9 +269,10 @@ export default function Table({
             d.minutes() < 15 &&
             d.minutes() > 0 &&
             (data?.in || data?.out) &&
-            !data?.is_open_time,
+            !data?.is_open_time &&
+            !isView,
           "bg-red-100/60 border-red-500 border-2":
-            d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out) && !data?.is_open_time,
+            d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out) && !data?.is_open_time && !isView,
         })}
       >
         <div className='flex items-center gap-2 p-5 pb-0 pt-2 '>
