@@ -69,27 +69,34 @@ export default function AllTableList() {
               <TableRow key={key}>
                 <TableCell className='font-medium'>{user.label}</TableCell>
                 <TableCell>
-                  {dayjs(user.in)?.isValid() ? dayjs(user.in).format("MMM DD, YYYY hh:mm A") : "--"}
+                  <div className='py-3'>
+                    {dayjs(user.in)?.isValid() ? dayjs(user.in).format("MMM DD, YYYY hh:mm A") : "--"}
+                  </div>
                 </TableCell>
                 <TableCell>
-                  {dayjs(user.out)?.isValid() ? dayjs(user.out).format("MMM DD, YYYY hh:mm A") : "--"}
+                  <div className='py-3'>
+                    {dayjs(user.out)?.isValid() ? dayjs(user.out).format("MMM DD, YYYY hh:mm A") : "--"}
+                  </div>
                 </TableCell>
                 <TableCell className='capitalize break-all'>
-                  {user.mop?.some((x) => parseInt(x?.amount || "0") > 0)
-                    ? user?.mop?.map((y) => `${y?.label} (PHP ${y?.amount}.00)`)?.join("/")
-                    : "--"}
-                  <br />
+                  <div className='py-3'>
+                    {user.mop?.some((x) => parseInt(x?.amount || "0") > 0)
+                      ? user?.mop?.map((y) => `${y?.label} (PHP ${y?.amount}.00)`)?.join("/")
+                      : "--"}
+                  </div>
                 </TableCell>
                 <TableCell>{user.amount?.length > 0 ? `PHP ${user.amount}.00` : "--"}</TableCell>
                 <TableCell>
-                  {{
-                    Active: <Badge variant={"success"}>{user.status}</Badge>,
-                    "Timed out": (
-                      <Badge className='text-gray-600' variant={"secondary"}>
-                        {user.status}
-                      </Badge>
-                    ),
-                  }?.[user.status] || "--"}
+                  <div className='py-3'>
+                    {{
+                      Active: <Badge variant={"success"}>{user.status}</Badge>,
+                      "Timed out": (
+                        <Badge className='text-gray-600' variant={"secondary"}>
+                          {user.status}
+                        </Badge>
+                      ),
+                    }?.[user.status] || "--"}
+                  </div>
                 </TableCell>
                 <TableCell>{user.remarks || "--"}</TableCell>
               </TableRow>
