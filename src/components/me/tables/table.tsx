@@ -318,7 +318,7 @@ export default function Table({
               {totalOthers > 0
                 ? data?.others?.map((item, key) => (
                     <div className='flex gap-2' key={key}>
-                      <div className='min-w-[110px]'>{item?.item}</div>
+                      <div className='min-w-[110px] capitalize'>{item?.item}</div>
                       <div className='font-bold'>PHP {item?.amount}.00</div>
                     </div>
                   ))

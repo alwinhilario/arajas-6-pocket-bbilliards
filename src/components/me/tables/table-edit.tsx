@@ -350,7 +350,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                           {
                             id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
                             label: capitalizeFirstLetter(add),
-                            value: capitalizeFirstLetter(add),
+                            value: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
                           },
                         ];
 
@@ -367,7 +367,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                             if (y === key) {
                               return {
                                 ...x,
-                                item: v,
+                                item: inventoryOpts?.find((xxx) => xxx?.value === v)?.label,
                                 amount: (() => {
                                   if (getAmount?.amount !== x?.amount && getAmount?.amount) {
                                     return getAmount?.amount || "";

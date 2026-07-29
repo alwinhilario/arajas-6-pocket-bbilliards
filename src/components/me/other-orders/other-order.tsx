@@ -115,7 +115,7 @@ export default function OtherOrder({
             {
               id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
               label: capitalizeFirstLetter(add),
-              value: capitalizeFirstLetter(add),
+              value: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
             },
           ];
 
@@ -134,7 +134,7 @@ export default function OtherOrder({
                   if (x?.id === data?.id) {
                     return {
                       ...data,
-                      item: v,
+                      item: inventoryOpts?.find((xxx) => xxx?.value === v)?.label,
                       amount: (() => {
                         if (getAmount?.amount !== x?.amount && getAmount?.amount) {
                           return getAmount?.amount || "";
@@ -152,7 +152,7 @@ export default function OtherOrder({
                   ...pendingPayment,
                   {
                     ...data,
-                    item: v,
+                    item: inventoryOpts?.find((xxx) => xxx?.value === v)?.label,
                     amount: (() => {
                       if (getAmount?.amount !== data?.amount && getAmount?.amount) {
                         return getAmount?.amount || "";

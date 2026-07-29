@@ -23,7 +23,7 @@ export default function Tables() {
       //   {
       //     id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
       //     label: "Fillet",
-      //     value: "fillet",
+      //     value: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
       //     amount: "100",
       //   },
       // ]);

@@ -53,14 +53,19 @@ export default function InventoryList() {
             className='flex items-center gap-1 cursor-pointer px-4 py-2'
             onClick={async () => {
               const il = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
-              await storage.setItem("inventory_list", [
+              const v = [
                 ...il,
                 {
                   label: "",
                   value: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
                   id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
+                  amount: "",
+                  is_open: true,
                 },
-              ]);
+              ];
+              await storage.setItem("inventory_list", v);
+
+              setOtherOrders(v);
             }}
           >
             <FaPlus className='h-5 w-5' />
@@ -100,8 +105,13 @@ const Inventory = ({ index, user }: IInventoryProps) => {
   const [isEdit, setIsEdit] = React.useState(false);
   const [state, setState] = React.useState<TInventoryData>();
   const [isOpen, setIsOpen] = React.useState(false);
+  const ref = React.useRef(false);
 
   React.useEffect(() => {
+    if (user?.is_open && !isEdit && ref.current) {
+      setIsEdit(true);
+      ref.current = true;
+    }
     setState(user);
   }, [JSON.stringify(user)]);
 
@@ -160,6 +170,7 @@ const Inventory = ({ index, user }: IInventoryProps) => {
           {isEdit ? (
             <div className='flex'>
               <Input
+                placeholder='Enter here...'
                 value={state?.label}
                 onChange={async (e) => {
                   const v = e.target.value;
@@ -180,6 +191,8 @@ const Inventory = ({ index, user }: IInventoryProps) => {
           {isEdit ? (
             <div className='flex'>
               <Input
+                placeholder='Enter here...'
+                type='number'
                 value={state?.amount}
                 onChange={async (e) => {
                   const v = e.target.value;
@@ -200,6 +213,7 @@ const Inventory = ({ index, user }: IInventoryProps) => {
           {isEdit ? (
             <div className='flex'>
               <Input
+                placeholder='Enter here...'
                 value={state?.total_stock}
                 onChange={async (e) => {
                   const v = e.target.value;
@@ -220,6 +234,7 @@ const Inventory = ({ index, user }: IInventoryProps) => {
           {isEdit ? (
             <div className='flex'>
               <Input
+                placeholder='Enter here...'
                 value={state?.remaining}
                 onChange={async (e) => {
                   const v = e.target.value;
@@ -240,6 +255,7 @@ const Inventory = ({ index, user }: IInventoryProps) => {
           {isEdit ? (
             <div className='flex'>
               <Input
+                placeholder='Enter here...'
                 value={state?.remarks}
                 onChange={async (e) => {
                   const v = e.target.value;
@@ -262,7 +278,7 @@ const Inventory = ({ index, user }: IInventoryProps) => {
             {isEdit && (
               <Button
                 size={"xl"}
-                className='cursor-pointer text-white bg-blue-500'
+                className='cursor-pointer text-white bg-blue-500 px-6 text-base'
                 type='button'
                 onClick={async () => {
                   const il = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
