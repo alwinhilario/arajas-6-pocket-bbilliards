@@ -179,13 +179,13 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                   in: `${dayjs(prevState.in).format("YYYY/MM/DD")} ${e.target.value}`,
                 }))
               }
+              disabled
             />
 
             <div className='flex gap-2'>
               <Button
-                size='sm'
-                variant={"outline"}
-                className={"cursor-pointer bg-white hover:!bg-transparent"}
+                // size='sm'
+                className={"cursor-pointer bg-gray-700"}
                 onClick={() => {
                   setState((prevState) => {
                     const newTime = dayjs(prevState?.in).add(2, "minute").format("YYYY/MM/DD HH:mm:ss");
@@ -200,9 +200,8 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                 +2 minutes
               </Button>
               <Button
-                size='sm'
-                variant={"outline"}
-                className={"cursor-pointer bg-white hover:!bg-transparent"}
+                // size='sm'
+                className={"cursor-pointer bg-gray-700"}
                 onClick={() => {
                   setState((prevState) => {
                     const newTime = dayjs(prevState?.in).add(3, "minute").format("YYYY/MM/DD HH:mm:ss");
@@ -217,9 +216,8 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                 +3 minutes
               </Button>
               <Button
-                size='sm'
-                variant={"outline"}
-                className={"cursor-pointer bg-white hover:!bg-transparent"}
+                // size='sm'
+                className={"cursor-pointer bg-gray-700"}
                 onClick={() => {
                   setState((prevState) => {
                     const newTime = dayjs(prevState?.in).add(5, "minute").format("YYYY/MM/DD HH:mm:ss");
@@ -253,13 +251,13 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                 }))
               }
               className='h-14 !text-4xl appearance-none bg-gray-100 font-bold [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none'
+              disabled
             />
 
             <div className='flex gap-2'>
               <Button
-                size='sm'
-                variant={"outline"}
-                className={"cursor-pointer bg-white hover:!bg-transparent"}
+                // size='sm'
+                className={"cursor-pointer bg-gray-700"}
                 onClick={() => {
                   setState((prevState) => {
                     const newTime = dayjs(prevState?.in).add(1, "hour").format("YYYY/MM/DD HH:mm:ss");
@@ -274,9 +272,8 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                 1 hour
               </Button>
               <Button
-                size='sm'
-                variant={"outline"}
-                className={"cursor-pointer bg-white hover:!bg-transparent"}
+                // size='sm'
+                className={"cursor-pointer bg-gray-700"}
                 onClick={() => {
                   setState((prevState) => {
                     const newTime = dayjs(prevState?.in).add(2, "hour").format("YYYY/MM/DD HH:mm:ss");
@@ -291,9 +288,8 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                 2 hours
               </Button>
               <Button
-                size='sm'
-                variant={"outline"}
-                className={"cursor-pointer bg-white hover:!bg-transparent"}
+                // size='sm'
+                className={"cursor-pointer bg-gray-700"}
                 onClick={() => {
                   setState((prevState) => {
                     const newTime = dayjs(prevState?.in).add(3, "hour").format("YYYY/MM/DD HH:mm:ss");
@@ -308,9 +304,8 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                 3 hours
               </Button>
               <Button
-                size='sm'
-                variant={"outline"}
-                className={"cursor-pointer bg-white hover:!bg-transparent"}
+                // size='sm'
+                className={"cursor-pointer bg-gray-700"}
                 onClick={() => {
                   setState((prevState) => {
                     const newTime = dayjs(prevState?.out ? prevState?.out : prevState?.in)
@@ -411,6 +406,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                     />
                     {state?.others?.length === key + 1 && (
                       <Button
+                        size={"xl"}
                         className='w-20 font-bold cursor-pointer'
                         onClick={() => {
                           setState((prevState) => ({
@@ -431,6 +427,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                     )}
                     {state?.others?.length !== key + 1 && (
                       <Button
+                        size={"xl"}
                         variant='destructive'
                         className='w-20 font-bold cursor-pointer'
                         onClick={() => {

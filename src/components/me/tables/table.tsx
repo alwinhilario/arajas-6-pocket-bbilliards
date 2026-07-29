@@ -292,7 +292,7 @@ export default function Table({
 
         <hr />
 
-        <div className='flex-1 px-5 '>
+        <div className='flex-1 px-5 text-base'>
           <div className='flex gap-2'>
             <div className='w-28'>In</div>
             <div>{data?.in ? dayjs(data?.in).format("hh:mm A") : "--"}</div>

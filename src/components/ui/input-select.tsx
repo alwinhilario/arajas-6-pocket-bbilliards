@@ -72,7 +72,7 @@ function InputSelect({
       setOpen(nextOpen);
       if (nextOpen) {
         const selected = options.find((opt) => opt.value === value);
-        setSearch(selected ? selected.label : value);
+        // setSearch(selected ? selected.label : value);
       }
     },
     [value, options],
@@ -155,8 +155,11 @@ function InputSelect({
                   key={option.value}
                   value={option.value}
                   data-checked={value === option.value}
-                  onSelect={() => handleSelect(option.value)}
-                  className='flex items-center justify-between'
+                  onSelect={() => {
+                    handleSelect(option.value);
+                    setSearch("");
+                  }}
+                  className='flex items-center justify-between py-2.5 px-3 text-base'
                 >
                   <span>{option.label}</span>
                   {option.amount !== undefined && (

@@ -83,7 +83,7 @@ export default function Payment({ mop, onPayClick, variant = "default", withBord
 
       <Button
         variant={"outline"}
-        size={variant === "default" ? "default" : "xl"}
+        size={"xl"}
         className={clsx(
           variant === "default" ? "w-24" : "min-w-28 flex-1",
           "font-bold cursor-pointer flex items-center gap-2",

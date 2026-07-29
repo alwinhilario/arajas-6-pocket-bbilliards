@@ -70,10 +70,11 @@ export default function OtherOrders() {
   return (
     <div>
       <Card className='p-5 w-full'>
-        <div className='flex gap-2'>
+        <div className='flex gap-3 items-center'>
           <div className='text-lg font-bold'>Others </div>
           <Button
-            className='w-20 font-bold cursor-pointer'
+            size={"xl"}
+            className='w-20 font-bold cursor-pointer py-3'
             onClick={async () => {
               const v = {
                 ...OTHER_ORDERS[0],

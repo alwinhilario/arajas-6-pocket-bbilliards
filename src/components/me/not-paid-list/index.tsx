@@ -183,6 +183,7 @@ export default function NotPaidList() {
 
                               {(item?.name || "")?.toLowerCase()?.includes("table") && (
                                 <Button
+                                  size={"xl"}
                                   className='cursor-pointer'
                                   onClick={async () => {
                                     const res = await getTable(x?.id);

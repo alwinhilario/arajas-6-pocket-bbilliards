@@ -46,17 +46,18 @@ export default function InventoryList() {
   return (
     <div>
       <Card className='pt-0'>
-        <div className='flex gap-2  p-5 pb-0'>
+        <div className='flex gap-3 p-5 pb-0 items-center'>
           <div className='text-lg font-bold'>Inventory </div>
           <Button
-            className='flex items-center gap-1 cursor-pointer px-4'
+            size={"xl"}
+            className='flex items-center gap-1 cursor-pointer px-4 py-2'
             onClick={async () => {
               const il = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
               await storage.setItem("inventory_list", [
                 ...il,
                 {
                   label: "",
-                  value: "",
+                  value: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
                   id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
                 },
               ]);
@@ -123,6 +124,7 @@ const Inventory = ({ index, user }: IInventoryProps) => {
 
             <div className='flex gap-2'>
               <Button
+                size={"xl"}
                 size='xl'
                 className={"cursor-pointer flex-1"}
                 onClick={async () => {
@@ -138,6 +140,7 @@ const Inventory = ({ index, user }: IInventoryProps) => {
                 Confirm
               </Button>
               <Button
+                size={"xl"}
                 size='xl'
                 className={"cursor-pointer flex-1"}
                 variant={"outline"}
@@ -257,8 +260,9 @@ const Inventory = ({ index, user }: IInventoryProps) => {
         <TableCell>
           <div className='flex items-center gap-2'>
             {isEdit && (
-              <button
-                className='cursor-pointer font-semibold text-white bg-blue-500 rounded-sm p-1 px-2.5'
+              <Button
+                size={"xl"}
+                className='cursor-pointer text-white bg-blue-500'
                 type='button'
                 onClick={async () => {
                   const il = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
@@ -279,23 +283,29 @@ const Inventory = ({ index, user }: IInventoryProps) => {
                 }}
               >
                 Save
-              </button>
+              </Button>
             )}
 
-            <button
-              className='px-1 cursor-pointer'
+            <Button
+              size={"xl"}
+              className='px-3.5 cursor-pointer'
               type='button'
               onClick={() => {
                 setIsEdit(!isEdit);
                 setState(user);
               }}
             >
-              {isEdit ? <IoClose className='h-6 w-6' /> : <MdEdit className='h-5 w-5 text-gray-600' />}
-            </button>
+              {isEdit ? <IoClose className='h-7 w-7' /> : <MdEdit className='h-6 w-6 ' />}
+            </Button>
 
-            <button className='px-1 cursor-pointer' type='button' onClick={() => setIsOpen(!isOpen)}>
-              <FaTrash className='h-4 w-4 text-red-400' />
-            </button>
+            <Button
+              size={"xl"}
+              className='cursor-pointer text-white bg-red-500 px-3.5'
+              type='button'
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              <FaTrash className='h-4 w-4' />
+            </Button>
           </div>
         </TableCell>
       </TableRow>

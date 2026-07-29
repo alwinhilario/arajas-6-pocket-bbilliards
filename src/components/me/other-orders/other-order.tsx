@@ -291,7 +291,7 @@ export default function OtherOrder({
           );
         }}
       />
-      <Input value={data?.date} placeholder='Date' className='w-40' disabled />
+      <Input value={data?.date} placeholder='Date' className='w-68' disabled />
 
       <Payment
         mop={data?.mop}
@@ -346,6 +346,7 @@ export default function OtherOrder({
             <span>Add</span>
           </Button> */}
           <Button
+            size={"xl"}
             variant={"outline"}
             className='w-20 font-bold cursor-pointer'
             onClick={() => {
@@ -387,6 +388,7 @@ export default function OtherOrder({
       {otherOrders?.length !== key + 1 && (
         <Button
           variant='destructive'
+          size={"xl"}
           className='w-20 font-bold cursor-pointer'
           onClick={async () => {
             const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;

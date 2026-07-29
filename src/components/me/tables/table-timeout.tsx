@@ -125,6 +125,7 @@ export default function TableTimeout({ data, setIsOpen, onConfirm }: IProps) {
                     {state?.mop?.length !== key + 1 && (
                       <Button
                         variant='destructive'
+                        size={"xl"}
                         className='w-20 font-bold cursor-pointer'
                         onClick={() => {
                           // @ts-expect-error

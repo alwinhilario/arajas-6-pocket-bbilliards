@@ -45,10 +45,11 @@ export default function OutList() {
   return (
     <div>
       <Card className='p-5 w-full'>
-        <div className='flex gap-2'>
+        <div className='flex gap-3 items-center'>
           <div className='text-lg font-bold'>Expenses </div>
           <Button
-            className='w-20 font-bold cursor-pointer'
+            size={"xl"}
+            className='w-20 font-bold cursor-pointer py-3'
             onClick={() => {
               setOtherOrders((prevState) => [...prevState, OUT_LIST[0]]);
             }}
@@ -129,6 +130,7 @@ export default function OutList() {
                 {otherOrders?.length === key + 1 && (
                   <div className='flex items-center gap-0.5'>
                     <Button
+                      size={"xl"}
                       variant={"outline"}
                       className='w-20 font-bold cursor-pointer'
                       onClick={() => {
@@ -156,6 +158,7 @@ export default function OutList() {
 
                 {otherOrders?.length !== key + 1 && (
                   <Button
+                    size={"xl"}
                     variant='destructive'
                     className='w-20 font-bold cursor-pointer'
                     onClick={() => {
