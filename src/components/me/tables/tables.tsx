@@ -26,22 +26,22 @@ export default function Tables() {
   React.useEffect(() => {
     const load = async () => {
       const data = ((await storage.getItem("tables")) || TABLE_OPTS) as TTableOpts;
-      // const data1 = await storage.setItem("tables", TABLE_OPTS);
-      // const data2 = await storage.setItem("inventory_list", [
-      //   {
-      //     id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
-      //     label: "Fillet",
-      //     value: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
-      //     amount: "100",
-      //   },
-      // ]);
-      // const data3 = await storage.setItem("name_list", NAME_OPTS);
-      // const data4 = await storage.setItem("other_orders", OTHER_ORDERS);
-      // const data5 = await storage.setItem("out_list", OUT_LIST);
-      // const data6 = await storage.setItem("all_tables_list", []);
-      // const data7 = await storage.setItem("pending_payment", []);
-      // const data8 = await storage.setItem("plasada_list", PLASADA_LIST);
-      // const data9 = await storage.setItem("remarks_list", REMARKS_LIST);
+      const data1 = await storage.setItem("tables", TABLE_OPTS);
+      const data2 = await storage.setItem("inventory_list", [
+        {
+          id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
+          label: "Fillet",
+          value: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
+          amount: "100",
+        },
+      ]);
+      const data3 = await storage.setItem("name_list", NAME_OPTS);
+      const data4 = await storage.setItem("other_orders", OTHER_ORDERS);
+      const data5 = await storage.setItem("out_list", OUT_LIST);
+      const data6 = await storage.setItem("all_tables_list", []);
+      const data7 = await storage.setItem("pending_payment", []);
+      const data8 = await storage.setItem("plasada_list", PLASADA_LIST);
+      const data9 = await storage.setItem("remarks_list", REMARKS_LIST);
 
       setTables(data);
     };
