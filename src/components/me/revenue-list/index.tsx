@@ -175,7 +175,7 @@ export default function RevenueList() {
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className='text-center pt-5 text-gray-400'>
+                <TableCell colSpan={9} className='text-center pt-5 text-gray-400'>
                   No data found...
                 </TableCell>
               </TableRow>
