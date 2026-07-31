@@ -44,6 +44,7 @@ export default function AllTableList() {
     filter_from: value?.date?.date_from,
     filter_to: value?.date?.date_to,
     propertyName: "in",
+    filterDate: true,
   });
 
   return (

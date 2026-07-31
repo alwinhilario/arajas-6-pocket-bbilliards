@@ -26,6 +26,7 @@ export default function DailyRevenue() {
 
         setRemarks(
           filterObject({
+            filterDate: true,
             object: remarks,
             filter_from: value?.date?.date_from,
             filter_to: value?.date?.date_to,
@@ -34,6 +35,7 @@ export default function DailyRevenue() {
         );
         setOrders(
           filterObject({
+            filterDate: true,
             object: orders,
             filter_from: value?.date?.date_from,
             filter_to: value?.date?.date_to,
@@ -42,6 +44,7 @@ export default function DailyRevenue() {
         );
         setExpenses(
           filterObject({
+            filterDate: true,
             object: expenses,
             filter_from: value?.date?.date_from,
             filter_to: value?.date?.date_to,
@@ -50,6 +53,7 @@ export default function DailyRevenue() {
         );
         setTableHistory(
           filterObject({
+            filterDate: true,
             object: tableHistory,
             filter_from: value?.date?.date_from,
             filter_to: value?.date?.date_to,
@@ -58,6 +62,7 @@ export default function DailyRevenue() {
         );
         setPendingPayment(
           filterObject({
+            filterDate: true,
             object: pendingPayment,
             filter_from: value?.date?.date_from,
             filter_to: value?.date?.date_to,
@@ -66,6 +71,7 @@ export default function DailyRevenue() {
         );
         setPlasada(
           filterObject({
+            filterDate: true,
             object: plasada,
             filter_from: value?.date?.date_from,
             filter_to: value?.date?.date_to,

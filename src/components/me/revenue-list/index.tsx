@@ -54,36 +54,42 @@ export default function RevenueList() {
         ...item,
         items: {
           remarks: filterObject({
+            filterDate: true,
             object: remarks,
             filter_from: dayjs(item?.dateStringFrom),
             filter_to: dayjs(item?.dateStringTo),
             propertyName: "date",
           }),
           orders: filterObject({
+            filterDate: true,
             object: orders,
             filter_from: dayjs(item?.dateStringFrom),
             filter_to: dayjs(item?.dateStringTo),
             propertyName: "date",
           }),
           expenses: filterObject({
+            filterDate: true,
             object: expenses,
             filter_from: dayjs(item?.dateStringFrom),
             filter_to: dayjs(item?.dateStringTo),
             propertyName: "date",
           }),
           tableHistory: filterObject({
+            filterDate: true,
             object: tableHistory,
             filter_from: dayjs(item?.dateStringFrom),
             filter_to: dayjs(item?.dateStringTo),
             propertyName: "out",
           }),
           pendingPayment: filterObject({
+            filterDate: true,
             object: pendingPayment,
             filter_from: dayjs(item?.dateStringFrom),
             filter_to: dayjs(item?.dateStringTo),
             propertyName: "date",
           }),
           plasada: filterObject({
+            filterDate: true,
             object: plasada,
             filter_from: dayjs(item?.dateStringFrom),
             filter_to: dayjs(item?.dateStringTo),

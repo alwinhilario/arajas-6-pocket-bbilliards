@@ -55,6 +55,7 @@ export default function NotPaidList() {
       filter_from: value?.date?.date_from,
       filter_to: value?.date?.date_to,
       propertyName: "date",
+      filterDate: true,
     }).reduce((acc, { item, name, mop, amount, date, remarks, id, is_table }) => {
       if (!acc[name]) {
         acc[name] = {

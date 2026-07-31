@@ -206,7 +206,7 @@ export default function Table({
                   value: data?.label,
                   item: "N/A",
                   amount: parseInt(data?.amount || "0") - mopTotalAmount,
-                  date: dayjs().format("YYYY/MM/DD hh:mm A"),
+                  date: data?.out,
                   remarks: dataCb?.remarks,
                   mop: "",
                   is_table: true,

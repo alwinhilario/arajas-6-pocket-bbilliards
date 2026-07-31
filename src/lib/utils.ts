@@ -18,15 +18,25 @@ interface IProps {
   propertyName: string;
   filter_from: Date;
   filter_to: Date;
+  filterDate?: boolean;
 }
 
-export const filterObject = ({ object = [], filter_from, filter_to, propertyName }: IProps) => {
-  const filteredData = object
-    ?.filter((item) => item?.[propertyName])
+export const filterObject = ({
+  object = [],
+  filter_from,
+  filter_to,
+  propertyName,
+  filterDate = false,
+}: IProps) => {
+  let filteredData = object
     .filter((item) => {
       return dayjs(item?.[propertyName]).isBetween(filter_from, filter_to, "second", "[]");
     })
     .sort((a, b) => dayjs(a?.[propertyName]).diff(dayjs(b?.[propertyName])));
+
+  if (filterDate) {
+    filteredData = filteredData?.filter((item) => item?.[propertyName]);
+  }
 
   return filteredData;
 };

@@ -68,6 +68,7 @@ export default function OtherOrders() {
     };
     update();
   }, [JSON.stringify(filtered)]);
+
   return (
     <div>
       <Card className='p-5 w-full'>
