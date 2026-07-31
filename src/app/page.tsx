@@ -29,19 +29,36 @@ export default function Home() {
     };
   }, []);
 
+  const [storageUsed, setStorageUsed] = React.useState("");
+
+  React.useEffect(() => {
+    if (navigator.storage && navigator.storage.estimate) {
+      navigator.storage.estimate().then((estimate) => {
+        const usedSpace = estimate.usage; // Bytes used
+        const totalQuota = estimate.quota; // Total bytes allowed
+        const percentageUsed = (usedSpace / totalQuota) * 100;
+
+        setStorageUsed(`Used: ${usedSpace} of ${totalQuota} bytes (${percentageUsed.toFixed(2)}%)`);
+      });
+    }
+  }, []);
+
   return (
     <SessionProvider>
       <div className='p-5 py-2.5 bg-gray-100 flex flex-col'>
         <br />
 
         <div className='flex items-center gap-3'>
-          <div className='font-black'>
-            <div className='flex items-end'>
-              <div className='text-xl'>{dayjs(currentDay).format("MMMM DD, YYYY")}</div>
-              <div className='pl-2 font-normal text-sm'>(8AM - 8AM)</div>
+          <div className='flex-1'>
+            <div className='font-black'>
+              <div className='flex items-end'>
+                <div className='text-xl'>{dayjs(currentDay).format("MMMM DD, YYYY")}</div>
+                <div className='pl-2 font-normal text-sm'>(8AM - 8AM)</div>
+              </div>
+              <div className='text-5xl text-green-500'>{dayjs(currentDay).format("hh:mm:ss A")}</div>
             </div>
-            <div className='text-5xl text-green-500'>{dayjs(currentDay).format("hh:mm:ss A")}</div>
           </div>
+          <div className='text-gray-400'>{storageUsed}</div>
         </div>
 
         <br />
