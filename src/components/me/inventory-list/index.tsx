@@ -14,6 +14,7 @@ import dayjs from "dayjs";
 
 export default function InventoryList() {
   const [otherOrders, setOtherOrders] = React.useState<TInventoryList>([]);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   React.useEffect(() => {
     const load = async () => {
@@ -43,29 +44,106 @@ export default function InventoryList() {
     };
   }, []);
 
+  const [state, setState] = React.useState({
+    label: "",
+    amount: "",
+  });
+
   return (
     <div>
       <Card className='pt-0'>
+        {isOpen && (
+          <div
+            className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 pt-60'
+            onClick={() => {
+              setIsOpen((prevState) => !prevState);
+            }}
+          >
+            <Card
+              className='p-5 cursor-default w-96'
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <div className='text-lg font-bold'>Add Inventory Item</div>
+
+              <Input
+                placeholder='Enter Item Name'
+                value={state?.label}
+                onChange={async (e) => {
+                  const v = e.target.value;
+
+                  // @ts-expect-error
+                  setState((prevState) => ({
+                    ...prevState,
+                    label: v,
+                  }));
+                }}
+              />
+              <Input
+                placeholder='Enter Amount'
+                type='number'
+                value={state?.amount}
+                onChange={async (e) => {
+                  const v = e.target.value;
+
+                  // @ts-expect-error
+                  setState((prevState) => ({
+                    ...prevState,
+                    amount: v,
+                  }));
+                }}
+              />
+
+              <div className='flex gap-2'>
+                <Button
+                  size={"xl"}
+                  className={"cursor-pointer flex-1"}
+                  onClick={async () => {
+                    const il = ((await storage.getItem("inventory_list")) ||
+                      INVENTORY_OPTS) as TInventoryList;
+                    const v = [
+                      ...il,
+                      {
+                        ...state,
+                        value: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
+                        id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
+                      },
+                    ];
+                    await storage.setItem("inventory_list", v);
+
+                    setOtherOrders(v);
+                    setIsOpen(!isOpen);
+                    setState({
+                      label: "",
+                      amount: "",
+                    });
+                  }}
+                >
+                  Confirm
+                </Button>
+                <Button
+                  size={"xl"}
+                  className={"cursor-pointer flex-1"}
+                  variant={"outline"}
+                  onClick={() => {
+                    setIsOpen(!isOpen);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
+
         <div className='flex gap-3 p-5 pb-0 items-center'>
           <div className='text-lg font-bold'>Inventory </div>
           <Button
             size={"xl"}
             className='flex items-center gap-1 cursor-pointer px-4 py-2'
             onClick={async () => {
-              const il = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
-              const v = [
-                ...il,
-                {
-                  label: "",
-                  value: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
-                  id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
-                  amount: "",
-                  is_open: true,
-                },
-              ];
-              await storage.setItem("inventory_list", v);
-
-              setOtherOrders(v);
+              setIsOpen(!isOpen);
             }}
           >
             <FaPlus className='h-5 w-5' />
