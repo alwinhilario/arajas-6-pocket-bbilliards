@@ -7,9 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { filterObject } from "@/lib/utils";
 import { SESSION_CONTEXT } from "@/app/provider";
 import dayjs from "dayjs";
+import { Button } from "@/components/ui/button";
 
 export default function AllTableList() {
   const [tables, setTables] = React.useState<TTableOpts>([]);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   React.useEffect(() => {
     const load = async () => {
@@ -49,7 +51,62 @@ export default function AllTableList() {
 
   return (
     <Card className='pt-0'>
-      <div className='text-lg font-bold p-5 pb-0'>Table History </div>
+      {isOpen && (
+        <div
+          className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 pt-60'
+          onClick={() => {
+            setIsOpen((prevState) => !prevState);
+          }}
+        >
+          <Card
+            className='p-5 cursor-default'
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <div className='text-base pb-5'>Are you sure you want to permanently delete Table History?</div>
+
+            <div className='flex gap-2'>
+              <Button
+                size={"xl"}
+                className={"cursor-pointer flex-1"}
+                onClick={async () => {
+                  await storage.setItem("all_tables_list", []);
+                  setIsOpen(!isOpen);
+                }}
+              >
+                Confirm
+              </Button>
+              <Button
+                size={"xl"}
+                className={"cursor-pointer flex-1"}
+                variant={"outline"}
+                onClick={() => {
+                  setIsOpen(!isOpen);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      <div className='flex items-center gap-2 text-lg font-bold p-5 pb-0'>
+        <div className='flex-1'>Table History </div>
+        <div>
+          <Button
+            variant={"destructive"}
+            className={"cursor-pointer font-bold"}
+            size={"xl"}
+            onClick={() => {
+              setIsOpen(!isOpen);
+            }}
+          >
+            Reset
+          </Button>
+        </div>
+      </div>
 
       <div className='max-h-[290px] overflow-y-auto relative'>
         <Table>
