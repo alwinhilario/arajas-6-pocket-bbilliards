@@ -34,9 +34,11 @@ export default function OtherOrders() {
   React.useEffect(() => {
     const t = setInterval(() => {
       const update = async () => {
+        const data = ((await storage.getItem("other_orders")) || OTHER_ORDERS) as TOtherOrdersOpts;
         const data1 = ((await storage.getItem("name_list")) || NAME_OPTS) as TOptions;
         const data2 = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
 
+        setOtherOrders(data);
         setNameOpts(data1);
         setInventoryOpts(data2);
       };
@@ -49,17 +51,6 @@ export default function OtherOrders() {
     };
   }, []);
 
-  React.useEffect(() => {
-    if (!Array.isArray(otherOrders) || (otherOrders || [])?.length <= 0) return;
-
-    const update = async () => {
-      (await storage.setItem("other_orders", otherOrders)) as TOtherOrdersOpts;
-    };
-    update();
-  }, [JSON.stringify(otherOrders)]);
-
-  const totalAmount = otherOrders?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
-
   const filtered = filterObject({
     object: otherOrders,
     filter_from: value?.date?.date_from,
@@ -67,11 +58,21 @@ export default function OtherOrders() {
     propertyName: "date",
   });
 
+  const totalAmount = filtered?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
+
+  React.useEffect(() => {
+    if (!Array.isArray(filtered) || (filtered || [])?.length <= 0) return;
+
+    const update = async () => {
+      (await storage.setItem("other_orders", filtered)) as TOtherOrdersOpts;
+    };
+    update();
+  }, [JSON.stringify(filtered)]);
   return (
     <div>
       <Card className='p-5 w-full'>
         <div className='flex gap-3 items-center'>
-          <div className='text-lg font-bold'>Others </div>
+          <div className='text-lg font-bold'>Orders Daily (Others) </div>
           <Button
             size={"xl"}
             className='w-20 font-bold cursor-pointer py-3'
@@ -92,15 +93,13 @@ export default function OtherOrders() {
         <div>
           <div className='space-y-1'>
             {filtered?.map((item, key) => {
-              console.log(key, item);
-
               return (
                 <OtherOrder
                   index={key}
                   key={key}
                   data={item}
                   setOtherOrders={setOtherOrders}
-                  otherOrders={otherOrders}
+                  otherOrders={filtered}
                   nameOpts={nameOpts}
                   inventoryOpts={inventoryOpts}
                   setNameOpts={setNameOpts}

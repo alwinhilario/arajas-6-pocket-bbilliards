@@ -22,6 +22,25 @@ export const OUT_LIST = [
   },
 ];
 
+export const REMARKS_LIST = [
+  {
+    id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
+    label: "",
+    date: "",
+    remarks: "",
+  },
+];
+
+export const PLASADA_LIST = [
+  {
+    id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
+    label: "",
+    amount: "",
+    date: "",
+    remarks: "",
+  },
+];
+
 export const TABLE_OPTS = [
   {
     label: "Table 1",

@@ -113,8 +113,6 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
     ref.current = true;
   }, [currentTable, currentTime]);
 
-  console.log({ state });
-
   React.useEffect(() => {
     if (isEmpty(currentTable)) return;
 

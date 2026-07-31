@@ -196,8 +196,6 @@ export default function Table({
 
             const mopTotalAmount = dataCb?.mop?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
 
-            console.log(parseInt(data?.amount || "0"), mopTotalAmount);
-
             if (parseInt(data?.amount || "0") > mopTotalAmount) {
               const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
               await storage.setItem("pending_payment", [
@@ -211,6 +209,7 @@ export default function Table({
                   date: dayjs().format("YYYY/MM/DD hh:mm A"),
                   remarks: dataCb?.remarks,
                   mop: "",
+                  is_table: true,
                 },
               ]);
             }

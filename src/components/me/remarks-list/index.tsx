@@ -2,7 +2,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import storage from "@/lib/localforage";
 import { TOutList } from "../tables/types";
-import { OUT_LIST } from "@/app/constants";
+import { REMARKS_LIST } from "@/app/constants";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import dayjs from "dayjs";
@@ -10,13 +10,13 @@ import { FaPlus } from "react-icons/fa";
 import { filterObject } from "@/lib/utils";
 import { SESSION_CONTEXT } from "@/app/provider";
 
-export default function OutList() {
+export default function RemarksList() {
   const [otherOrders, setOtherOrders] = React.useState<TOutList>([]);
   const { value } = React.useContext(SESSION_CONTEXT);
 
   React.useEffect(() => {
     const load = async () => {
-      const item = ((await storage.getItem("out_list")) || OUT_LIST) as TOutList;
+      const item = ((await storage.getItem("remarks_list")) || REMARKS_LIST) as TOutList;
 
       setOtherOrders(item);
     };
@@ -31,13 +31,11 @@ export default function OutList() {
     propertyName: "date",
   });
 
-  const totalAmount = filtered?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
-
   React.useEffect(() => {
     if (!Array.isArray(filtered) || (filtered || [])?.length <= 0) return;
 
     const update = async () => {
-      (await storage.setItem("out_list", filtered)) as TOutList;
+      (await storage.setItem("remarks_list", filtered)) as TOutList;
     };
     update();
   }, [JSON.stringify(filtered)]);
@@ -46,14 +44,14 @@ export default function OutList() {
     <div>
       <Card className='p-5 w-full'>
         <div className='flex gap-3 items-center'>
-          <div className='text-lg font-bold'>Expenses Daily (Out)</div>
+          <div className='text-lg font-bold'>Remarks Daily</div>
           <Button
             size={"xl"}
             className='w-20 font-bold cursor-pointer py-3'
             onClick={() => {
               setOtherOrders((prevState) => [
                 ...prevState,
-                { ...OUT_LIST[0], id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS") },
+                { ...REMARKS_LIST[0], id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS") },
               ]);
             }}
           >
@@ -69,7 +67,7 @@ export default function OutList() {
               <div className='flex gap-2' key={key}>
                 <Input
                   placeholder='Label'
-                  className='w-40'
+                  className='w-40 uppercase'
                   value={item?.label}
                   onChange={(v) => {
                     setOtherOrders((prevState) =>
@@ -88,29 +86,8 @@ export default function OutList() {
                   }}
                 />
                 <Input
-                  placeholder='Amount'
-                  className='w-40'
-                  value={item?.amount}
-                  type='number'
-                  onChange={(v) => {
-                    setOtherOrders((prevState) =>
-                      prevState?.map((x, y) => {
-                        if (item?.id === x?.id) {
-                          return {
-                            ...x,
-                            amount: v.target.value,
-                            date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                          };
-                        }
-
-                        return x;
-                      }),
-                    );
-                  }}
-                />
-                <Input
                   placeholder='Remarks...'
-                  className='w-60'
+                  className='w-68'
                   value={item?.remarks}
                   onChange={(v) => {
                     setOtherOrders((prevState) =>
@@ -173,12 +150,6 @@ export default function OutList() {
                 )}
               </div>
             ))}
-          </div>
-        </div>
-        <div className='flex flex-col gap-0.5 font-semibold'>
-          <div className='w-40'>Total Expenses</div>
-          <div className='text-green-500 text-2xl font-bold'>
-            {totalAmount > 0 ? `PHP ${`${totalAmount}`}.00` : "--"}
           </div>
         </div>
       </Card>

@@ -1,8 +1,8 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import storage from "@/lib/localforage";
-import { TOtherOrdersOpts, TPendingPaymentOpts, TTableOpts } from "../tables/types";
-import { OTHER_ORDERS } from "@/app/constants";
+import { TInventoryList, TOtherOrdersOpts, TPendingPaymentOpts, TTableOpts } from "../tables/types";
+import { INVENTORY_OPTS, OTHER_ORDERS } from "@/app/constants";
 import dayjs from "dayjs";
 import Payment from "../payment";
 import { FaTrash } from "react-icons/fa";
@@ -10,19 +10,23 @@ import { filterObject } from "@/lib/utils";
 import { SESSION_CONTEXT } from "@/app/provider";
 import { Button } from "@/components/ui/button";
 import Table from "../tables/table";
-import { isEmpty } from "lodash";
 import clsx from "clsx";
+import { isEmpty } from "lodash";
 
 export default function NotPaidList() {
   const [tables, setTables] = React.useState<TOtherOrdersOpts>([]);
   const [isViewOpen, setIsViewOpen] = React.useState(false);
   const { value } = React.useContext(SESSION_CONTEXT);
+  const [inventoryOpts, setInventoryOpts] = React.useState<TInventoryList>(INVENTORY_OPTS);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   React.useEffect(() => {
     const load = async () => {
       const data = ((await storage.getItem("pending_payment")) || OTHER_ORDERS) as TOtherOrdersOpts;
+      const data1 = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
 
       setTables(data);
+      setInventoryOpts(data1);
     };
 
     load();
@@ -43,13 +47,15 @@ export default function NotPaidList() {
     };
   }, []);
 
+  const totalAmount = tables?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
+
   const result = Object.values(
     filterObject({
       object: tables,
       filter_from: value?.date?.date_from,
       filter_to: value?.date?.date_to,
       propertyName: "date",
-    }).reduce((acc, { item, name, mop, amount, date, remarks, id }) => {
+    }).reduce((acc, { item, name, mop, amount, date, remarks, id, is_table }) => {
       if (!acc[name]) {
         acc[name] = {
           name,
@@ -58,10 +64,12 @@ export default function NotPaidList() {
           mop,
           date,
           remarks,
+          id,
+          is_table,
         };
       }
 
-      acc[name].items.push({ id, item, amount, date, mop, remarks });
+      acc[name].items.push({ id, item, amount, date, mop, remarks, is_table });
 
       if (!mop || mop?.length <= 0) {
         acc[name].total = parseInt(acc[name].total || "0") + parseInt(amount || "0");
@@ -70,7 +78,7 @@ export default function NotPaidList() {
       return acc;
     }, {}),
   )
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .sort((a, b) => (a?.name || "")?.localeCompare(b.name))
     .map((group) => ({
       ...group,
       items: group.items.sort((a, b) => a.item.localeCompare(b.item)),
@@ -82,7 +90,7 @@ export default function NotPaidList() {
 
     return data?.find((x) => x?.id === id);
   };
-  const [currentView, setCurrentView] = React.useState();
+  const [currentView, setCurrentView] = React.useState({});
 
   React.useEffect(() => {
     setMyResult(result);
@@ -90,7 +98,108 @@ export default function NotPaidList() {
 
   return (
     <Card className='pt-0'>
-      <div className='text-lg font-bold p-5 pb-0'>Pending Payment </div>
+      <div className='text-lg font-bold p-5 pb-0'>Pending Payment Daily </div>
+
+      {isOpen && (
+        <div
+          className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 pt-60'
+          onClick={() => {
+            setIsOpen((prevState) => !prevState);
+          }}
+        >
+          <Card
+            className='p-5 cursor-default w-[380px]'
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <div className=' pb-4'>
+              <div className='text-base'>
+                Are you sure you want to clear <b>{currentView?.name}</b>? Remaining balance is{" "}
+                <b>{`PHP ${parseInt(currentView?.total || "0")}.00`}</b>
+              </div>
+              <br />
+              <span className='text-gray-400'>
+                <i>This will return to Others list, for that specific date.</i>
+              </span>
+            </div>
+
+            <div className='flex gap-2'>
+              <Button
+                size='xl'
+                className={"cursor-pointer flex-1"}
+                onClick={async () => {
+                  let res = (await storage.getItem("other_orders")) as TOtherOrdersOpts;
+                  await storage.setItem(
+                    "other_orders",
+                    (() => {
+                      if (
+                        res?.length === 1 &&
+                        !res?.[0]?.amount &&
+                        !res?.[0]?.item &&
+                        !res?.[0]?.name &&
+                        !res?.[0]?.mop &&
+                        !res?.[0]?.date &&
+                        !res?.[0]?.remarks
+                      ) {
+                        return (currentView?.items || [])?.map((x) => ({ ...x, name: currentView?.name }));
+                      }
+
+                      (currentView?.items || [])?.map((x) => {
+                        if (!res?.some((y) => x?.id === y?.id)) {
+                          res = [
+                            ...res,
+                            {
+                              ...x,
+                              name: currentView?.name,
+                            },
+                          ];
+                        }
+                      });
+
+                      return res?.map((xxx) => {
+                        const exists = (currentView?.items || [])?.find((y) => y?.id === xxx?.id);
+
+                        if (!isEmpty(exists)) {
+                          return {
+                            ...xxx,
+                            ...exists,
+                          };
+                        }
+
+                        return xxx;
+                      });
+                    })(),
+                  );
+
+                  const res2 = await storage.getItem("pending_payment");
+                  await storage.setItem(
+                    "pending_payment",
+                    res2?.filter((xxx) => !(currentView?.items || [])?.some((asd) => asd?.id === xxx?.id)),
+                  );
+                  setTables(
+                    res2?.filter((xxx) => !(currentView?.items || [])?.some((asd) => asd?.id === xxx?.id)),
+                  );
+
+                  setIsOpen(!isOpen);
+                }}
+              >
+                Confirm
+              </Button>
+              <Button
+                size='xl'
+                className={"cursor-pointer flex-1"}
+                variant={"outline"}
+                onClick={() => {
+                  setIsOpen((prevState) => !prevState);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {isViewOpen && (
         <div
@@ -131,7 +240,19 @@ export default function NotPaidList() {
                       <div className='divide-x divide-y border-b '>
                         {item?.items?.map((x, key) => (
                           <div className='flex items-center divide-x ' key={key}>
-                            <div className='w-32 p-2 px-3'>{x?.item}</div>
+                            <div className='w-32 p-2 px-3'>
+                              {(() => {
+                                const exists = !isEmpty(inventoryOpts?.find((xx) => xx?.value === x?.item));
+
+                                if (x?.item && exists) {
+                                  return inventoryOpts?.find((xx) => xx?.value === x?.item)?.label;
+                                } else if (x?.item) {
+                                  return x?.item;
+                                }
+
+                                return "--";
+                              })()}
+                            </div>
                             <div className='w-28 p-2 px-3'>{x?.amount}</div>
                             <div className='w-80 p-2 px-3'>{x?.remarks || "--"}</div>
                             <div className='w-48 p-2 px-3 text-gray-500'>
@@ -207,7 +328,13 @@ export default function NotPaidList() {
 
                         {item?.items?.every((xx) => xx?.mop && xx?.mop?.length > 0) && (
                           <div className='pr-2'>
-                            <FaTrash className='h-4 w-4 text-red-400 cursor-pointer' />
+                            <FaTrash
+                              className='h-4 w-4 text-red-400 cursor-pointer'
+                              onClick={() => {
+                                setIsOpen(!isOpen);
+                                setCurrentView(item);
+                              }}
+                            />
                           </div>
                         )}
                       </div>
@@ -221,39 +348,15 @@ export default function NotPaidList() {
           <>No Data found...</>
         )}
       </div>
-      {/* <Table>
-        <TableHeader className='bg-gray-100/80'>
-          <TableRow>
-            <TableHead className='font-bold px-2 text-gray-600'>NAME</TableHead>
-            <TableHead className='font-bold px-2 text-gray-600'>ITEM</TableHead>
-            <TableHead className='font-bold px-2 text-gray-600'>AMOUNT</TableHead>
-            <TableHead className='font-bold px-2 text-gray-600'>REMARKS</TableHead>
-            <TableHead className='font-bold px-2 text-gray-600'>DATE</TableHead>
-          </TableRow>
-        </TableHeader>
 
-        <TableBody>
-          {(tables || [])?.length > 0 ? (
-            (tables || []).map((user, key) => (
-              <TableRow key={key}>
-                <TableCell className='font-medium'>{user.name || "--"}</TableCell>
-                <TableCell>{user.item || "--"}</TableCell>
-                <TableCell>
-                  {parseInt(user.amount || "0") > 0 ? `PHP ${parseInt(user.amount || "0")}.00` : "--"}
-                </TableCell>
-                <TableCell>{user.remarks || "--"}</TableCell>
-                <TableCell className='capitalize'>{user.date || "--"}</TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={6} className='text-center pt-5 text-gray-400'>
-                No data found...
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table> */}
+      <div className='p-5 pt-2 pb-0'>
+        <div className='flex flex-col gap-0.5 font-semibold'>
+          <div className='w-40'>Total Amount</div>
+          <div className='text-green-500 text-2xl font-bold'>
+            {totalAmount > 0 ? `PHP ${`${totalAmount}`}.00` : "--"}
+          </div>
+        </div>
+      </div>
     </Card>
   );
 }

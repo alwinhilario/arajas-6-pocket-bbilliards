@@ -39,8 +39,6 @@ export default function OtherOrder({
   //   setState(data);
   // }, [JSON.stringify(data)]);
 
-  console.log({ inventoryOpts });
-
   return (
     <div className='flex items-center gap-2'>
       <InputSelect
@@ -48,6 +46,7 @@ export default function OtherOrder({
         className='w-40'
         value={data?.name}
         options={nameOpts}
+        disabled={data?.mop}
         onAddClick={async (add) => {
           const v = [
             ...(nameOpts || []),
@@ -74,19 +73,26 @@ export default function OtherOrder({
                       ...data,
                       name: v,
                       date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                      item: x?.item,
                     };
                   }
 
                   return x;
                 })
-              : [
-                  ...(pendingPayment || []),
-                  {
-                    ...data,
-                    name: v,
-                    date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                  },
-                ],
+              : (() => {
+                  if (!data?.mop) {
+                    return [
+                      ...(pendingPayment || []),
+                      {
+                        ...data,
+                        name: v,
+                        date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                      },
+                    ];
+                  }
+
+                  return pendingPayment;
+                })(),
           );
 
           // @ts-expect-error
@@ -108,6 +114,7 @@ export default function OtherOrder({
       <InputSelect
         className='!w-52'
         value={data?.item}
+        disabled={data?.is_table || data?.mop}
         options={inventoryOpts}
         onAddClick={async (add) => {
           const v = [
@@ -148,21 +155,27 @@ export default function OtherOrder({
 
                   return x;
                 })
-              : [
-                  ...pendingPayment,
-                  {
-                    ...data,
-                    item: inventoryOpts?.find((xxx) => xxx?.value === v)?.label,
-                    amount: (() => {
-                      if (getAmount?.amount !== data?.amount && getAmount?.amount) {
-                        return getAmount?.amount || "";
-                      }
+              : (() => {
+                  if (!data?.mop) {
+                    return [
+                      ...pendingPayment,
+                      {
+                        ...data,
+                        item: inventoryOpts?.find((xxx) => xxx?.value === v)?.label,
+                        amount: (() => {
+                          if (getAmount?.amount !== data?.amount && getAmount?.amount) {
+                            return getAmount?.amount || "";
+                          }
 
-                      return data?.amount || "";
-                    })(),
-                    date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                  },
-                ],
+                          return data?.amount || "";
+                        })(),
+                        date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                      },
+                    ];
+                  }
+
+                  return pendingPayment;
+                })(),
           );
 
           // @ts-expect-error
@@ -195,6 +208,7 @@ export default function OtherOrder({
         className='w-28'
         type='number'
         value={data?.amount}
+        disabled={data?.mop}
         onChange={(v) => {
           const xx = async (amount: string) => {
             const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
@@ -208,19 +222,26 @@ export default function OtherOrder({
                         ...data,
                         amount,
                         date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                        item: x?.item,
                       };
                     }
 
                     return x;
                   })
-                : [
-                    ...pendingPayment,
-                    {
-                      ...data,
-                      amount,
-                      date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                    },
-                  ],
+                : (() => {
+                    if (!data?.mop) {
+                      return [
+                        ...pendingPayment,
+                        {
+                          ...data,
+                          amount,
+                          date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                        },
+                      ];
+                    }
+
+                    return pendingPayment;
+                  })(),
             );
           };
 
@@ -244,6 +265,7 @@ export default function OtherOrder({
       <Input
         placeholder='Remarks...'
         className='w-60'
+        disabled={data?.mop}
         value={data?.remarks}
         onChange={(v) => {
           const xx = async (remarks: string) => {
@@ -258,19 +280,26 @@ export default function OtherOrder({
                         ...data,
                         remarks,
                         date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                        item: x?.item,
                       };
                     }
 
                     return x;
                   })
-                : [
-                    ...pendingPayment,
-                    {
-                      ...data,
-                      remarks,
-                      date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                    },
-                  ],
+                : (() => {
+                    if (!data?.mop) {
+                      return [
+                        ...pendingPayment,
+                        {
+                          ...data,
+                          remarks,
+                          date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                        },
+                      ];
+                    }
+
+                    return pendingPayment;
+                  })(),
             );
           };
 
@@ -291,10 +320,11 @@ export default function OtherOrder({
           );
         }}
       />
-      <Input value={data?.date} placeholder='Date' className='w-68' disabled />
+      <Input value={data?.date} placeholder='Date' className='w-48' disabled />
 
       <Payment
         mop={data?.mop}
+        // readOnly={data?.mop}
         onPayClick={async (type) => {
           const xx = async (v: TOtherOrdersOpts) => {
             await storage.setItem(
@@ -398,7 +428,7 @@ export default function OtherOrder({
               pendingPayment?.filter((x) => x?.id !== data?.id),
             );
 
-            setOtherOrders((prevState) => prevState?.filter((x, y) => x?.id === data?.id));
+            setOtherOrders((prevState) => prevState?.filter((x, y) => x?.id !== data?.id));
           }}
         >
           <span>Remove</span>

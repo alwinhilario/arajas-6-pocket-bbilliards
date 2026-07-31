@@ -2,7 +2,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import storage from "@/lib/localforage";
 import { TOutList } from "../tables/types";
-import { OUT_LIST } from "@/app/constants";
+import { PLASADA_LIST } from "@/app/constants";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import dayjs from "dayjs";
@@ -10,13 +10,13 @@ import { FaPlus } from "react-icons/fa";
 import { filterObject } from "@/lib/utils";
 import { SESSION_CONTEXT } from "@/app/provider";
 
-export default function OutList() {
+export default function PlasadaList() {
   const [otherOrders, setOtherOrders] = React.useState<TOutList>([]);
   const { value } = React.useContext(SESSION_CONTEXT);
 
   React.useEffect(() => {
     const load = async () => {
-      const item = ((await storage.getItem("out_list")) || OUT_LIST) as TOutList;
+      const item = ((await storage.getItem("plasada_list")) || PLASADA_LIST) as TOutList;
 
       setOtherOrders(item);
     };
@@ -37,7 +37,7 @@ export default function OutList() {
     if (!Array.isArray(filtered) || (filtered || [])?.length <= 0) return;
 
     const update = async () => {
-      (await storage.setItem("out_list", filtered)) as TOutList;
+      (await storage.setItem("plasada_list", filtered)) as TOutList;
     };
     update();
   }, [JSON.stringify(filtered)]);
@@ -46,14 +46,14 @@ export default function OutList() {
     <div>
       <Card className='p-5 w-full'>
         <div className='flex gap-3 items-center'>
-          <div className='text-lg font-bold'>Expenses Daily (Out)</div>
+          <div className='text-lg font-bold'>Plasada Daily</div>
           <Button
             size={"xl"}
             className='w-20 font-bold cursor-pointer py-3'
             onClick={() => {
               setOtherOrders((prevState) => [
                 ...prevState,
-                { ...OUT_LIST[0], id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS") },
+                { ...PLASADA_LIST[0], id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS") },
               ]);
             }}
           >
@@ -63,12 +63,39 @@ export default function OutList() {
           </Button>
         </div>
 
-        <div>
+        <div className='space-y-3'>
+          <div className='flex gap-2'>
+            <div className='w-60 font-black uppercase text-gray-600'>Versus</div>
+            <div className='w-40 font-black uppercase text-gray-600'>Parada</div>
+            <div className='w-40 font-black uppercase text-gray-600'>Amount</div>
+            <div className='w-48 font-black uppercase text-gray-600'>Date</div>
+          </div>
           <div className='space-y-1'>
             {filtered?.map((item, key) => (
               <div className='flex gap-2' key={key}>
                 <Input
-                  placeholder='Label'
+                  placeholder='Versus'
+                  className='w-60'
+                  value={item?.remarks}
+                  onChange={(v) => {
+                    setOtherOrders((prevState) =>
+                      prevState?.map((x, y) => {
+                        if (item?.id === x?.id) {
+                          return {
+                            ...x,
+                            remarks: v.target.value,
+                            date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                          };
+                        }
+
+                        return x;
+                      }),
+                    );
+                  }}
+                />
+                <Input
+                  placeholder='Parada'
+                  type='number'
                   className='w-40'
                   value={item?.label}
                   onChange={(v) => {
@@ -108,26 +135,7 @@ export default function OutList() {
                     );
                   }}
                 />
-                <Input
-                  placeholder='Remarks...'
-                  className='w-60'
-                  value={item?.remarks}
-                  onChange={(v) => {
-                    setOtherOrders((prevState) =>
-                      prevState?.map((x, y) => {
-                        if (item?.id === x?.id) {
-                          return {
-                            ...x,
-                            remarks: v.target.value,
-                            date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                          };
-                        }
 
-                        return x;
-                      }),
-                    );
-                  }}
-                />
                 <Input placeholder='Date' className='w-48' value={item?.date} disabled />
 
                 {otherOrders?.length === key + 1 && (
@@ -176,7 +184,7 @@ export default function OutList() {
           </div>
         </div>
         <div className='flex flex-col gap-0.5 font-semibold'>
-          <div className='w-40'>Total Expenses</div>
+          <div className='w-40'>Total Plasada</div>
           <div className='text-green-500 text-2xl font-bold'>
             {totalAmount > 0 ? `PHP ${`${totalAmount}`}.00` : "--"}
           </div>

@@ -7,7 +7,15 @@ import storage from "@/lib/localforage";
 import { TTableOpts, TTableOptsData } from "./types";
 import OtherOrders from "../other-orders";
 import { isEmpty } from "lodash";
-import { INVENTORY_OPTS, NAME_OPTS, OTHER_ORDERS, OUT_LIST, TABLE_OPTS } from "@/app/constants";
+import {
+  INVENTORY_OPTS,
+  NAME_OPTS,
+  OTHER_ORDERS,
+  OUT_LIST,
+  PLASADA_LIST,
+  REMARKS_LIST,
+  TABLE_OPTS,
+} from "@/app/constants";
 import dayjs from "dayjs";
 
 export default function Tables() {
@@ -32,6 +40,8 @@ export default function Tables() {
       // const data5 = await storage.setItem("out_list", OUT_LIST);
       // const data6 = await storage.setItem("all_tables_list", []);
       // const data7 = await storage.setItem("pending_payment", []);
+      // const data8 = await storage.setItem("plasada_list", PLASADA_LIST);
+      // const data9 = await storage.setItem("remarks_list", REMARKS_LIST);
 
       setTables(data);
     };

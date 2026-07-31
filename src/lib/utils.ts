@@ -20,12 +20,27 @@ interface IProps {
   filter_to: Date;
 }
 
-export const filterObject = ({ object = {}, filter_from, filter_to, propertyName }: IProps) => {
+export const filterObject = ({ object = [], filter_from, filter_to, propertyName }: IProps) => {
   const filteredData = object
+    ?.filter((item) => item?.[propertyName])
     .filter((item) => {
-      return dayjs(item?.[propertyName]).isBetween(filter_from, filter_to, "day", "[]");
+      return dayjs(item?.[propertyName]).isBetween(filter_from, filter_to, "second", "[]");
     })
     .sort((a, b) => dayjs(a?.[propertyName]).diff(dayjs(b?.[propertyName])));
 
   return filteredData;
+};
+
+export const getTotalAmount = (arr = [], propertyName = "amount") => {
+  return arr?.reduce((acc, item) => acc + parseInt(item?.[propertyName] || "0"), 0);
+};
+
+export const convertCurrency = (amount = 0) => {
+  return amount
+    .toLocaleString("en-PH", {
+      style: "currency",
+      currency: "PHP",
+      currencyDisplay: "code",
+    })
+    .replace(/\u00A0/g, " "); // Replace non-breaking space with normal space
 };

@@ -7,6 +7,7 @@ interface IProps {
   mop: string;
   variant?: "default" | "table";
   onPayClick: (arg: string) => void;
+  readOnly?: boolean;
   withBorder?: boolean;
   className: string;
 }
@@ -17,6 +18,7 @@ export default function Payment({
   onPayClick,
   variant = "default",
   withBorder = true,
+  readOnly = false,
 }: IProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -95,6 +97,7 @@ export default function Payment({
           variant === "default" ? "w-24" : "min-w-28 flex-1",
           "font-bold cursor-pointer flex items-center gap-2 rounded",
           { "border-0": !withBorder },
+          { "!cursor-default": readOnly },
           {
             gcash: "bg-[#0479f7] text-white hover:bg-[#0479f7] hover:text-white",
             maya: "bg-black text-[#1aec96] hover:bg-black hover:text-[#1aec96]",
@@ -106,6 +109,8 @@ export default function Payment({
           className,
         )}
         onClick={() => {
+          if (readOnly) return;
+
           setIsOpen(!isOpen);
         }}
       >
@@ -116,9 +121,11 @@ export default function Payment({
             cash: "Cash",
           }?.[mop] || "MOP"}
         </div>
-        <div>
-          <IoChevronDownOutline className='h-4 w-4' />
-        </div>
+        {!readOnly && (
+          <div>
+            <IoChevronDownOutline className='h-4 w-4' />
+          </div>
+        )}
       </Button>
     </div>
   );

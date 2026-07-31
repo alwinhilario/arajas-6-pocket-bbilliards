@@ -14,7 +14,7 @@ export default function AllTableList() {
   React.useEffect(() => {
     const load = async () => {
       const data = ((await storage.getItem("all_tables_list")) || []) as TTableOpts;
-      setTables(data);
+      setTables(data?.sort((a, b) => dayjs(a?.in).diff(dayjs(b?.in))));
     };
 
     load();
@@ -27,7 +27,7 @@ export default function AllTableList() {
 
         await storage.setItem("all_tables_list", x);
 
-        setTables(x);
+        setTables(x?.sort((a, b) => dayjs(a?.in).diff(dayjs(b?.in))));
       };
 
       update();
@@ -50,66 +50,68 @@ export default function AllTableList() {
     <Card className='pt-0'>
       <div className='text-lg font-bold p-5 pb-0'>Table History </div>
 
-      <Table>
-        <TableHeader className='bg-gray-100/80'>
-          <TableRow>
-            <TableHead className='font-bold px-2 text-gray-600'>TABLE NO.</TableHead>
-            <TableHead className='font-bold px-2 text-gray-600'>IN</TableHead>
-            <TableHead className='font-bold px-2 text-gray-600'>OUT</TableHead>
-            <TableHead className='font-bold px-2 text-gray-600'>MOP</TableHead>
-            <TableHead className='font-bold px-2 text-gray-600'>AMOUNT</TableHead>
-            <TableHead className='font-bold px-2 text-gray-600'>STATUS</TableHead>
-            <TableHead className='font-bold px-2 text-gray-600'>REMARKS</TableHead>
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          {filtered?.length > 0 ? (
-            filtered.map((user, key) => (
-              <TableRow key={key}>
-                <TableCell className='font-medium'>{user.label}</TableCell>
-                <TableCell>
-                  <div className='py-3'>
-                    {dayjs(user.in)?.isValid() ? dayjs(user.in).format("MMM DD, YYYY hh:mm A") : "--"}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className='py-3'>
-                    {dayjs(user.out)?.isValid() ? dayjs(user.out).format("MMM DD, YYYY hh:mm A") : "--"}
-                  </div>
-                </TableCell>
-                <TableCell className='capitalize break-all'>
-                  <div className='py-3'>
-                    {user.mop?.some((x) => parseInt(x?.amount || "0") > 0)
-                      ? user?.mop?.map((y) => `${y?.label} (PHP ${y?.amount}.00)`)?.join("/")
-                      : "--"}
-                  </div>
-                </TableCell>
-                <TableCell>{user.amount?.length > 0 ? `PHP ${user.amount}.00` : "--"}</TableCell>
-                <TableCell>
-                  <div className='py-3'>
-                    {{
-                      Active: <Badge variant={"success"}>{user.status}</Badge>,
-                      "Timed out": (
-                        <Badge className='text-gray-600' variant={"secondary"}>
-                          {user.status}
-                        </Badge>
-                      ),
-                    }?.[user.status] || "--"}
-                  </div>
-                </TableCell>
-                <TableCell>{user.remarks || "--"}</TableCell>
-              </TableRow>
-            ))
-          ) : (
+      <div className='max-h-[290px] overflow-y-auto relative'>
+        <Table>
+          <TableHeader className='bg-gray-100/80'>
             <TableRow>
-              <TableCell colSpan={7} className='text-center pt-5 text-gray-400'>
-                No data found...
-              </TableCell>
+              <TableHead className='font-bold px-2 text-gray-600'>TABLE NO.</TableHead>
+              <TableHead className='font-bold px-2 text-gray-600'>IN</TableHead>
+              <TableHead className='font-bold px-2 text-gray-600'>OUT</TableHead>
+              <TableHead className='font-bold px-2 text-gray-600'>MOP</TableHead>
+              <TableHead className='font-bold px-2 text-gray-600'>AMOUNT</TableHead>
+              <TableHead className='font-bold px-2 text-gray-600'>STATUS</TableHead>
+              <TableHead className='font-bold px-2 text-gray-600'>REMARKS</TableHead>
             </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          </TableHeader>
+
+          <TableBody>
+            {filtered?.length > 0 ? (
+              filtered.map((user, key) => (
+                <TableRow key={key}>
+                  <TableCell className='font-medium'>{user.label}</TableCell>
+                  <TableCell>
+                    <div className=''>
+                      {dayjs(user.in)?.isValid() ? dayjs(user.in).format("MMM DD, YYYY - hh:mm A") : "--"}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className=''>
+                      {dayjs(user.out)?.isValid() ? dayjs(user.out).format("MMM DD, YYYY - hh:mm A") : "--"}
+                    </div>
+                  </TableCell>
+                  <TableCell className='capitalize break-all'>
+                    <div className=''>
+                      {user.mop?.some((x) => parseInt(x?.amount || "0") > 0)
+                        ? user?.mop?.map((y) => `${y?.label} (PHP ${y?.amount}.00)`)?.join("/")
+                        : "--"}
+                    </div>
+                  </TableCell>
+                  <TableCell>{user.amount?.length > 0 ? `PHP ${user.amount}.00` : "--"}</TableCell>
+                  <TableCell>
+                    <div className=''>
+                      {{
+                        Active: <Badge variant={"success"}>{user.status}</Badge>,
+                        "Timed out": (
+                          <Badge className='text-gray-600' variant={"secondary"}>
+                            {user.status}
+                          </Badge>
+                        ),
+                      }?.[user.status] || "--"}
+                    </div>
+                  </TableCell>
+                  <TableCell>{user.remarks || "--"}</TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={7} className='text-center pt-5 text-gray-400'>
+                  No data found...
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </Card>
   );
 }
