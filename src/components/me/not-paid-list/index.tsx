@@ -51,13 +51,7 @@ export default function NotPaidList() {
   const totalAmount = tables?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
 
   const result = Object.values(
-    filterObject({
-      object: tables,
-      filter_from: value?.date?.date_from,
-      filter_to: value?.date?.date_to,
-      propertyName: "date",
-      filterDate: true,
-    }).reduce((acc, { item, name, mop, amount, date, remarks, id, is_table }) => {
+    tables?.reduce((acc, { item, name, mop, amount, date, remarks, id, is_table }) => {
       if (!acc[name]) {
         acc[name] = {
           name,
@@ -396,13 +390,18 @@ export default function NotPaidList() {
 
                         {item?.items?.every((xx) => xx?.mop && xx?.mop?.length > 0) && (
                           <div className='pr-2'>
-                            <FaTrash
-                              className='h-4 w-4 text-red-400 cursor-pointer'
+                            <Button
+                              variant={"destructive"}
+                              size={"sm"}
+                              className={"cursor-pointer"}
                               onClick={() => {
                                 setIsOpen(!isOpen);
                                 setCurrentView(item);
                               }}
-                            />
+                            >
+                              <FaTrash className='h-4 w-4' />
+                              <div>Remove</div>
+                            </Button>
                           </div>
                         )}
                       </div>

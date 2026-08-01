@@ -72,11 +72,11 @@ export default function Home() {
           <br />
           <OutList />
           <br />
-          <NotPaidList />
-          <br />
           <RemarksList />
           <br />
           <DailyRevenue />
+          <br />
+          <NotPaidList />
           <br />
           <AllTableList />
           <br />

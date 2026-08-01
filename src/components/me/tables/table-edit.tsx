@@ -187,10 +187,12 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                 onClick={() => {
                   setState((prevState) => {
                     const newTime = dayjs(prevState?.in).add(2, "minute").format("YYYY/MM/DD HH:mm:ss");
+                    const newOut = dayjs(prevState?.out).add(2, "minute").format("YYYY/MM/DD HH:mm:ss");
 
                     return {
                       ...prevState,
                       in: newTime,
+                      out: prevState?.out && prevState?.out?.length > 0 ? newOut : prevState?.out,
                     };
                   });
                 }}
@@ -203,10 +205,12 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                 onClick={() => {
                   setState((prevState) => {
                     const newTime = dayjs(prevState?.in).add(3, "minute").format("YYYY/MM/DD HH:mm:ss");
+                    const newOut = dayjs(prevState?.out).add(3, "minute").format("YYYY/MM/DD HH:mm:ss");
 
                     return {
                       ...prevState,
                       in: newTime,
+                      out: prevState?.out && prevState?.out?.length > 0 ? newOut : prevState?.out,
                     };
                   });
                 }}
@@ -219,10 +223,12 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                 onClick={() => {
                   setState((prevState) => {
                     const newTime = dayjs(prevState?.in).add(5, "minute").format("YYYY/MM/DD HH:mm:ss");
+                    const newOut = dayjs(prevState?.out).add(5, "minute").format("YYYY/MM/DD HH:mm:ss");
 
                     return {
                       ...prevState,
                       in: newTime,
+                      out: prevState?.out && prevState?.out?.length > 0 ? newOut : prevState?.out,
                     };
                   });
                 }}
@@ -373,14 +379,11 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
           </div>
         </div>
 
-        <br />
+        <div className='py-5'>
+          <hr />
+        </div>
 
         <div className='space-y-3'>
-          <div className='flex gap-2 pb-2'>
-            <div className='w-24 font-semibold'>Total Hours:</div>
-            <div className=''>{result || "0"}</div>
-          </div>
-
           <div className='flex gap-2'>
             <div className='w-24 font-semibold'>Others:</div>
 
@@ -510,6 +513,11 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
               />
             </div>
           </div>
+        </div>
+        <br />
+        <div className='flex gap-2 pb-2 text-base'>
+          <div className='w-24 font-semibold'>Total Hours:</div>
+          <div className=''>{result || "0"}</div>
         </div>
 
         <div className='flex gap-2'>

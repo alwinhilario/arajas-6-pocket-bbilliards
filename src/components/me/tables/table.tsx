@@ -16,6 +16,7 @@ import storage from "@/lib/localforage";
 import TableTransfer from "./table-transfer";
 import Payment from "../payment";
 import { isEmpty } from "lodash";
+import { convertCurrency } from "@/lib/utils";
 
 dayjs.extend(duration);
 dayjs.extend(customParseFormat);
@@ -317,9 +318,10 @@ export default function Table({
             <div>
               {totalOthers > 0
                 ? data?.others?.map((item, key) => (
-                    <div className='flex gap-2' key={key}>
-                      <div className='min-w-[110px] capitalize'>{item?.item}</div>
-                      <div className='font-bold'>PHP {item?.amount}.00</div>
+                    <div className='flex gap-2 text-xs' key={key}>
+                      <div>• </div>
+                      <div className='w-[120px] capitalize'>{item?.item}</div>
+                      <div className='font-bold'>{convertCurrency(parseInt(item?.amount || "0"), false)}</div>
                     </div>
                   ))
                 : "--"}

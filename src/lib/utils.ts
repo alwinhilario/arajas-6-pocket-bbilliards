@@ -45,12 +45,12 @@ export const getTotalAmount = (arr = [], propertyName = "amount") => {
   return arr?.reduce((acc, item) => acc + parseInt(item?.[propertyName] || "0"), 0);
 };
 
-export const convertCurrency = (amount = 0) => {
+export const convertCurrency = (amount = 0, isPHP = true) => {
   return amount
     .toLocaleString("en-PH", {
       style: "currency",
       currency: "PHP",
-      currencyDisplay: "code",
+      currencyDisplay: isPHP ? "code" : "symbol",
     })
     .replace(/\u00A0/g, " "); // Replace non-breaking space with normal space
 };
