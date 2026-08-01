@@ -360,7 +360,7 @@ export default function OtherOrder({
         }}
       />
 
-      {otherOrders?.length === key + 1 && (
+      {/* {otherOrders?.length === key + 1 && (
         <div className='flex items-center gap-0.5'>
           {/* <Button
             className='w-20 font-bold cursor-pointer'
@@ -375,7 +375,7 @@ export default function OtherOrder({
           >
             <span>Add</span>
           </Button> */}
-          <Button
+      {/* <Button
             size={"xl"}
             variant={"outline"}
             className='w-20 font-bold cursor-pointer'
@@ -411,29 +411,34 @@ export default function OtherOrder({
             }}
           >
             <span>Clear</span>
-          </Button>
-        </div>
-      )}
+          </Button> */}
+      {/* </div> */}
+      {/* // )} */}
 
-      {otherOrders?.length !== key + 1 && (
-        <Button
-          variant='destructive'
-          size={"xl"}
-          className='w-20 font-bold cursor-pointer'
-          onClick={async () => {
-            const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
+      {/* {otherOrders?.length !== key + 1 && ( */}
+      <Button
+        variant='destructive'
+        size={"xl"}
+        className='w-20 font-bold cursor-pointer'
+        onClick={async () => {
+          const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
 
-            await storage.setItem(
-              "pending_payment",
-              pendingPayment?.filter((x) => x?.id !== data?.id),
-            );
+          await storage.setItem(
+            "pending_payment",
+            pendingPayment?.filter((x) => x?.id !== data?.id),
+          );
 
-            setOtherOrders((prevState) => prevState?.filter((x, y) => x?.id !== data?.id));
-          }}
-        >
-          <span>Remove</span>
-        </Button>
-      )}
+          const res = (await storage.getItem("other_orders")) || [];
+          await storage.setItem(
+            "other_orders",
+            res?.filter((x, y) => x?.id !== data?.id),
+          );
+          setOtherOrders((prevState) => prevState?.filter((x, y) => x?.id !== data?.id));
+        }}
+      >
+        <span>Remove</span>
+      </Button>
+      {/* // )} */}
     </div>
   );
 }

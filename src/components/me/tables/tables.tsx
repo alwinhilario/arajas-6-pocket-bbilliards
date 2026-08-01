@@ -36,12 +36,12 @@ export default function Tables() {
       //   },
       // ]);
       // const data3 = await storage.setItem("name_list", NAME_OPTS);
-      // const data4 = await storage.setItem("other_orders", OTHER_ORDERS);
-      // const data5 = await storage.setItem("out_list", OUT_LIST);
+      // const data4 = await storage.setItem("other_orders", []);
+      // const data5 = await storage.setItem("out_list", []);
       // const data6 = await storage.setItem("all_tables_list", []);
       // const data7 = await storage.setItem("pending_payment", []);
-      // const data8 = await storage.setItem("plasada_list", PLASADA_LIST);
-      // const data9 = await storage.setItem("remarks_list", REMARKS_LIST);
+      // const data8 = await storage.setItem("plasada_list", []);
+      // const data9 = await storage.setItem("remarks_list", []);
 
       setTables(data);
     };

@@ -14,6 +14,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import clsx from "clsx";
 
 export type InputSelectOption = {
   label: string;
@@ -123,6 +124,7 @@ function InputSelect({
                 setOpen(true);
               }}
               {...inputProps}
+              className={clsx("capitalize", inputProps?.className || "")}
               readOnly
             />
             <InputGroupAddon align='inline-end'>
@@ -142,6 +144,7 @@ function InputSelect({
         {/* Pass value="" to stop cmdk from auto-selecting & scrolling list items */}
         <Command shouldFilter={false} value=''>
           <CommandInput
+            className='capitalize'
             placeholder={searchPlaceholder}
             value={search}
             onValueChange={setSearch}
@@ -174,6 +177,7 @@ function InputSelect({
                     handleSelect(search.trim());
                     if (typeof onAddClick === "function") onAddClick(search.trim());
                   }}
+                  className='capitalize'
                 >
                   Add &quot;{search.trim()}&quot;
                 </CommandItem>

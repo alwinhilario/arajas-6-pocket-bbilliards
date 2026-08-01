@@ -11,6 +11,7 @@ import { isEmpty } from "lodash";
 import { OTHER_ORDERS, PLASADA_LIST } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import { IoWarning } from "react-icons/io5";
+import DailyReport from "./details";
 
 export default function RevenueList() {
   const [orders, setOrders] = React.useState<TOtherOrdersOpts>([]);
@@ -82,7 +83,7 @@ export default function RevenueList() {
             object: tableHistory,
             filter_from: dayjs(item?.dateStringFrom),
             filter_to: dayjs(item?.dateStringTo),
-            propertyName: "out",
+            propertyName: "in",
           }),
           pendingPayment: filterObject({
             filterDate: true,
@@ -136,6 +137,8 @@ export default function RevenueList() {
   }, [value?.date?.date_from, value?.date?.date_to]);
   const [isOpen, setIsOpen] = React.useState(false);
 
+  const [isViewOpen, setIsViewOpen] = React.useState(false);
+  const [currentView, setCurrentView] = React.useState({});
   return (
     <Card className='pt-0'>
       {isOpen && (
@@ -191,6 +194,38 @@ export default function RevenueList() {
         </div>
       )}
 
+      {isViewOpen && (
+        <div
+          className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 max-h-screen overflow-scroll pt-60'
+          onClick={() => {
+            setIsViewOpen((prevState) => !prevState);
+          }}
+        >
+          <Card
+            className='p-5 cursor-default'
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <div className='text-base pb-5'>
+              <DailyReport data={currentView} />
+            </div>
+
+            <div className='flex gap-2'>
+              <Button
+                size={"xl"}
+                className={"cursor-pointer flex-1"}
+                onClick={async () => {
+                  setIsViewOpen(!isViewOpen);
+                }}
+              >
+                Close
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
       <div className='flex items-center gap-2 text-lg font-bold p-5 pb-0'>
         <div className='flex-1'>Revenue History </div>
         <div>
@@ -221,6 +256,7 @@ export default function RevenueList() {
               <TableHead className='font-bold px-2 text-gray-600'>PENDING PAYMENTS</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>EXPENSES</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL INCOME</TableHead>
+              <TableHead className='font-bold px-2 text-gray-600'></TableHead>
             </TableRow>
           </TableHeader>
 
@@ -248,6 +284,17 @@ export default function RevenueList() {
                           getTotalAmount(item?.items?.pendingPayment) -
                           getTotalAmount(item?.items?.expenses),
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        onClick={() => {
+                          setIsViewOpen(!isViewOpen);
+                          setCurrentView(item?.items);
+                        }}
+                        className={"cursor-pointer"}
+                      >
+                        View Details
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );

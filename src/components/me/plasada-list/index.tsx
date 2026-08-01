@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import { FaPlus } from "react-icons/fa";
 import { filterObject } from "@/lib/utils";
 import { SESSION_CONTEXT } from "@/app/provider";
+import { IoWarning } from "react-icons/io5";
 
 export default function PlasadaList() {
   const [otherOrders, setOtherOrders] = React.useState<TOutList>([]);
@@ -42,118 +43,215 @@ export default function PlasadaList() {
     update();
   }, [JSON.stringify(filtered)]);
 
+  const [isResetOpen, setIsResetOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [state, setState] = React.useState({
+    remarks: "",
+    label: "",
+    amount: "",
+  });
+
   return (
     <div>
       <Card className='p-5 w-full'>
-        <div className='flex gap-3 items-center'>
-          <div className='text-lg font-bold'>Plasada Daily</div>
-          <Button
-            size={"xl"}
-            className='w-20 font-bold cursor-pointer py-3'
+        {isResetOpen && (
+          <div
+            className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 pt-60'
             onClick={() => {
-              setOtherOrders((prevState) => [
-                ...prevState,
-                { ...PLASADA_LIST[0], id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS") },
-              ]);
+              setIsOpen((prevState) => !prevState);
             }}
           >
-            <FaPlus className='h-5 w-5' />
+            <Card
+              className='p-5 cursor-default'
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <div className='font-black text-orange-400 text-2xl'>Warning:</div>
+              <div className='text-base pb-5'>
+                <div>
+                  Are you sure you want to permanently delete <b>Plasada Daily?</b>
+                </div>
+                <div className='text-gray-500'>
+                  <small>
+                    <i>This is only used for early testing.</i>
+                  </small>
+                </div>
+              </div>
 
-            <div>Add</div>
-          </Button>
+              <div className='flex gap-2'>
+                <Button
+                  size={"xl"}
+                  className={"cursor-pointer flex-1"}
+                  onClick={async () => {
+                    await storage.setItem("plasada_list", []);
+                    setOtherOrders([]);
+                    setIsResetOpen(!isResetOpen);
+                  }}
+                >
+                  Confirm
+                </Button>
+                <Button
+                  size={"xl"}
+                  className={"cursor-pointer flex-1"}
+                  variant={"outline"}
+                  onClick={() => {
+                    setIsResetOpen(!isResetOpen);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {isOpen && (
+          <div
+            className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 pt-60'
+            onClick={() => {
+              setIsOpen((prevState) => !prevState);
+            }}
+          >
+            <Card
+              className='p-5 cursor-default w-[420px]'
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <div className='space-y-3'>
+                <div className='text-2xl font-bold'>Add Plasada</div>
+                <br />
+
+                <div className='space-y-1'>
+                  <div className='font-semibold'>Versus</div>
+                  <Input
+                    placeholder='Versus'
+                    className='capitalize'
+                    value={state?.remarks}
+                    onChange={(v) => {
+                      setState((prevState) => ({ ...prevState, remarks: v.target.value }));
+                    }}
+                  />
+                </div>
+
+                <div className='space-y-1'>
+                  <div className='font-semibold'>Parada</div>
+                  <Input
+                    placeholder='Parada'
+                    type='number'
+                    value={state?.label}
+                    onChange={(v) => {
+                      setState((prevState) => ({ ...prevState, label: v.target.value }));
+                    }}
+                  />
+                </div>
+                <div className='space-y-1'>
+                  <div className='font-semibold'>Amount</div>
+                  <Input
+                    placeholder='Amount'
+                    value={state?.amount}
+                    type='number'
+                    onChange={(v) => {
+                      setState((prevState) => ({ ...prevState, amount: v.target.value }));
+                    }}
+                  />
+                </div>
+
+                <br />
+
+                <div className='flex gap-2 pt-3'>
+                  <Button
+                    size={"xl"}
+                    className={"cursor-pointer flex-1"}
+                    onClick={async () => {
+                      setIsOpen(!isOpen);
+                      setOtherOrders((prevState) => [...prevState, state]);
+                      setState({
+                        remarks: "",
+                        label: "",
+                        amount: "",
+                      });
+                    }}
+                  >
+                    Confirm
+                  </Button>
+                  <Button
+                    size={"xl"}
+                    className={"cursor-pointer flex-1"}
+                    variant={"outline"}
+                    onClick={() => {
+                      setIsOpen(!isOpen);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        <div className='flex items-center gap-2 text-lg font-bold'>
+          <div className='flex flex-1 gap-3 items-center'>
+            <div className='text-lg font-bold'>Plasada Daily </div>
+            <Button
+              size={"xl"}
+              className=' font-bold cursor-pointer py-3'
+              onClick={async () => {
+                setState((prevState) => ({
+                  ...prevState,
+                  date: dayjs().format("YYYY/MM/DD hh:mm A"),
+                  id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSS"),
+                }));
+
+                setIsOpen(!isOpen);
+              }}
+            >
+              <FaPlus className='h-5 w-5' />
+              <div>Add</div>
+            </Button>
+          </div>
+          {filtered?.length > 0 && (
+            <div>
+              <Button
+                variant={"warning"}
+                className={"cursor-pointer font-bold"}
+                size={"xl"}
+                onClick={() => {
+                  setIsResetOpen(!isResetOpen);
+                }}
+              >
+                <IoWarning className='h-5 w-5' />
+                <div>Reset</div>
+              </Button>
+            </div>
+          )}
         </div>
 
-        <div className='space-y-3'>
-          <div className='flex gap-2'>
-            <div className='w-60 font-black uppercase text-gray-600'>Versus</div>
-            <div className='w-40 font-black uppercase text-gray-600'>Parada</div>
-            <div className='w-40 font-black uppercase text-gray-600'>Amount</div>
-            <div className='w-48 font-black uppercase text-gray-600'>Date</div>
-          </div>
-          <div className='space-y-1'>
-            {filtered?.map((item, key) => (
-              <div className='flex gap-2' key={key}>
-                <Input
-                  placeholder='Versus'
-                  className='w-60'
-                  value={item?.remarks}
-                  onChange={(v) => {
-                    setOtherOrders((prevState) =>
-                      prevState?.map((x, y) => {
-                        if (item?.id === x?.id) {
-                          return {
-                            ...x,
-                            remarks: v.target.value,
-                            date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                          };
-                        }
-
-                        return x;
-                      }),
-                    );
-                  }}
-                />
-                <Input
-                  placeholder='Parada'
-                  type='number'
-                  className='w-40'
-                  value={item?.label}
-                  onChange={(v) => {
-                    setOtherOrders((prevState) =>
-                      prevState?.map((x, y) => {
-                        if (item?.id === x?.id) {
-                          return {
-                            ...x,
-                            label: v.target.value,
-                            date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                          };
-                        }
-
-                        return x;
-                      }),
-                    );
-                  }}
-                />
-                <Input
-                  placeholder='Amount'
-                  className='w-40'
-                  value={item?.amount}
-                  type='number'
-                  onChange={(v) => {
-                    setOtherOrders((prevState) =>
-                      prevState?.map((x, y) => {
-                        if (item?.id === x?.id) {
-                          return {
-                            ...x,
-                            amount: v.target.value,
-                            date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                          };
-                        }
-
-                        return x;
-                      }),
-                    );
-                  }}
-                />
-
-                <Input placeholder='Date' className='w-48' value={item?.date} disabled />
-
-                {otherOrders?.length === key + 1 && (
-                  <div className='flex items-center gap-0.5'>
-                    <Button
-                      size={"xl"}
-                      variant={"outline"}
-                      className='w-20 font-bold cursor-pointer'
-                      onClick={() => {
+        {filtered?.length > 0 && (
+          <>
+            <div className='space-y-3'>
+              <div className='flex gap-2'>
+                <div className='w-60 font-black uppercase text-gray-600'>Versus</div>
+                <div className='w-40 font-black uppercase text-gray-600'>Parada</div>
+                <div className='w-40 font-black uppercase text-gray-600'>Amount</div>
+                <div className='w-48 font-black uppercase text-gray-600'>Date</div>
+              </div>
+              <div className='space-y-1'>
+                {filtered?.map((item, key) => (
+                  <div className='flex gap-2' key={key}>
+                    <Input
+                      placeholder='Versus'
+                      className='w-60 capitalize'
+                      value={item?.remarks}
+                      onChange={(v) => {
                         setOtherOrders((prevState) =>
                           prevState?.map((x, y) => {
-                            if (y === key) {
+                            if (item?.id === x?.id) {
                               return {
                                 ...x,
-                                amount: "",
-                                label: "",
-                                remarks: "",
-                                date: "",
+                                remarks: v.target.value,
                               };
                             }
 
@@ -161,34 +259,77 @@ export default function PlasadaList() {
                           }),
                         );
                       }}
+                    />
+                    <Input
+                      placeholder='Parada'
+                      type='number'
+                      className='w-40'
+                      value={item?.label}
+                      onChange={(v) => {
+                        setOtherOrders((prevState) =>
+                          prevState?.map((x, y) => {
+                            if (item?.id === x?.id) {
+                              return {
+                                ...x,
+                                label: v.target.value,
+                              };
+                            }
+
+                            return x;
+                          }),
+                        );
+                      }}
+                    />
+                    <Input
+                      placeholder='Amount'
+                      className='w-40'
+                      value={item?.amount}
+                      type='number'
+                      onChange={(v) => {
+                        setOtherOrders((prevState) =>
+                          prevState?.map((x, y) => {
+                            if (item?.id === x?.id) {
+                              return {
+                                ...x,
+                                amount: v.target.value,
+                              };
+                            }
+
+                            return x;
+                          }),
+                        );
+                      }}
+                    />
+
+                    <Input placeholder='Date' className='w-48' value={item?.date} disabled />
+
+                    <Button
+                      size={"xl"}
+                      variant='destructive'
+                      className='w-20 font-bold cursor-pointer'
+                      onClick={async () => {
+                        const res = (await storage.getItem("plasada_list")) || [];
+                        await storage.setItem(
+                          "plasada_list",
+                          res?.filter((x, y) => item?.id !== x?.id),
+                        );
+                        setOtherOrders((prevState) => prevState?.filter((x, y) => item?.id !== x?.id));
+                      }}
                     >
-                      <span>Clear</span>
+                      <span>Remove</span>
                     </Button>
                   </div>
-                )}
-
-                {otherOrders?.length !== key + 1 && (
-                  <Button
-                    size={"xl"}
-                    variant='destructive'
-                    className='w-20 font-bold cursor-pointer'
-                    onClick={() => {
-                      setOtherOrders((prevState) => prevState?.filter((x, y) => item?.id !== x?.id));
-                    }}
-                  >
-                    <span>Remove</span>
-                  </Button>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-        <div className='flex flex-col gap-0.5 font-semibold'>
-          <div className='w-40'>Total Plasada</div>
-          <div className='text-green-500 text-2xl font-bold'>
-            {totalAmount > 0 ? `PHP ${`${totalAmount}`}.00` : "--"}
-          </div>
-        </div>
+            </div>
+            <div className='flex flex-col gap-0.5 font-semibold'>
+              <div className='w-40'>Total Plasada</div>
+              <div className='text-green-500 text-2xl font-bold'>
+                {totalAmount > 0 ? `PHP ${`${totalAmount}`}.00` : "PHP 0.00"}
+              </div>
+            </div>
+          </>
+        )}
       </Card>
     </div>
   );

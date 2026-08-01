@@ -146,20 +146,22 @@ export default function NotPaidList() {
       )}
 
       <div className='flex items-center gap-2 text-lg font-bold p-5 pb-0'>
-        <div className='flex-1'>Pending Payment</div>
-        <div>
-          <Button
-            variant={"warning"}
-            className={"cursor-pointer font-bold"}
-            size={"xl"}
-            onClick={() => {
-              setIsResetOpen(!isResetOpen);
-            }}
-          >
-            <IoWarning className='h-5 w-5' />
-            <div>Reset</div>
-          </Button>
-        </div>
+        <div className='flex-1'>Pending Payments</div>
+        {myResult?.length > 0 && (
+          <div>
+            <Button
+              variant={"warning"}
+              className={"cursor-pointer font-bold"}
+              size={"xl"}
+              onClick={() => {
+                setIsResetOpen(!isResetOpen);
+              }}
+            >
+              <IoWarning className='h-5 w-5' />
+              <div>Reset</div>
+            </Button>
+          </div>
+        )}
       </div>
 
       {isOpen && (
@@ -281,149 +283,155 @@ export default function NotPaidList() {
         </div>
       )}
 
-      <div className='px-5 flex flex-col'>
-        <div className='flex items-center gap-2 pb-5'>
-          <div className='w-32 font-black p-0.5 px-3 text-gray-600'>NAME</div>
-          <div className='w-68 font-black p-0.5 px-5 text-gray-600'>ITEM</div>
-          <div className='w-28 font-black p-0.5 px-7 text-gray-600'>AMOUNT</div>
-          <div className='w-80 font-black p-0.5 px-5 text-gray-600'>REMARKS</div>
-          <div className='w-48 font-black p-0.5 px-5 text-gray-600'>DATE</div>
-          <div className='w-24 font-black p-0.5 px-5 text-gray-600'>MOP</div>
-        </div>
+      {myResult?.length > 0 && (
+        <>
+          <div className='px-5 flex flex-col'>
+            <div className='flex items-center gap-2 pb-5'>
+              <div className='w-32 font-black p-0.5 px-3 text-gray-600'>NAME</div>
+              <div className='w-68 font-black p-0.5 px-5 text-gray-600'>ITEM</div>
+              <div className='w-28 font-black p-0.5 px-7 text-gray-600'>AMOUNT</div>
+              <div className='w-80 font-black p-0.5 px-5 text-gray-600'>REMARKS</div>
+              <div className='w-48 font-black p-0.5 px-5 text-gray-600'>DATE</div>
+              <div className='w-24 font-black p-0.5 px-5 text-gray-600'>MOP</div>
+            </div>
 
-        {myResult?.length > 0 ? (
-          <div className='space-y-6 divide-y flex flex-col '>
-            {myResult?.map((item, key) => {
-              return (
-                <div className='border rounded-sm self-start drop-shadow-accent' key={key}>
-                  <div className='flex divide-x '>
-                    <div className='w-36 p-3 px-3.5 font-bold'>{item?.name}</div>
-                    <div className=''>
-                      <div className='divide-x divide-y border-b '>
-                        {item?.items?.map((x, key) => (
-                          <div className='flex items-center divide-x ' key={key}>
-                            <div className='w-68 p-2 px-3'>
-                              {(() => {
-                                const exists = !isEmpty(inventoryOpts?.find((xx) => xx?.value === x?.item));
+            {myResult?.length > 0 ? (
+              <div className='space-y-6 divide-y flex flex-col '>
+                {myResult?.map((item, key) => {
+                  return (
+                    <div className='border rounded-sm self-start drop-shadow-accent' key={key}>
+                      <div className='flex divide-x '>
+                        <div className='w-36 p-3 px-3.5 font-bold'>{item?.name}</div>
+                        <div className=''>
+                          <div className='divide-x divide-y border-b '>
+                            {item?.items?.map((x, key) => (
+                              <div className='flex items-center divide-x ' key={key}>
+                                <div className='w-68 p-2 px-3'>
+                                  {(() => {
+                                    const exists = !isEmpty(
+                                      inventoryOpts?.find((xx) => xx?.value === x?.item),
+                                    );
 
-                                if (x?.item && exists) {
-                                  return inventoryOpts?.find((xx) => xx?.value === x?.item)?.label;
-                                } else if (x?.item) {
-                                  return x?.item;
-                                }
+                                    if (x?.item && exists) {
+                                      return inventoryOpts?.find((xx) => xx?.value === x?.item)?.label;
+                                    } else if (x?.item) {
+                                      return x?.item;
+                                    }
 
-                                return "--";
-                              })()}
+                                    return "--";
+                                  })()}
+                                </div>
+                                <div className='w-28 p-2 px-3'>{x?.amount}</div>
+                                <div className='w-80 p-2 px-3'>{x?.remarks || "--"}</div>
+                                <div className='w-48 p-2 px-3 text-gray-500'>
+                                  {dayjs(x?.date).isValid()
+                                    ? dayjs(x?.date)?.format("MMM DD, YYYY hh:mm A")
+                                    : "--"}
+                                </div>
+                                <div
+                                  className={clsx("p-1.5 flex items-center gap-2", {
+                                    " w-56": (item?.name || "")?.toLowerCase()?.includes("table"),
+                                  })}
+                                >
+                                  <Payment
+                                    // withBorder={x?.mop === "cash" ? true : false}
+                                    mop={x?.mop}
+                                    onPayClick={async (type) => {
+                                      const pp = ((await storage.getItem("pending_payment")) ||
+                                        OTHER_ORDERS) as TOtherOrdersOpts;
+
+                                      await storage.setItem(
+                                        "pending_payment",
+                                        pp?.map((xx) => {
+                                          if (xx?.id === x?.id) {
+                                            return {
+                                              ...xx,
+                                              mop: type,
+                                            };
+                                          }
+
+                                          return xx;
+                                        }),
+                                      );
+
+                                      // @ts-expect-error
+                                      setTables((prevState) =>
+                                        prevState?.map((xx) => {
+                                          if (xx?.id === x?.id) {
+                                            return {
+                                              ...xx,
+                                              mop: type,
+                                            };
+                                          }
+
+                                          return xx;
+                                        }),
+                                      );
+                                    }}
+                                  />
+
+                                  {(item?.name || "")?.toLowerCase()?.includes("table") && (
+                                    <Button
+                                      size={"xl"}
+                                      className='cursor-pointer'
+                                      onClick={async () => {
+                                        const res = await getTable(x?.id);
+                                        setCurrentView(res);
+                                        setIsViewOpen(!isViewOpen);
+                                      }}
+                                    >
+                                      View details
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className='flex items-center gap-2  p-1.5'>
+                            <div className='flex gap-2 font-bold  flex-1'>
+                              <div className='w-28 p-0.5 px-1.5'>Total</div>
+                              <div className='p-0.5 px-3.5'>PHP {item?.total}.00</div>
                             </div>
-                            <div className='w-28 p-2 px-3'>{x?.amount}</div>
-                            <div className='w-80 p-2 px-3'>{x?.remarks || "--"}</div>
-                            <div className='w-48 p-2 px-3 text-gray-500'>
-                              {dayjs(x?.date).isValid()
-                                ? dayjs(x?.date)?.format("MMM DD, YYYY hh:mm A")
-                                : "--"}
-                            </div>
-                            <div
-                              className={clsx("p-1.5 flex items-center gap-2", {
-                                " w-56": (item?.name || "")?.toLowerCase()?.includes("table"),
-                              })}
-                            >
-                              <Payment
-                                // withBorder={x?.mop === "cash" ? true : false}
-                                mop={x?.mop}
-                                onPayClick={async (type) => {
-                                  const pp = ((await storage.getItem("pending_payment")) ||
-                                    OTHER_ORDERS) as TOtherOrdersOpts;
 
-                                  await storage.setItem(
-                                    "pending_payment",
-                                    pp?.map((xx) => {
-                                      if (xx?.id === x?.id) {
-                                        return {
-                                          ...xx,
-                                          mop: type,
-                                        };
-                                      }
-
-                                      return xx;
-                                    }),
-                                  );
-
-                                  // @ts-expect-error
-                                  setTables((prevState) =>
-                                    prevState?.map((xx) => {
-                                      if (xx?.id === x?.id) {
-                                        return {
-                                          ...xx,
-                                          mop: type,
-                                        };
-                                      }
-
-                                      return xx;
-                                    }),
-                                  );
-                                }}
-                              />
-
-                              {(item?.name || "")?.toLowerCase()?.includes("table") && (
+                            {item?.items?.every((xx) => xx?.mop && xx?.mop?.length > 0) && (
+                              <div className='pr-2'>
                                 <Button
-                                  size={"xl"}
-                                  className='cursor-pointer'
-                                  onClick={async () => {
-                                    const res = await getTable(x?.id);
-                                    setCurrentView(res);
-                                    setIsViewOpen(!isViewOpen);
+                                  variant={"destructive"}
+                                  size={"sm"}
+                                  className={"cursor-pointer"}
+                                  onClick={() => {
+                                    setIsOpen(!isOpen);
+                                    setCurrentView(item);
                                   }}
                                 >
-                                  View details
+                                  <FaTrash className='h-4 w-4' />
+                                  <div>Remove</div>
                                 </Button>
-                              )}
-                            </div>
+                              </div>
+                            )}
                           </div>
-                        ))}
-                      </div>
-
-                      <div className='flex items-center gap-2  p-1.5'>
-                        <div className='flex gap-2 font-bold  flex-1'>
-                          <div className='w-28 p-0.5 px-1.5'>Total</div>
-                          <div className='p-0.5 px-3.5'>PHP {item?.total}.00</div>
                         </div>
-
-                        {item?.items?.every((xx) => xx?.mop && xx?.mop?.length > 0) && (
-                          <div className='pr-2'>
-                            <Button
-                              variant={"destructive"}
-                              size={"sm"}
-                              className={"cursor-pointer"}
-                              onClick={() => {
-                                setIsOpen(!isOpen);
-                                setCurrentView(item);
-                              }}
-                            >
-                              <FaTrash className='h-4 w-4' />
-                              <div>Remove</div>
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            ) : (
+              <>No Data found...</>
+            )}
           </div>
-        ) : (
-          <>No Data found...</>
-        )}
-      </div>
 
-      <div className='p-5 pt-2 pb-0'>
-        <div className='flex flex-col gap-0.5 font-semibold'>
-          <div className='w-40'>Total Amount</div>
-          <div className='text-green-500 text-2xl font-bold'>
-            {totalAmount > 0 ? `PHP ${`${totalAmount}`}.00` : "--"}
+          <div className='p-5 pt-2 pb-0'>
+            <div className='flex flex-col gap-0.5 font-semibold'>
+              <div className='w-40'>Total Amount</div>
+              <div className='text-green-500 text-2xl font-bold'>
+                {totalAmount > 0 ? `PHP ${`${totalAmount}`}.00` : "--"}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </Card>
   );
 }

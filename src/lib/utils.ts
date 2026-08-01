@@ -28,15 +28,12 @@ export const filterObject = ({
   propertyName,
   filterDate = false,
 }: IProps) => {
-  let filteredData = object
+  const filteredData = object
+    ?.filter((item) => item?.[propertyName])
     .filter((item) => {
       return dayjs(item?.[propertyName]).isBetween(filter_from, filter_to, "second", "[]");
     })
     .sort((a, b) => dayjs(a?.[propertyName]).diff(dayjs(b?.[propertyName])));
-
-  if (filterDate) {
-    filteredData = filteredData?.filter((item) => item?.[propertyName]);
-  }
 
   return filteredData;
 };

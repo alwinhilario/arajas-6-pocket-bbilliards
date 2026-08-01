@@ -40,19 +40,100 @@ export default function RemarksList() {
     update();
   }, [JSON.stringify(filtered)]);
 
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [state, setState] = React.useState({
+    remarks: "",
+    label: "",
+  });
+
   return (
     <div>
       <Card className='p-5 w-full'>
+        {isOpen && (
+          <div
+            className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 pt-60'
+            onClick={() => {
+              setIsOpen((prevState) => !prevState);
+            }}
+          >
+            <Card
+              className='p-5 cursor-default w-[420px]'
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <div className='space-y-3'>
+                <div className='text-2xl font-bold'>Add Plasada</div>
+                <br />
+
+                <div className='space-y-1'>
+                  <div className='font-semibold'>Description</div>
+                  <Input
+                    placeholder='Description'
+                    value={state?.label}
+                    onChange={(v) => {
+                      setState((prevState) => ({ ...prevState, label: v.target.value }));
+                    }}
+                  />
+                </div>
+
+                <div className='space-y-1'>
+                  <div className='font-semibold'>Remarks</div>
+                  <Input
+                    placeholder='Remarks'
+                    value={state?.remarks}
+                    onChange={(v) => {
+                      setState((prevState) => ({ ...prevState, remarks: v.target.value }));
+                    }}
+                  />
+                </div>
+
+                <br />
+
+                <div className='flex gap-2 pt-3'>
+                  <Button
+                    size={"xl"}
+                    className={"cursor-pointer flex-1"}
+                    onClick={async () => {
+                      setIsOpen(!isOpen);
+                      setOtherOrders((prevState) => [...prevState, state]);
+                      setState({
+                        remarks: "",
+                        label: "",
+                      });
+                    }}
+                  >
+                    Confirm
+                  </Button>
+                  <Button
+                    size={"xl"}
+                    className={"cursor-pointer flex-1"}
+                    variant={"outline"}
+                    onClick={() => {
+                      setIsOpen(!isOpen);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
         <div className='flex gap-3 items-center'>
           <div className='text-lg font-bold'>Remarks Daily</div>
           <Button
             size={"xl"}
             className='w-20 font-bold cursor-pointer py-3'
             onClick={() => {
-              setOtherOrders((prevState) => [
+              setState((prevState) => ({
                 ...prevState,
-                { ...REMARKS_LIST[0], id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS") },
-              ]);
+                date: dayjs().format("YYYY/MM/DD hh:mm A"),
+                id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSS"),
+              }));
+
+              setIsOpen(!isOpen);
             }}
           >
             <FaPlus className='h-5 w-5' />
@@ -76,7 +157,6 @@ export default function RemarksList() {
                           return {
                             ...x,
                             label: v.target.value,
-                            date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
                           };
                         }
 
@@ -96,7 +176,6 @@ export default function RemarksList() {
                           return {
                             ...x,
                             remarks: v.target.value,
-                            date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
                           };
                         }
 
@@ -107,47 +186,21 @@ export default function RemarksList() {
                 />
                 <Input placeholder='Date' className='w-48' value={item?.date} disabled />
 
-                {otherOrders?.length === key + 1 && (
-                  <div className='flex items-center gap-0.5'>
-                    <Button
-                      size={"xl"}
-                      variant={"outline"}
-                      className='w-20 font-bold cursor-pointer'
-                      onClick={() => {
-                        setOtherOrders((prevState) =>
-                          prevState?.map((x, y) => {
-                            if (y === key) {
-                              return {
-                                ...x,
-                                amount: "",
-                                label: "",
-                                remarks: "",
-                                date: "",
-                              };
-                            }
-
-                            return x;
-                          }),
-                        );
-                      }}
-                    >
-                      <span>Clear</span>
-                    </Button>
-                  </div>
-                )}
-
-                {otherOrders?.length !== key + 1 && (
-                  <Button
-                    size={"xl"}
-                    variant='destructive'
-                    className='w-20 font-bold cursor-pointer'
-                    onClick={() => {
-                      setOtherOrders((prevState) => prevState?.filter((x, y) => item?.id !== x?.id));
-                    }}
-                  >
-                    <span>Remove</span>
-                  </Button>
-                )}
+                <Button
+                  size={"xl"}
+                  variant='destructive'
+                  className='w-20 font-bold cursor-pointer'
+                  onClick={async () => {
+                    const res = (await storage.getItem("remarks_list")) || [];
+                    await storage.setItem(
+                      "remarks_list",
+                      res?.filter((x, y) => item?.id !== x?.id),
+                    );
+                    setOtherOrders((prevState) => prevState?.filter((x, y) => item?.id !== x?.id));
+                  }}
+                >
+                  <span>Remove</span>
+                </Button>
               </div>
             ))}
           </div>

@@ -4,6 +4,9 @@ import storage from "@/lib/localforage";
 import { convertCurrency, filterObject, getTotalAmount } from "@/lib/utils";
 import { SESSION_CONTEXT } from "@/app/provider";
 import { TOtherOrdersOpts, TOutList, TTableOpts } from "./tables/types";
+import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
+dayjs.extend(isBetween);
 
 export default function DailyRevenue() {
   const [orders, setOrders] = React.useState<TOtherOrdersOpts>([]);
@@ -24,9 +27,13 @@ export default function DailyRevenue() {
         const plasada = (await storage.getItem("plasada_list")) as TOutList;
         const remarks = (await storage.getItem("remarks_list")) as TOutList;
 
+        console.log({ pendingPayment, date: value?.date });
+        pendingPayment?.map((x) =>
+          console.log(dayjs(x?.date).isBetween(value?.date?.date_from, value?.date?.date_to, "second", "[]")),
+        );
+
         setRemarks(
           filterObject({
-            filterDate: true,
             object: remarks,
             filter_from: value?.date?.date_from,
             filter_to: value?.date?.date_to,
@@ -35,7 +42,6 @@ export default function DailyRevenue() {
         );
         setOrders(
           filterObject({
-            filterDate: true,
             object: orders,
             filter_from: value?.date?.date_from,
             filter_to: value?.date?.date_to,
@@ -44,7 +50,6 @@ export default function DailyRevenue() {
         );
         setExpenses(
           filterObject({
-            filterDate: true,
             object: expenses,
             filter_from: value?.date?.date_from,
             filter_to: value?.date?.date_to,
@@ -53,16 +58,14 @@ export default function DailyRevenue() {
         );
         setTableHistory(
           filterObject({
-            filterDate: true,
             object: tableHistory,
             filter_from: value?.date?.date_from,
             filter_to: value?.date?.date_to,
-            propertyName: "out",
+            propertyName: "in",
           }),
         );
         setPendingPayment(
           filterObject({
-            filterDate: true,
             object: pendingPayment,
             filter_from: value?.date?.date_from,
             filter_to: value?.date?.date_to,
@@ -71,7 +74,6 @@ export default function DailyRevenue() {
         );
         setPlasada(
           filterObject({
-            filterDate: true,
             object: plasada,
             filter_from: value?.date?.date_from,
             filter_to: value?.date?.date_to,
