@@ -155,7 +155,7 @@ export default function InventoryList() {
           <Table>
             <TableHeader className='bg-gray-100/80'>
               <TableRow>
-                <TableHead className='font-bold px-2 text-gray-600'>ITEM NAME</TableHead>
+                <TableHead className='font-bold w-68 px-2 text-gray-600'>ITEM NAME</TableHead>
                 <TableHead className='font-bold px-2 text-gray-600'>AMOUNT</TableHead>
                 <TableHead className='font-bold px-2 text-gray-600'>TOTAL STOCK</TableHead>
                 <TableHead className='font-bold px-2 text-gray-600'>REMAINING</TableHead>
@@ -246,7 +246,7 @@ const Inventory = ({ index, user }: IInventoryProps) => {
       )}
 
       <TableRow key={index}>
-        <TableCell className='font-medium'>
+        <TableCell className='font-medium w-96'>
           {isEdit ? (
             <div className='flex'>
               <Input
