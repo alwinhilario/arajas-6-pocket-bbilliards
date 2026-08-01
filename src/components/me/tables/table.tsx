@@ -17,6 +17,7 @@ import TableTransfer from "./table-transfer";
 import Payment from "../payment";
 import { isEmpty } from "lodash";
 import { convertCurrency } from "@/lib/utils";
+import { IoClose } from "react-icons/io5";
 
 dayjs.extend(duration);
 dayjs.extend(customParseFormat);
@@ -40,6 +41,7 @@ export default function Table({
 }: IProps) {
   const [isOpenTimeout, setIsOpenTimeout] = React.useState(false);
   const [isOpenTransfer, setIsOpenTransfer] = React.useState(false);
+  const [isCancel, setIsCancel] = React.useState(false);
 
   const totalOthers = data?.others?.reduce((acc, item) => acc + parseInt(item?.amount), 0);
 
@@ -120,6 +122,66 @@ export default function Table({
 
   return (
     <>
+      {isCancel && (
+        <div
+          className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 pt-60'
+          onClick={() => {
+            setIsCancel((prevState) => !prevState);
+          }}
+        >
+          <Card
+            className='p-5 cursor-default'
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <div className='text-base pb-5'>
+              <div>Are you sure you want to clear this Table?</div>
+            </div>
+
+            <div className='flex gap-2'>
+              <Button
+                size={"xl"}
+                className={"cursor-pointer flex-1"}
+                onClick={async () => {
+                  const res = await storage.getItem("all_tables_list");
+                  await storage.setItem(
+                    "all_tables_list",
+                    res?.filter((x) => x?.id !== data?.id),
+                  );
+
+                  const newTables = tables?.map((item) => {
+                    const myTable = TABLE_OPTS?.find((x) => x?.value === data?.value);
+
+                    if (item?.value === data?.value) {
+                      return myTable;
+                    }
+
+                    return item;
+                  });
+
+                  await storage.setItem("tables", newTables);
+                  setTables(newTables);
+                  setIsCancel(!isCancel);
+                }}
+              >
+                Confirm
+              </Button>
+              <Button
+                size={"xl"}
+                className={"cursor-pointer flex-1"}
+                variant={"outline"}
+                onClick={() => {
+                  setIsCancel(!isCancel);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {isOpenTimeout && (
         <TableTimeout
           data={data}
@@ -127,6 +189,10 @@ export default function Table({
           onConfirm={async (dataCb) => {
             if (!data?.out) {
               const getAmount = () => {
+                if (data?.is_happy_hour) {
+                  return 750;
+                }
+
                 const inTime = dayjs(data.in);
                 const outTime = dayjs();
                 const diff = outTime.diff(inTime);
@@ -408,6 +474,16 @@ export default function Table({
                     >
                       <FaExchangeAlt className='h-3 w-3' />
                       Transfer
+                    </Button>
+                    <Button
+                      size='llg'
+                      className={clsx("cursor-pointer font-bold !w-14", {})}
+                      variant={"destructive"}
+                      onClick={() => {
+                        setIsCancel((prevState) => !prevState);
+                      }}
+                    >
+                      <IoClose className='!h-5 !w-5' />
                     </Button>
                     {/* )} */}
 

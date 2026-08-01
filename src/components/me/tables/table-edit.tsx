@@ -13,6 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { TInventoryList, TOptions, TTableOptsData } from "./types";
 import storage from "@/lib/localforage";
 import { capitalizeFirstLetter } from "../other-orders/other-order";
+import { HiSparkles } from "react-icons/hi2";
+import { IoClose } from "react-icons/io5";
+import clsx from "clsx";
 
 dayjs.extend(duration);
 dayjs.extend(customParseFormat);
@@ -30,6 +33,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
     in: "",
     out: "",
     remarks: "",
+    is_happy_hour: "",
     table_rates: "",
     hours: "",
     diff: {
@@ -96,6 +100,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
 
     if (isEmpty(currentTable)) return;
 
+    // @ts-expect-error
     setState((prevState) => ({
       ...prevState,
       in: currentTable?.in || currentTime,
@@ -108,6 +113,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
       diff: currentTable?.diff,
       table_rates: currentTable?.table_rates,
       remarks: currentTable?.remarks,
+      is_happy_hour: currentTable?.is_happy_hour,
     }));
 
     ref.current = true;
@@ -232,6 +238,38 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                 }}
               >
                 +5 minutes
+              </Button>
+              <Button
+                // size='sm'
+                // variant={"warning"}
+                className={clsx("cursor-pointer bg-flex gap-2 !bg-orange-500/80 text-white font-bold", {
+                  " !bg-orange-50 border-orange-400 text-orange-400": state?.is_happy_hour,
+                })}
+                onClick={() => {
+                  setState((prevState) => {
+                    const newTime = !state?.is_happy_hour
+                      ? dayjs().set("hour", 8).set("minute", 0).set("second", 0).format("YYYY/MM/DD HH:mm:ss")
+                      : dayjs().format("YYYY/MM/DD HH:mm:ss");
+                    const newOut = !state?.is_happy_hour
+                      ? dayjs()
+                          .set("hour", 15)
+                          .set("minute", 0)
+                          .set("second", 0)
+                          .format("YYYY/MM/DD HH:mm:ss")
+                      : "";
+
+                    return {
+                      ...prevState,
+                      in: newTime,
+                      out: newOut,
+                      is_happy_hour: !state?.is_happy_hour,
+                    };
+                  });
+                }}
+              >
+                <HiSparkles className='h-3 w-3' />
+                <div>Happy hour</div>
+                {state?.is_happy_hour && <IoClose />}
               </Button>
             </div>
           </div>
@@ -545,12 +583,13 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
               };
 
               const totalOthers = state?.others?.reduce((acc, item) => acc + parseInt(item?.amount), 0);
+              const $amt = state?.is_happy_hour ? 750 : getAmount();
+              const $amount = $amt > 0 || totalOthers > 0 ? `${($amt || 0) + (totalOthers || 0)}` : "";
 
               onConfirm({
                 ...state,
-                amount:
-                  getAmount() > 0 || totalOthers > 0 ? `${(getAmount() || 0) + (totalOthers || 0)}` : "",
-                table_rates: `${getAmount()}`,
+                amount: $amount,
+                table_rates: `${$amt}`,
                 id: state?.id || dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
                 status: state?.status || "Active",
               });

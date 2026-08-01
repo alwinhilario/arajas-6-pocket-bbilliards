@@ -6,6 +6,7 @@ export type TTableOptsData = {
   out: string;
   hours: string;
   table_rates: string;
+  is_happy_hour: boolean;
   status: string;
   diff: {
     hours: number;

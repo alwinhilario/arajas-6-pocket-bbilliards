@@ -7,40 +7,33 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import dayjs from "dayjs";
 import { FaPlus } from "react-icons/fa";
-import { filterObject } from "@/lib/utils";
-import { SESSION_CONTEXT } from "@/app/provider";
 
-export default function OutList() {
+export default function OutListAll() {
   const [otherOrders, setOtherOrders] = React.useState<TOutList>([]);
-  const { value } = React.useContext(SESSION_CONTEXT);
 
   React.useEffect(() => {
     const load = async () => {
-      const item = ((await storage.getItem("out_list")) || OUT_LIST) as TOutList;
+      const item = ((await storage.getItem("out_list_all")) || OUT_LIST) as TOutList;
 
-      setOtherOrders(item);
+      setOtherOrders(item?.sort((a, b) => dayjs(a?.date).diff(dayjs(b?.date))));
     };
 
     load();
   }, []);
 
-  const filtered = filterObject({
-    object: otherOrders,
-    filter_from: value?.date?.date_from,
-    filter_to: value?.date?.date_to,
-    propertyName: "date",
-  });
-
-  const totalAmount = filtered?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
+  const totalAmount = otherOrders?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
 
   React.useEffect(() => {
-    if (!Array.isArray(filtered) || (filtered || [])?.length <= 0) return;
+    if (!Array.isArray(otherOrders) || (otherOrders || [])?.length <= 0) return;
 
     const update = async () => {
-      (await storage.setItem("out_list", filtered)) as TOutList;
+      (await storage.setItem(
+        "out_list_all",
+        otherOrders?.sort((a, b) => dayjs(a?.date).diff(dayjs(b?.date))),
+      )) as TOutList;
     };
     update();
-  }, [JSON.stringify(filtered)]);
+  }, [JSON.stringify(otherOrders)]);
 
   return (
     <div>
@@ -65,7 +58,7 @@ export default function OutList() {
 
         <div>
           <div className='space-y-1'>
-            {filtered?.map((item, key) => (
+            {otherOrders?.map((item, key) => (
               <div className='flex gap-2' key={key}>
                 <Input
                   placeholder='Label'
