@@ -168,7 +168,6 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
               id='time-picker-optional'
               step='1'
               defaultValue={currentTime}
-              readOnly
               value={dayjs(state?.in).format("HH:mm:ss")}
               className='h-14 !text-4xl appearance-none bg-gray-100 font-bold [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none'
               onChange={(e) =>
@@ -245,7 +244,6 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
               id='time-picker-optional'
               step='1'
               defaultValue=''
-              readOnly
               value={dayjs(state?.out).format("HH:mm:ss")}
               onChange={(e) =>
                 setState((prevState) => ({
