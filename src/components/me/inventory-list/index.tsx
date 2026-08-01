@@ -151,24 +151,26 @@ export default function InventoryList() {
           </Button>
         </div>
 
-        <Table>
-          <TableHeader className='bg-gray-100/80'>
-            <TableRow>
-              <TableHead className='font-bold px-2 text-gray-600'>ITEM NAME</TableHead>
-              <TableHead className='font-bold px-2 text-gray-600'>AMOUNT</TableHead>
-              <TableHead className='font-bold px-2 text-gray-600'>TOTAL STOCK</TableHead>
-              <TableHead className='font-bold px-2 text-gray-600'>REMAINING</TableHead>
-              <TableHead className='font-bold px-2 text-gray-600'>REMARKS</TableHead>
-              <TableHead className='font-bold px-2 text-gray-600'></TableHead>
-            </TableRow>
-          </TableHeader>
+        <div className='max-h-[290px] overflow-y-auto relative'>
+          <Table>
+            <TableHeader className='bg-gray-100/80'>
+              <TableRow>
+                <TableHead className='font-bold px-2 text-gray-600'>ITEM NAME</TableHead>
+                <TableHead className='font-bold px-2 text-gray-600'>AMOUNT</TableHead>
+                <TableHead className='font-bold px-2 text-gray-600'>TOTAL STOCK</TableHead>
+                <TableHead className='font-bold px-2 text-gray-600'>REMAINING</TableHead>
+                <TableHead className='font-bold px-2 text-gray-600'>REMARKS</TableHead>
+                <TableHead className='font-bold px-2 text-gray-600'></TableHead>
+              </TableRow>
+            </TableHeader>
 
-          <TableBody>
-            {otherOrders?.map((user, key) => (
-              <Inventory index={key} user={user} key={key} />
-            ))}
-          </TableBody>
-        </Table>
+            <TableBody>
+              {otherOrders?.map((user, key) => (
+                <Inventory index={key} user={user} key={key} />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
     </div>
   );

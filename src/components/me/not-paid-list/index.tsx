@@ -92,14 +92,79 @@ export default function NotPaidList() {
     return data?.find((x) => x?.id === id);
   };
   const [currentView, setCurrentView] = React.useState({});
-
+  const [isResetOpen, setIsResetOpen] = React.useState(false);
   React.useEffect(() => {
     setMyResult(result);
   }, [JSON.stringify(result)]);
 
   return (
     <Card className='pt-0'>
-      <div className='text-lg font-bold p-5 pb-0'>Pending Payment Daily </div>
+      {isResetOpen && (
+        <div
+          className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 pt-60'
+          onClick={() => {
+            setIsOpen((prevState) => !prevState);
+          }}
+        >
+          <Card
+            className='p-5 cursor-default'
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <div className='font-black text-orange-400 text-2xl'>Warning:</div>
+            <div className='text-base pb-5'>
+              <div>
+                Are you sure you want to permanently delete <b>Pending Payments?</b>
+              </div>
+              <div className='text-gray-500'>
+                <small>
+                  <i>This is only used for early testing.</i>
+                </small>
+              </div>
+            </div>
+
+            <div className='flex gap-2'>
+              <Button
+                size={"xl"}
+                className={"cursor-pointer flex-1"}
+                onClick={async () => {
+                  await storage.setItem("pending_payment", []);
+                  setIsResetOpen(!isResetOpen);
+                }}
+              >
+                Confirm
+              </Button>
+              <Button
+                size={"xl"}
+                className={"cursor-pointer flex-1"}
+                variant={"outline"}
+                onClick={() => {
+                  setIsResetOpen(!isResetOpen);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      <div className='flex items-center gap-2 text-lg font-bold p-5 pb-0'>
+        <div className='flex-1'>Pending Payment Daily </div>
+        <div>
+          <Button
+            variant={"destructive"}
+            className={"cursor-pointer font-bold"}
+            size={"xl"}
+            onClick={() => {
+              setIsResetOpen(!isResetOpen);
+            }}
+          >
+            Reset
+          </Button>
+        </div>
+      </div>
 
       {isOpen && (
         <div

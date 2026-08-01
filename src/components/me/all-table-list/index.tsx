@@ -64,7 +64,17 @@ export default function AllTableList() {
               e.stopPropagation();
             }}
           >
-            <div className='text-base pb-5'>Are you sure you want to permanently delete Table History?</div>
+            <div className='font-black text-orange-400 text-2xl'>Warning:</div>
+            <div className='text-base pb-5'>
+              <div>
+                Are you sure you want to permanently delete <b>Table History?</b>
+              </div>
+              <div className='text-gray-500'>
+                <small>
+                  <i>This is only used for early testing.</i>
+                </small>
+              </div>
+            </div>
 
             <div className='flex gap-2'>
               <Button
