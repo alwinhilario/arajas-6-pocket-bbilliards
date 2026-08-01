@@ -8,7 +8,7 @@ import { convertCurrency, filterObject, getTotalAmount } from "@/lib/utils";
 import { SESSION_CONTEXT } from "@/app/provider";
 import dayjs from "dayjs";
 import { isEmpty } from "lodash";
-import { OTHER_ORDERS } from "@/app/constants";
+import { OTHER_ORDERS, PLASADA_LIST } from "@/app/constants";
 import { Button } from "@/components/ui/button";
 import { IoWarning } from "react-icons/io5";
 
@@ -110,6 +110,7 @@ export default function RevenueList() {
           x?.items?.plasada?.length > 0,
       );
   }, [dateArray, expenses, orders, pendingPayment, plasada, remarks, tableHistory]);
+  console.log({ dateArrayMemo });
 
   React.useEffect(() => {
     const t = setInterval(() => {
@@ -169,6 +170,7 @@ export default function RevenueList() {
                 onClick={async () => {
                   await storage.setItem("all_tables_list", []);
                   await storage.setItem("pending_payment", OTHER_ORDERS);
+                  await storage.setItem("plasada_list", PLASADA_LIST);
                   setIsOpen(!isOpen);
                 }}
               >
