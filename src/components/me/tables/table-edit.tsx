@@ -177,7 +177,6 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                   in: `${dayjs(prevState.in).format("YYYY/MM/DD")} ${e.target.value}`,
                 }))
               }
-              disabled
             />
 
             <div className='flex gap-2'>
@@ -255,7 +254,6 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                 }))
               }
               className='h-14 !text-4xl appearance-none bg-gray-100 font-bold [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none'
-              disabled
             />
 
             <div className='flex gap-2'>
