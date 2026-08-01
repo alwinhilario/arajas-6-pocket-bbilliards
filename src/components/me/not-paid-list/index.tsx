@@ -146,7 +146,7 @@ export default function NotPaidList() {
       )}
 
       <div className='flex items-center gap-2 text-lg font-bold p-5 pb-0'>
-        <div className='flex-1'>Pending Payment Daily </div>
+        <div className='flex-1'>Pending Payment</div>
         <div>
           <Button
             variant={"warning"}
