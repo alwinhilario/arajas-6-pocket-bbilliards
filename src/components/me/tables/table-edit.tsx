@@ -389,7 +389,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
                 return (
                   <div className='flex items-center gap-2' key={key}>
                     <InputSelect
-                      className='!w-48'
+                      className='!w-80'
                       value={item?.item}
                       options={inventoryOpts}
                       onAddClick={async (add) => {

@@ -112,9 +112,9 @@ export default function OtherOrder({
         }}
       />
       <InputSelect
-        className='!w-52'
+        className='!w-80'
         value={data?.item}
-        disabled={data?.is_table || data?.mop}
+        disabled={data?.mop}
         options={inventoryOpts}
         onAddClick={async (add) => {
           const v = [

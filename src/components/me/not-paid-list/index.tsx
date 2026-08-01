@@ -290,7 +290,7 @@ export default function NotPaidList() {
       <div className='px-5 flex flex-col'>
         <div className='flex items-center gap-2 pb-5'>
           <div className='w-32 font-black p-0.5 px-3 text-gray-600'>NAME</div>
-          <div className='w-28 font-black p-0.5 px-5 text-gray-600'>ITEM</div>
+          <div className='w-68 font-black p-0.5 px-5 text-gray-600'>ITEM</div>
           <div className='w-28 font-black p-0.5 px-7 text-gray-600'>AMOUNT</div>
           <div className='w-80 font-black p-0.5 px-5 text-gray-600'>REMARKS</div>
           <div className='w-48 font-black p-0.5 px-5 text-gray-600'>DATE</div>
@@ -308,7 +308,7 @@ export default function NotPaidList() {
                       <div className='divide-x divide-y border-b '>
                         {item?.items?.map((x, key) => (
                           <div className='flex items-center divide-x ' key={key}>
-                            <div className='w-32 p-2 px-3'>
+                            <div className='w-68 p-2 px-3'>
                               {(() => {
                                 const exists = !isEmpty(inventoryOpts?.find((xx) => xx?.value === x?.item));
 
