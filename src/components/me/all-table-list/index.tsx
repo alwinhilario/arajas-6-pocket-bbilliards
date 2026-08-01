@@ -8,6 +8,7 @@ import { filterObject } from "@/lib/utils";
 import { SESSION_CONTEXT } from "@/app/provider";
 import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
+import { IoWarning } from "react-icons/io5";
 
 export default function AllTableList() {
   const [tables, setTables] = React.useState<TTableOpts>([]);
@@ -106,14 +107,15 @@ export default function AllTableList() {
         <div className='flex-1'>Table History </div>
         <div>
           <Button
-            variant={"destructive"}
+            variant={"warning"}
             className={"cursor-pointer font-bold"}
             size={"xl"}
             onClick={() => {
               setIsOpen(!isOpen);
             }}
           >
-            Reset
+            <IoWarning className='h-5 w-5' />
+            <div>Reset</div>
           </Button>
         </div>
       </div>

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import Table from "../tables/table";
 import clsx from "clsx";
 import { isEmpty } from "lodash";
+import { IoWarning } from "react-icons/io5";
 
 export default function NotPaidList() {
   const [tables, setTables] = React.useState<TOtherOrdersOpts>([]);
@@ -154,14 +155,15 @@ export default function NotPaidList() {
         <div className='flex-1'>Pending Payment Daily </div>
         <div>
           <Button
-            variant={"destructive"}
+            variant={"warning"}
             className={"cursor-pointer font-bold"}
             size={"xl"}
             onClick={() => {
               setIsResetOpen(!isResetOpen);
             }}
           >
-            Reset
+            <IoWarning className='h-5 w-5' />
+            <div>Reset</div>
           </Button>
         </div>
       </div>

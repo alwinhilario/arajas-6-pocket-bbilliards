@@ -10,6 +10,7 @@ import dayjs from "dayjs";
 import { isEmpty } from "lodash";
 import { OTHER_ORDERS } from "@/app/constants";
 import { Button } from "@/components/ui/button";
+import { IoWarning } from "react-icons/io5";
 
 export default function RevenueList() {
   const [orders, setOrders] = React.useState<TOtherOrdersOpts>([]);
@@ -192,14 +193,15 @@ export default function RevenueList() {
         <div className='flex-1'>Revenue History </div>
         <div>
           <Button
-            variant={"destructive"}
+            variant={"warning"}
             className={"cursor-pointer font-bold"}
             size={"xl"}
             onClick={() => {
               setIsOpen(!isOpen);
             }}
           >
-            Reset
+            <IoWarning className='h-5 w-5' />
+            <div>Reset</div>
           </Button>
         </div>
       </div>
