@@ -187,13 +187,14 @@ const TableData = ({ user }) => {
                     return {
                       ...item,
                       ...data,
-                      updated_at: dayjs().format("YYYY/MM/DD - hh:mm A"),
+                      updated_at: dayjs().format("MMM DD, YYYY - hh:mm A"),
                     };
                   }
 
                   return item;
                 }),
               );
+
               setIsOpen(!isOpen);
             }}
           />
@@ -202,12 +203,12 @@ const TableData = ({ user }) => {
       </TableCell>
       <TableCell>
         <div className=''>
-          {dayjs(user.out)?.isValid() ? dayjs(user.out).format("YYYY/MM/DD - hh:mm A") : "--"}
+          {dayjs(user.out)?.isValid() ? dayjs(user.out).format("MMM DD, YYYY - hh:mm A") : "--"}
         </div>
       </TableCell>
       <TableCell>
         <div className=''>
-          {dayjs(user.out)?.isValid() ? dayjs(user.out).format("YYYY/MM/DD - hh:mm A") : "--"}
+          {dayjs(user.out)?.isValid() ? dayjs(user.out).format("MMM DD, YYYY - hh:mm A") : "--"}
         </div>
       </TableCell>
 

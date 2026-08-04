@@ -252,7 +252,7 @@ export default function Table({
                       ...item,
                       ...dataCb,
                       status: "Timed out",
-                      timed_out_at: dayjs().format("YYYY/MM/DD - hh:mm A"),
+                      timed_out_at: dayjs().format("MMM DD, YYYY - hh:mm A"),
                     };
                   }
 

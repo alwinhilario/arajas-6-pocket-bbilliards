@@ -536,7 +536,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
             </div>
           </div>
 
-          {withPayment && (
+          {/* {withPayment && (
             <>
               <br />
 
@@ -648,7 +648,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
                 </div>
               </div>
             </>
-          )}
+          )} */}
 
           <div className='flex gap-2'>
             <div className='w-24 font-semibold'>Remarks:</div>

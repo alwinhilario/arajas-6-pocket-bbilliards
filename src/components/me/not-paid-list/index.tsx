@@ -419,18 +419,20 @@ export default function NotPaidList() {
                 <>No Data found...</>
               )}
             </div>
-
-            <div className='p-5 pt-2 pb-0'>
-              <div className='flex flex-col gap-0.5 font-semibold'>
-                <div className='w-40'>Total Amount</div>
-                <div className='text-green-500 text-2xl font-bold'>
-                  {totalAmount > 0 ? `PHP ${`${totalAmount}`}.00` : "--"}
-                </div>
-              </div>
-            </div>
           </>
         )}
       </div>
+
+      {myResult?.length > 0 && (
+        <div className='p-5 pt-2 pb-0'>
+          <div className='flex flex-col gap-0.5 font-semibold'>
+            <div className='w-40'>Total Amount</div>
+            <div className='text-green-500 text-2xl font-bold'>
+              {totalAmount > 0 ? `PHP ${`${totalAmount}`}.00` : "--"}
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
