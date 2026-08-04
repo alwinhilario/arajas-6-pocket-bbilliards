@@ -349,7 +349,7 @@ export default function OtherOrders() {
           )}
         </div>
 
-        <div className='max-h-[350px] overflow-y-auto relative space-y-5 flex flex-col'>
+        <div className='max-h-[290px] overflow-y-auto relative space-y-5 flex flex-col'>
           {filtered?.length > 0 && (
             <>
               <div>
