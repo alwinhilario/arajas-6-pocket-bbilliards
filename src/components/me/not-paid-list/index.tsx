@@ -6,8 +6,6 @@ import { INVENTORY_OPTS, OTHER_ORDERS } from "@/app/constants";
 import dayjs from "dayjs";
 import Payment from "../payment";
 import { FaTrash } from "react-icons/fa";
-import { filterObject } from "@/lib/utils";
-import { SESSION_CONTEXT } from "@/app/provider";
 import { Button } from "@/components/ui/button";
 import Table from "../tables/table";
 import clsx from "clsx";
@@ -17,7 +15,6 @@ import { IoWarning } from "react-icons/io5";
 export default function NotPaidList() {
   const [tables, setTables] = React.useState<TOtherOrdersOpts>([]);
   const [isViewOpen, setIsViewOpen] = React.useState(false);
-  const { value } = React.useContext(SESSION_CONTEXT);
   const [inventoryOpts, setInventoryOpts] = React.useState<TInventoryList>(INVENTORY_OPTS);
   const [isOpen, setIsOpen] = React.useState(false);
 

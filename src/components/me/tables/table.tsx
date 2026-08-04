@@ -224,7 +224,6 @@ export default function Table({
                   return {
                     ...item,
                     out: currentTime,
-                    is_open_time: false,
                     amount:
                       getAmount() > 0 || totalOthers > 0 ? `${(getAmount() || 0) + (totalOthers || 0)}` : "",
                     table_rates: `${getAmount()}`,
@@ -253,6 +252,7 @@ export default function Table({
                       ...item,
                       ...dataCb,
                       status: "Timed out",
+                      timed_out_at: dayjs().format("YYYY/MM/DD - hh:mm A"),
                     };
                   }
 
@@ -446,6 +446,72 @@ export default function Table({
 
                 {(data?.in || data?.out) && (
                   <>
+                    {data?.is_open_time && (
+                      <Button
+                        size='llg'
+                        className={clsx("flex-1 cursor-pointer font-bold", {})}
+                        variant={"outline"}
+                        onClick={async () => {
+                          const getAmount = () => {
+                            if (data?.is_happy_hour) {
+                              return 750;
+                            }
+
+                            const inTime = dayjs(data.in);
+                            const outTime = dayjs();
+                            const diff = outTime.diff(inTime);
+                            const d = dayjs.duration(diff);
+
+                            let value;
+                            const hourlyRate = d?.hours() * HOURLY_RATE;
+                            value = hourlyRate;
+
+                            const midRate = d?.minutes();
+
+                            if (midRate > 30 && midRate > 30 + MID_THRESHOLD_RATE) {
+                              value = value + 150;
+                            } else if (midRate > MID_THRESHOLD_RATE && midRate < 30) {
+                              value = value + 100;
+                            } else if (midRate > 30) {
+                              value = value + 100;
+                            }
+
+                            return value;
+                          };
+
+                          const totalOthers = data?.others?.reduce(
+                            (acc, item) => acc + parseInt(item?.amount),
+                            0,
+                          );
+
+                          const newTables = tables?.map((item) => {
+                            const currentTime = dayjs().format("YYYY/MM/DD HH:mm:ss");
+
+                            if (item?.value === data?.value) {
+                              return {
+                                ...item,
+                                out: currentTime,
+                                amount:
+                                  getAmount() > 0 || totalOthers > 0
+                                    ? `${(getAmount() || 0) + (totalOthers || 0)}`
+                                    : "",
+                                table_rates: `${getAmount()}`,
+                                id: data?.id || dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
+                              };
+                            }
+
+                            return item;
+                          });
+
+                          await storage.setItem("tables", newTables);
+                          setTables(newTables);
+                        }}
+                      >
+                        <FaClock className='h-3 w-3' />
+                        Calculate
+                      </Button>
+                    )}
+
                     <Button
                       size='llg'
                       className={clsx("flex-1 cursor-pointer font-bold", {})}
@@ -460,7 +526,7 @@ export default function Table({
                       }}
                     >
                       <FaClock className='h-3 w-3' />
-                      {!data?.is_open_time ? "Time Out" : "Calculate"}
+                      Time Out
                     </Button>
 
                     {/* {!(d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out)) && ( */}

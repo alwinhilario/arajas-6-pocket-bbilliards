@@ -8,7 +8,6 @@ import duration from "dayjs/plugin/duration";
 import { InputSelect } from "../../ui/input-select";
 import { isEmpty } from "lodash";
 import { HOURLY_RATE, INVENTORY_OPTS, MID_THRESHOLD_RATE, NAME_OPTS } from "@/app/constants";
-import Payment from "../payment";
 import { Textarea } from "@/components/ui/textarea";
 import { TInventoryList, TOptions, TTableOptsData } from "./types";
 import storage from "@/lib/localforage";
@@ -16,6 +15,7 @@ import { capitalizeFirstLetter } from "../other-orders/other-order";
 import { HiSparkles } from "react-icons/hi2";
 import { IoClose } from "react-icons/io5";
 import clsx from "clsx";
+import Payment from "../payment";
 
 dayjs.extend(duration);
 dayjs.extend(customParseFormat);
@@ -24,15 +24,17 @@ interface IProps {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   currentTable?: TTableOptsData;
   onConfirm: (data: TTableOptsData) => void;
+  withPayment?: boolean;
 }
 
-export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps) {
+export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPayment = false }: IProps) {
   const currentTime = dayjs().format("YYYY/MM/DD HH:mm:ss");
   const [state, setState] = React.useState({
     id: "",
     in: "",
     out: "",
     remarks: "",
+    status: "",
     is_happy_hour: "",
     table_rates: "",
     hours: "",
@@ -114,6 +116,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
       table_rates: currentTable?.table_rates,
       remarks: currentTable?.remarks,
       is_happy_hour: currentTable?.is_happy_hour,
+      status: currentTable?.status,
     }));
 
     ref.current = true;
@@ -134,6 +137,8 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
   }, [result]);
 
   React.useEffect(() => {
+    if (withPayment) return;
+
     const t = setInterval(() => {
       setState((prevState) => {
         const newInTime = dayjs(prevState?.in).add(1, "second").format("YYYY/MM/DD HH:mm:ss");
@@ -421,7 +426,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
           <div className='flex gap-2'>
             <div className='w-24 font-semibold'>Others:</div>
 
-            <div className='space-y-1'>
+            <div className='space-y-4'>
               {state?.others?.map((item, key) => {
                 return (
                   <div className='flex items-center gap-2' key={key}>
@@ -531,6 +536,120 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
             </div>
           </div>
 
+          {withPayment && (
+            <>
+              <br />
+
+              <div className='flex gap-2'>
+                <div className='w-24 font-semibold'>Payment:</div>
+
+                <div className='flex flex-col flex-1'>
+                  {state?.mop?.map((item, key) => (
+                    <div className='flex items-center gap-2' key={key}>
+                      <div className='flex flex-col'>
+                        <Input
+                          placeholder='Amount'
+                          className='!w-80'
+                          type='number'
+                          value={item?.amount}
+                          onChange={(v) => {
+                            // @ts-expect-error
+                            setState((prevState) => ({
+                              ...prevState,
+                              mop: prevState?.mop?.map((x, y) => {
+                                if (y === key) {
+                                  return {
+                                    ...x,
+                                    amount: v.target.value,
+                                  };
+                                }
+
+                                return x;
+                              }),
+                            }));
+                          }}
+                        />
+                        <small className='pt-px text-red-500 opacity-0'>RA</small>
+                      </div>
+                      <div className='flex flex-col'>
+                        <Payment
+                          mop={item?.label}
+                          className={clsx({
+                            "border-red-500":
+                              parseInt(item?.amount || "0") > 0 && (item?.label || "")?.length <= 0,
+                          })}
+                          onPayClick={(type) => {
+                            // @ts-expect-error
+                            setState((prevState) => ({
+                              ...prevState,
+                              mop: prevState?.mop?.map((x, y) => {
+                                if (y === key) {
+                                  return {
+                                    ...x,
+                                    label: type,
+                                  };
+                                }
+
+                                return x;
+                              }),
+                            }));
+                          }}
+                        />
+                        {parseInt(item?.amount || "0") > 0 && (item?.label || "")?.length <= 0 ? (
+                          <small className='pt-px text-red-500'>MOP is required.</small>
+                        ) : (
+                          <small className='pt-px text-red-500 opacity-0'>RA</small>
+                        )}
+                      </div>
+
+                      <div className='flex flex-col'>
+                        {state?.mop?.length === key + 1 && (
+                          <Button
+                            size={"xl"}
+                            className='w-20 font-bold cursor-pointer'
+                            onClick={() => {
+                              // @ts-expect-error
+                              setState((prevState) => ({
+                                ...prevState,
+                                mop: [
+                                  ...prevState?.mop,
+                                  {
+                                    label: "",
+                                    amount: "",
+                                    remarks: "",
+                                  },
+                                ],
+                              }));
+                            }}
+                          >
+                            <span>Add</span>
+                          </Button>
+                        )}
+                        {state?.mop?.length !== key + 1 && (
+                          <Button
+                            variant='destructive'
+                            size={"xl"}
+                            className='w-20 font-bold cursor-pointer'
+                            onClick={() => {
+                              // @ts-expect-error
+                              setState((prevState) => ({
+                                ...prevState,
+                                mop: prevState?.mop?.filter((x, y) => y !== key),
+                              }));
+                            }}
+                          >
+                            <span>Remove</span>
+                          </Button>
+                        )}
+                        <small className='pt-px text-red-500 opacity-0'>RA</small>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
           <div className='flex gap-2'>
             <div className='w-24 font-semibold'>Remarks:</div>
             <div className='flex-1'>
@@ -585,6 +704,8 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm }: IProps
               const totalOthers = state?.others?.reduce((acc, item) => acc + parseInt(item?.amount), 0);
               const $amt = state?.is_happy_hour ? 750 : getAmount();
               const $amount = $amt > 0 || totalOthers > 0 ? `${($amt || 0) + (totalOthers || 0)}` : "";
+
+              console.log({ state });
 
               onConfirm({
                 ...state,

@@ -304,6 +304,7 @@ export default function OtherOrders() {
             </Card>
           </div>
         )}
+
         <div className='flex items-center gap-2 text-lg font-bold'>
           <div className='flex flex-1 gap-3 items-center'>
             <div className='text-lg font-bold'>Orders Daily (Others) </div>
@@ -348,36 +349,38 @@ export default function OtherOrders() {
           )}
         </div>
 
-        {filtered?.length > 0 && (
-          <>
-            <div>
-              <div className='space-y-1'>
-                {filtered?.map((item, key) => {
-                  return (
-                    <OtherOrder
-                      index={key}
-                      key={key}
-                      data={item}
-                      setOtherOrders={setOtherOrders}
-                      otherOrders={filtered}
-                      nameOpts={nameOpts}
-                      inventoryOpts={inventoryOpts}
-                      setNameOpts={setNameOpts}
-                      setInventoryOpts={setInventoryOpts}
-                    />
-                  );
-                })}
+        <div className='max-h-[350px] overflow-y-auto relative space-y-5 flex flex-col'>
+          {filtered?.length > 0 && (
+            <>
+              <div>
+                <div className='space-y-1'>
+                  {filtered?.map((item, key) => {
+                    return (
+                      <OtherOrder
+                        index={key}
+                        key={key}
+                        data={item}
+                        setOtherOrders={setOtherOrders}
+                        otherOrders={filtered}
+                        nameOpts={nameOpts}
+                        inventoryOpts={inventoryOpts}
+                        setNameOpts={setNameOpts}
+                        setInventoryOpts={setInventoryOpts}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-            </div>
 
-            <div className='flex flex-col gap-0.5 font-semibold'>
-              <div className='w-40'>Total Others</div>
-              <div className='text-green-500 text-2xl font-bold'>
-                {totalAmount > 0 ? `PHP ${`${totalAmount}`}.00` : "PHP 0.00"}
+              <div className='flex flex-col gap-0.5 font-semibold'>
+                <div className='w-40'>Total Others</div>
+                <div className='text-green-500 text-2xl font-bold'>
+                  {totalAmount > 0 ? `PHP ${`${totalAmount}`}.00` : "PHP 0.00"}
+                </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </Card>
     </div>
   );

@@ -2,13 +2,14 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import storage from "@/lib/localforage";
-import { TTableOpts } from "../tables/types";
+import { TTableOpts, TTableOptsData } from "../tables/types";
 import { Badge } from "@/components/ui/badge";
 import { filterObject } from "@/lib/utils";
 import { SESSION_CONTEXT } from "@/app/provider";
 import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
 import { IoWarning } from "react-icons/io5";
+import TableEdit from "../tables/table-edit";
 
 export default function AllTableList() {
   const [tables, setTables] = React.useState<TTableOpts>([]);
@@ -17,7 +18,7 @@ export default function AllTableList() {
   React.useEffect(() => {
     const load = async () => {
       const data = ((await storage.getItem("all_tables_list")) || []) as TTableOpts;
-      setTables(data?.sort((a, b) => dayjs(a?.in).diff(dayjs(b?.in))));
+      setTables(data?.filter((x) => x?.timed_out_at)?.sort((a, b) => dayjs(a?.out).diff(dayjs(b?.out))));
     };
 
     load();
@@ -30,7 +31,7 @@ export default function AllTableList() {
 
         await storage.setItem("all_tables_list", x);
 
-        setTables(x?.sort((a, b) => dayjs(a?.in).diff(dayjs(b?.in))));
+        setTables(x?.filter((x) => x?.timed_out_at)?.sort((a, b) => dayjs(a?.out).diff(dayjs(b?.out))));
       };
 
       update();
@@ -125,53 +126,21 @@ export default function AllTableList() {
           <TableHeader className='bg-gray-100/80'>
             <TableRow>
               <TableHead className='font-bold px-2 text-gray-600'>TABLE NO.</TableHead>
+              <TableHead className='font-bold px-2 text-gray-600'>TIMED OUT AT</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>IN</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>OUT</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>MOP</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>AMOUNT</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>STATUS</TableHead>
+              <TableHead className='font-bold px-2 text-gray-600'>UPDATED AT</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>REMARKS</TableHead>
+              <TableHead className='font-bold px-2 text-gray-600'></TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             {filtered?.length > 0 ? (
-              filtered.map((user, key) => (
-                <TableRow key={key}>
-                  <TableCell className='font-medium'>{user.label}</TableCell>
-                  <TableCell>
-                    <div className=''>
-                      {dayjs(user.in)?.isValid() ? dayjs(user.in).format("MMM DD, YYYY - hh:mm A") : "--"}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className=''>
-                      {dayjs(user.out)?.isValid() ? dayjs(user.out).format("MMM DD, YYYY - hh:mm A") : "--"}
-                    </div>
-                  </TableCell>
-                  <TableCell className='capitalize break-all'>
-                    <div className=''>
-                      {user.mop?.some((x) => parseInt(x?.amount || "0") > 0)
-                        ? user?.mop?.map((y) => `${y?.label} (PHP ${y?.amount}.00)`)?.join("/")
-                        : "--"}
-                    </div>
-                  </TableCell>
-                  <TableCell>{user.amount?.length > 0 ? `PHP ${user.amount}.00` : "--"}</TableCell>
-                  <TableCell>
-                    <div className=''>
-                      {{
-                        Active: <Badge variant={"success"}>{user.status}</Badge>,
-                        "Timed out": (
-                          <Badge className='text-gray-600' variant={"secondary"}>
-                            {user.status}
-                          </Badge>
-                        ),
-                      }?.[user.status] || "--"}
-                    </div>
-                  </TableCell>
-                  <TableCell>{user.remarks || "--"}</TableCell>
-                </TableRow>
-              ))
+              filtered.map((user, key) => <TableData user={user} key={key} />)
             ) : (
               <TableRow>
                 <TableCell colSpan={7} className='text-center pt-5 text-gray-400'>
@@ -185,3 +154,89 @@ export default function AllTableList() {
     </Card>
   );
 }
+
+const TableData = ({ user }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [currentTable, setCurrentTable] = React.useState<TTableOptsData>(user);
+
+  return (
+    <TableRow>
+      <TableCell className='font-medium'>{user.label}</TableCell>
+
+      <TableCell>
+        {isOpen && (
+          <TableEdit
+            setIsOpen={setIsOpen}
+            currentTable={currentTable}
+            withPayment
+            onConfirm={async (data) => {
+              const allListTable = ((await storage.getItem("all_tables_list")) || []) as TTableOpts;
+
+              await storage.setItem(
+                "all_tables_list",
+                allListTable?.map((item) => {
+                  if (data?.id === item?.id) {
+                    return {
+                      ...item,
+                      ...data,
+                      updated_at: dayjs().format("YYYY/MM/DD - hh:mm A"),
+                    };
+                  }
+
+                  return item;
+                }),
+              );
+              setIsOpen(!isOpen);
+            }}
+          />
+        )}
+        <div className=''>{user?.timed_out_at || "--"}</div>
+      </TableCell>
+      <TableCell>
+        <div className=''>
+          {dayjs(user.out)?.isValid() ? dayjs(user.out).format("YYYY/MM/DD - hh:mm A") : "--"}
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className=''>
+          {dayjs(user.out)?.isValid() ? dayjs(user.out).format("YYYY/MM/DD - hh:mm A") : "--"}
+        </div>
+      </TableCell>
+
+      <TableCell className='capitalize break-all'>
+        <div className=''>
+          {user.mop?.some((x) => parseInt(x?.amount || "0") > 0)
+            ? user?.mop?.map((y) => `${y?.label} (PHP ${y?.amount}.00)`)?.join("/")
+            : "--"}
+        </div>
+      </TableCell>
+      <TableCell>{user.amount?.length > 0 ? `PHP ${user.amount}.00` : "--"}</TableCell>
+      <TableCell>
+        <div className=''>
+          {{
+            Active: <Badge variant={"success"}>{user.status}</Badge>,
+            "Timed out": (
+              <Badge className='text-gray-600' variant={"secondary"}>
+                {user.status}
+              </Badge>
+            ),
+          }?.[user.status] || "--"}
+        </div>
+      </TableCell>
+      <TableCell>{user?.updated_at || "--"}</TableCell>
+      <TableCell>{user.remarks || "--"}</TableCell>
+
+      <TableCell>
+        <Button
+          className={"px-5 font-semibold cursor-pointer h-9"}
+          onClick={() => {
+            setCurrentTable(user);
+            setIsOpen(!isOpen);
+          }}
+        >
+          Edit
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+};
