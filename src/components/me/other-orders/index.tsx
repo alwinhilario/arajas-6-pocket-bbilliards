@@ -371,16 +371,18 @@ export default function OtherOrders() {
                   })}
                 </div>
               </div>
-
-              <div className='flex flex-col gap-0.5 font-semibold'>
-                <div className='w-40'>Total Others</div>
-                <div className='text-green-500 text-2xl font-bold'>
-                  {totalAmount > 0 ? `PHP ${`${totalAmount}`}.00` : "PHP 0.00"}
-                </div>
-              </div>
             </>
           )}
         </div>
+
+        {filtered?.length > 0 && (
+          <div className='flex flex-col gap-0.5 font-semibold'>
+            <div className='w-40'>Total Others</div>
+            <div className='text-green-500 text-2xl font-bold'>
+              {totalAmount > 0 ? `PHP ${`${totalAmount}`}.00` : "PHP 0.00"}
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );
