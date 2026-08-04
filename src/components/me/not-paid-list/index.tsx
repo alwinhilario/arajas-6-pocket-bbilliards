@@ -280,7 +280,7 @@ export default function NotPaidList() {
         </div>
       )}
 
-      <div className='max-h-[290px] overflow-y-auto relative'>
+      <div className=' relative'>
         {myResult?.length > 0 && (
           <>
             <div className='px-5 flex flex-col'>
