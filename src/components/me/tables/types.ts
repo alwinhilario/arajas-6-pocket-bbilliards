@@ -22,8 +22,8 @@ export type TTableOptsData = {
   ];
   result: string;
   is_open_time: boolean;
-  timed_out_at: boolean;
-  updated_at: boolean;
+  timed_out_at: string;
+  updated_at: string;
   amount: string;
   others: [
     {

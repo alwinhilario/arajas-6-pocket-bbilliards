@@ -18,7 +18,11 @@ export default function AllTableList() {
   React.useEffect(() => {
     const load = async () => {
       const data = ((await storage.getItem("all_tables_list")) || []) as TTableOpts;
-      setTables(data?.filter((x) => x?.timed_out_at)?.sort((a, b) => dayjs(a?.out).diff(dayjs(b?.out))));
+      setTables(
+        data
+          ?.filter((x) => x?.timed_out_at)
+          ?.sort((a, b) => dayjs(a?.timed_out_at).diff(dayjs(b?.timed_out_at))),
+      );
     };
 
     load();
@@ -31,7 +35,11 @@ export default function AllTableList() {
 
         await storage.setItem("all_tables_list", x);
 
-        setTables(x?.filter((x) => x?.timed_out_at)?.sort((a, b) => dayjs(a?.out).diff(dayjs(b?.out))));
+        setTables(
+          x
+            ?.filter((x) => x?.timed_out_at)
+            ?.sort((a, b) => dayjs(a?.timed_out_at).diff(dayjs(b?.timed_out_at))),
+        );
       };
 
       update();
