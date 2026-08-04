@@ -153,6 +153,16 @@ function InputSelect({
           <CommandList className='max-h-[300px] overflow-y-auto'>
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
+              <CommandItem
+                value={""}
+                onSelect={() => {
+                  setSearch("");
+                  handleSelect("");
+                }}
+                className='capitalize cursor-pointer'
+              >
+                - Select -
+              </CommandItem>
               {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
