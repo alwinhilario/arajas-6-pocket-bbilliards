@@ -15,6 +15,8 @@ import DailyRevenue from "@/components/me/daily-revenue";
 import PlasadaList from "@/components/me/plasada-list";
 import RemarksList from "@/components/me/remarks-list";
 import RevenueList from "@/components/me/revenue-list";
+import localforage from "localforage";
+import storage from "@/lib/localforage";
 
 export default function Home() {
   const [currentDay, setCurrentDay] = React.useState(dayjs().add(1, "second"));
@@ -58,7 +60,31 @@ export default function Home() {
               <div className='text-5xl text-green-500'>{dayjs(currentDay).format("hh:mm:ss A")}</div>
             </div>
           </div>
-          <div className='text-gray-400'>{storageUsed}</div>
+          <div className='text-gray-400'>
+            <div>
+              {storageUsed}
+
+              <button
+                className='bg-orange-500 text-white px-2 py-1 rounded-md cursor-pointer ml-2'
+                onClick={async () => {
+                  const keys = await storage.keys();
+                  const data = {};
+                  for (const key of keys) {
+                    data[key] = await storage.getItem(key);
+                  }
+
+                  const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = "ipad-localforage-export.json";
+                  a.click();
+                }}
+              >
+                Export Data
+              </button>
+            </div>
+          </div>
         </div>
 
         <br />
