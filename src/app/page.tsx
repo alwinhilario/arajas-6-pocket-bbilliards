@@ -45,6 +45,25 @@ export default function Home() {
     }
   }, []);
 
+  React.useEffect(() => {
+    const download = async () => {
+      const keys = await storage.keys();
+      const data = {};
+      for (const key of keys) {
+        data[key] = await storage.getItem(key);
+      }
+
+      const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ipad-localforage-export.json";
+      a.click();
+    };
+
+    download();
+  }, []);
+
   return (
     <SessionProvider>
       <div className='p-5 py-2.5 bg-gray-100 flex flex-col'>
@@ -61,29 +80,7 @@ export default function Home() {
             </div>
           </div>
           <div className='text-gray-400'>
-            <div>
-              {storageUsed}
-
-              <button
-                className='bg-orange-500 text-white px-2 py-1 rounded-md cursor-pointer ml-2'
-                onClick={async () => {
-                  const keys = await storage.keys();
-                  const data = {};
-                  for (const key of keys) {
-                    data[key] = await storage.getItem(key);
-                  }
-
-                  const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = "ipad-localforage-export.json";
-                  a.click();
-                }}
-              >
-                Export Data
-              </button>
-            </div>
+            <div>{storageUsed}</div>
           </div>
         </div>
 
