@@ -74,7 +74,9 @@ export default function NotPaidList() {
     .sort((a, b) => (a?.name || "")?.localeCompare(b.name))
     .map((group) => ({
       ...group,
-      items: group.items.sort((a, b) => a.item.localeCompare(b.item)),
+      items: group.items.sort((a, b) => {
+        return (a.item || "").localeCompare(b.item);
+      }),
     })) as TPendingPaymentOpts;
 
   const [myResult, setMyResult] = React.useState<TPendingPaymentOpts>(result);

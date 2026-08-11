@@ -45,24 +45,24 @@ export default function Home() {
     }
   }, []);
 
-  React.useEffect(() => {
-    const download = async () => {
-      const keys = await storage.keys();
-      const data = {};
-      for (const key of keys) {
-        data[key] = await storage.getItem(key);
-      }
+  // React.useEffect(() => {
+  //   const download = async () => {
+  //     const keys = await storage.keys();
+  //     const data = {};
+  //     for (const key of keys) {
+  //       data[key] = await storage.getItem(key);
+  //     }
 
-      const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "ipad-localforage-export.json";
-      a.click();
-    };
+  //     const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+  //     const url = URL.createObjectURL(blob);
+  //     const a = document.createElement("a");
+  //     a.href = url;
+  //     a.download = "ipad-localforage-export.json";
+  //     a.click();
+  //   };
 
-    download();
-  }, []);
+  //   download();
+  // }, []);
 
   return (
     <SessionProvider>

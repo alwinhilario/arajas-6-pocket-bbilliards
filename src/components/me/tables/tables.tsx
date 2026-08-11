@@ -8,6 +8,7 @@ import { TTableOpts, TTableOptsData } from "./types";
 import { isEmpty } from "lodash";
 import { NAME_OPTS, TABLE_OPTS } from "@/app/constants";
 import dayjs from "dayjs";
+import { myData } from "@/app/test";
 
 export default function Tables() {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -17,6 +18,14 @@ export default function Tables() {
   React.useEffect(() => {
     const load = async () => {
       const data = ((await storage.getItem("tables")) || TABLE_OPTS) as TTableOpts;
+
+      // Object.entries(myData).map(([key, value]) => {
+      //   const load = async () => {
+      //     const data1 = await storage.setItem(key, value);
+      //   };
+
+      //   load();
+      // });
       // const data1 = await storage.setItem("tables", TABLE_OPTS);
       // const data2 = await storage.setItem("inventory_list", [
       //   {
