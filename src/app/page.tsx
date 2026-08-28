@@ -45,6 +45,21 @@ export default function Home() {
     }
   }, []);
 
+  const download = async () => {
+    const keys = await storage.keys();
+    const data = {};
+    for (const key of keys) {
+      data[key] = await storage.getItem(key);
+    }
+
+    const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "ipad-localforage-export.json";
+    a.click();
+  };
+
   // React.useEffect(() => {
   //   const download = async () => {
   //     const keys = await storage.keys();
@@ -73,14 +88,24 @@ export default function Home() {
           <div className='flex-1'>
             <div className='font-black'>
               <div className='flex items-end'>
-                <div className='text-xl'>{dayjs(currentDay).format("MMMM DD, YYYY")}</div>
+                <div className='text-xl'>{currentDay ? dayjs(currentDay).format("MMMM DD, YYYY") : "-"}</div>
                 <div className='pl-2 font-normal text-sm'>(8AM - 8AM)</div>
               </div>
-              <div className='text-5xl text-green-500'>{dayjs(currentDay).format("hh:mm:ss A")}</div>
+              <div className='text-5xl text-green-500'>
+                {currentDay ? dayjs(currentDay).format("hh:mm:ss A") : "-"}
+              </div>
             </div>
           </div>
-          <div className='text-gray-400'>
+          <div className='text-gray-400 flex items-center gap-2'>
             <div>{storageUsed}</div>
+            <button
+              type='button'
+              onClick={() => download()}
+              className='bg-blue-600 text-white rounded-md p-2 px-3 cursor-pointer'
+            >
+              {" "}
+              export{" "}
+            </button>
           </div>
         </div>
 
