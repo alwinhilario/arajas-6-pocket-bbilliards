@@ -122,11 +122,11 @@ export default function Home() {
           <br />
           <RemarksList />
           <br />
+          <AllTableList />
+          <br />
           <DailyRevenue />
           <br />
           <NotPaidList />
-          <br />
-          <AllTableList />
           <br />
           <RevenueList />
           <br />

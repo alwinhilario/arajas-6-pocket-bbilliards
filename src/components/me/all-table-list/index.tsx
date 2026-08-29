@@ -77,7 +77,7 @@ export default function AllTableList() {
             <div className='font-black text-orange-400 text-2xl'>Warning:</div>
             <div className='text-base pb-5'>
               <div>
-                Are you sure you want to permanently delete <b>Table History?</b>
+                Are you sure you want to permanently delete <b>Table Daily?</b>
               </div>
               <div className='text-gray-500'>
                 <small>
@@ -113,7 +113,7 @@ export default function AllTableList() {
       )}
 
       <div className='flex items-center gap-2 text-lg font-bold p-5 pb-0'>
-        <div className='flex-1'>Table History </div>
+        <div className='flex-1'>Table Daily </div>
         <div>
           <Button
             variant={"warning"}
