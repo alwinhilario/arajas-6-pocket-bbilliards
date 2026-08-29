@@ -115,50 +115,52 @@ export default function DailyReport({ data }: { data: any }) {
       <section className='border rounded p-4 border-black/30'>
         <h2 className='mb-2 text-lg font-semibold'>Table History</h2>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Table</TableHead>
-              <TableHead>Time In</TableHead>
-              <TableHead>Time Out</TableHead>
-              <TableHead>Hours</TableHead>
-              <TableHead>Rate</TableHead>
-              <TableHead>Others</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Remarks</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {data.tableHistory.map((row: any) => (
-              <TableRow key={row.id}>
-                <TableCell>{row.label}</TableCell>
-                <TableCell>{row.in}</TableCell>
-                <TableCell>{row.out}</TableCell>
-                <TableCell>{row.hours}</TableCell>
-                <TableCell>₱{row.table_rates}</TableCell>
-
-                <TableCell className='min-w-40'>
-                  {row.others.length ? (
-                    <div className='space-y-1'>
-                      {row.others.map((o: any, i: number) => (
-                        <div key={i}>
-                          {o.item} - ₱{o.amount}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    "-"
-                  )}
-                </TableCell>
-
-                <TableCell className='font-medium'>₱{row.amount}</TableCell>
-
-                <TableCell>{row.remarks || "-"}</TableCell>
+        <div className='max-h-[290px] overflow-y-auto relative'>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Table</TableHead>
+                <TableHead>Time In</TableHead>
+                <TableHead>Time Out</TableHead>
+                <TableHead>Hours</TableHead>
+                <TableHead>Rate</TableHead>
+                <TableHead>Others</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Remarks</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+
+            <TableBody>
+              {data.tableHistory.map((row: any) => (
+                <TableRow key={row.id}>
+                  <TableCell>{row.label}</TableCell>
+                  <TableCell>{row.in}</TableCell>
+                  <TableCell>{row.out}</TableCell>
+                  <TableCell>{row.hours}</TableCell>
+                  <TableCell>₱{row.table_rates}</TableCell>
+
+                  <TableCell className='min-w-40'>
+                    {row.others.length ? (
+                      <div className='space-y-1'>
+                        {row.others.map((o: any, i: number) => (
+                          <div key={i}>
+                            {o.item} - ₱{o.amount}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+
+                  <TableCell className='font-medium'>₱{row.amount}</TableCell>
+
+                  <TableCell>{row.remarks || "-"}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </section>
 
       {/* Pending Payments */}

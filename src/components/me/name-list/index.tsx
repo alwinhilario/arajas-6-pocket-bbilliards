@@ -95,33 +95,35 @@ export default function NameList() {
       <Card className='pt-0'>
         <div className='text-lg font-bold p-5 pb-0'>Names </div>
 
-        <Table>
-          <TableHeader className='bg-gray-100/80'>
-            <TableRow>
-              <TableHead className='font-bold px-2 text-gray-600'>NAME</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {otherOrders.map((user, key) => (
-              <TableRow key={key}>
-                <TableCell className='font-medium flex items-center gap-3'>
-                  <div>{user.label || "--"}</div>
-
-                  <button
-                    type='button'
-                    onClick={() => {
-                      setIsOpen(!isOpen);
-                      setSelectedUser(user);
-                    }}
-                  >
-                    <FaTrash className='text-red-400 h-3.5 w-3.5 cursor-pointer' />
-                  </button>
-                </TableCell>
+        <div className='max-h-[290px] overflow-y-auto relative'>
+          <Table>
+            <TableHeader className='bg-gray-100/80'>
+              <TableRow>
+                <TableHead className='font-bold px-2 text-gray-600'>NAME</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+
+            <TableBody>
+              {otherOrders.map((user, key) => (
+                <TableRow key={key}>
+                  <TableCell className='font-medium flex items-center gap-3'>
+                    <div>{user.label || "--"}</div>
+
+                    <button
+                      type='button'
+                      onClick={() => {
+                        setIsOpen(!isOpen);
+                        setSelectedUser(user);
+                      }}
+                    >
+                      <FaTrash className='text-red-400 h-3.5 w-3.5 cursor-pointer' />
+                    </button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
     </div>
   );

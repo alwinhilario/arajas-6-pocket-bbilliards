@@ -67,13 +67,13 @@ export default function OtherOrders() {
   const totalAmount = filtered?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
 
   React.useEffect(() => {
-    if (!Array.isArray(filtered) || (filtered || [])?.length <= 0) return;
+    if (!Array.isArray(otherOrders) || (otherOrders || [])?.length <= 0) return;
 
     const update = async () => {
-      (await storage.setItem("other_orders", filtered)) as TOtherOrdersOpts;
+      (await storage.setItem("other_orders", otherOrders)) as TOtherOrdersOpts;
     };
     update();
-  }, [JSON.stringify(filtered)]);
+  }, [JSON.stringify(otherOrders)]);
 
   const [isResetOpen, setIsResetOpen] = React.useState(false);
   const [state, setState] = React.useState({

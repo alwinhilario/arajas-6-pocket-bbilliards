@@ -42,7 +42,6 @@ export default function Tables() {
       // const data7 = await storage.setItem("pending_payment", []);
       // const data8 = await storage.setItem("plasada_list", []);
       // const data9 = await storage.setItem("remarks_list", []);
-      // const data10 = await storage.setItem("pending_payment", []);
 
       setTables(data);
     };

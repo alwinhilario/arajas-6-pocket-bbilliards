@@ -32,13 +32,13 @@ export default function RemarksList() {
   });
 
   React.useEffect(() => {
-    if (!Array.isArray(filtered) || (filtered || [])?.length <= 0) return;
+    if (!Array.isArray(otherOrders) || (otherOrders || [])?.length <= 0) return;
 
     const update = async () => {
-      (await storage.setItem("remarks_list", filtered)) as TOutList;
+      (await storage.setItem("remarks_list", otherOrders)) as TOutList;
     };
     update();
-  }, [JSON.stringify(filtered)]);
+  }, [JSON.stringify(otherOrders)]);
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [state, setState] = React.useState({

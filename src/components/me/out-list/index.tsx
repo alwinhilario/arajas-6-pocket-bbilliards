@@ -34,16 +34,16 @@ export default function OutListAll() {
   const totalAmount = filtered?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
 
   React.useEffect(() => {
-    if (!Array.isArray(filtered) || (filtered || [])?.length <= 0) return;
+    if (!Array.isArray(otherOrders) || (otherOrders || [])?.length <= 0) return;
 
     const update = async () => {
       (await storage.setItem(
         "out_list",
-        filtered?.sort((a, b) => dayjs(a?.date).diff(dayjs(b?.date))),
+        otherOrders?.sort((a, b) => dayjs(a?.date).diff(dayjs(b?.date))),
       )) as TOutList;
     };
     update();
-  }, [JSON.stringify(filtered)]);
+  }, [JSON.stringify(otherOrders)]);
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [state, setState] = React.useState({

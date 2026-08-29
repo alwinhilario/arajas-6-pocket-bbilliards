@@ -34,8 +34,10 @@ export default function NotPaidList() {
     const t = setInterval(() => {
       const load = async () => {
         const x = ((await storage.getItem("pending_payment")) || OTHER_ORDERS) as TOtherOrdersOpts;
+        const data1 = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
 
         setTables(x);
+        setInventoryOpts(data1);
       };
       load();
     }, 1000);
