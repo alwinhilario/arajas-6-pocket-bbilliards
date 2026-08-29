@@ -109,7 +109,8 @@ export default function RevenueList() {
           x?.items?.tableHistory?.length > 0 ||
           x?.items?.pendingPayment?.length > 0 ||
           x?.items?.plasada?.length > 0,
-      );
+      )
+      ?.sort((a, b) => dayjs(b?.dateStringFrom2).diff(dayjs(a?.dateStringFrom2)));
   }, [dateArray, expenses, orders, pendingPayment, plasada, remarks, tableHistory]);
   console.log({ dateArrayMemo });
 
