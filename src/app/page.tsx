@@ -77,7 +77,7 @@ const RemainingTableTime = ({ storageUsed }) => {
           return (
             <div
               key={item.value}
-              className={clsx("flex flex-col  rounded-md border px-2.5 py-1.5 text-xs", {
+              className={clsx("flex flex-col  rounded-md border px-2.5 py-1.5 text-[0.85rem]", {
                 "border-red-400 bg-red-100 text-red-800": isOut,
                 "border-yellow-400 bg-yellow-100/50 text-yellow-800": isSoon,
                 "border-gray-200 bg-gray-50 text-gray-800": !isOut && !isSoon,
