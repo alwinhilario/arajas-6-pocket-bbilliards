@@ -32,7 +32,7 @@ const formatRemaining = (ms: number) => {
   return `${String(hours).padStart(2, "0")}h ${String(d.minutes()).padStart(2, "0")}m`;
 };
 
-const RemainingTableTime = () => {
+const RemainingTableTime = ({ storageUsed }) => {
   const [now, setNow] = React.useState<dayjs.Dayjs | null>(null);
   const [tables, setTables] = React.useState<TTableOpts>([]);
 
@@ -65,7 +65,10 @@ const RemainingTableTime = () => {
 
   return (
     <div className='mb-3 rounded-lg border border-gray-200 bg-white p-3'>
-      <div className='mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500'>About to timeout</div>
+      <div className='flex items-center gap-2 mb-2'>
+        <div className='text-xs font-semibold uppercase tracking-wide text-gray-500'>About to timeout</div>
+        <div className='text-gray-400/70 flex items-center text-xs'>{storageUsed}</div>
+      </div>
       <div className='flex flex-wrap gap-2'>
         {upcoming.map((item) => {
           const isOut = item.remainingMs <= 0;
@@ -170,11 +173,11 @@ export default function Home() {
             </div>
           </div>
 
-          <div>
+          {/* <div>
             <div className='text-gray-400 flex items-center gap-2 !-mb-24 mt-3 text-xs'>{storageUsed}</div>
-          </div>
+          </div> */}
           <div>
-            <RemainingTableTime />
+            <RemainingTableTime storageUsed={storageUsed} />
           </div>
           {/* <div className='text-gray-400 flex items-center gap-2'>
             <div>{storageUsed}</div>
