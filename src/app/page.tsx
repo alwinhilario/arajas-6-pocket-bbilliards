@@ -17,6 +17,80 @@ import RemarksList from "@/components/me/remarks-list";
 import RevenueList from "@/components/me/revenue-list";
 import localforage from "localforage";
 import storage from "@/lib/localforage";
+import { TABLE_OPTS } from "./constants";
+import { TTableOpts } from "@/components/me/tables/types";
+import duration from "dayjs/plugin/duration";
+import clsx from "clsx";
+
+dayjs.extend(duration);
+
+const formatRemaining = (ms: number) => {
+  const safe = Math.max(0, ms);
+  const d = dayjs.duration(safe);
+  const hours = Math.floor(safe / 3_600_000);
+
+  return `${String(hours).padStart(2, "0")}:${String(d.minutes()).padStart(2, "0")}:${String(d.seconds()).padStart(2, "0")}`;
+};
+
+const RemainingTableTime = () => {
+  const [now, setNow] = React.useState<dayjs.Dayjs | null>(null);
+  const [tables, setTables] = React.useState<TTableOpts>([]);
+
+  React.useEffect(() => {
+    const tick = async () => {
+      const data = ((await storage.getItem("tables")) || TABLE_OPTS) as TTableOpts;
+      setTables(data || []);
+      setNow(dayjs());
+    };
+
+    tick();
+    const t = setInterval(tick, 1000);
+
+    return () => {
+      clearInterval(t);
+    };
+  }, []);
+
+  if (!now) return null;
+
+  const upcoming = (tables || [])
+    .filter((item) => item?.out && !item?.is_open_time)
+    .map((item) => ({
+      ...item,
+      remainingMs: dayjs(item.out).diff(now),
+    }))
+    .sort((a, b) => a.remainingMs - b.remainingMs);
+
+  if (upcoming.length === 0) return null;
+
+  return (
+    <div className='mb-3 rounded-lg border border-gray-200 bg-white p-3'>
+      <div className='mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500'>About to timeout</div>
+      <div className='flex flex-wrap gap-2'>
+        {upcoming.map((item) => {
+          const isOut = item.remainingMs <= 0;
+          const isSoon = item.remainingMs > 0 && item.remainingMs < 15 * 60 * 1000;
+
+          return (
+            <div
+              key={item.value}
+              className={clsx("flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-sm", {
+                "border-red-400 bg-red-100 text-red-800": isOut,
+                "border-yellow-400 bg-yellow-100 text-yellow-800": isSoon,
+                "border-gray-200 bg-gray-50 text-gray-800": !isOut && !isSoon,
+              })}
+            >
+              <span className='font-semibold'>{item.label}</span>
+              <span className='font-mono tabular-nums'>
+                {isOut ? "Timed out" : formatRemaining(item.remainingMs)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 export default function Home() {
   const [currentDay, setCurrentDay] = React.useState(dayjs().add(1, "second"));
@@ -59,7 +133,6 @@ export default function Home() {
     a.download = "ipad-localforage-export.json";
     a.click();
   };
-
   // React.useEffect(() => {
   //   const download = async () => {
   //     const keys = await storage.keys();
@@ -96,7 +169,14 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className='text-gray-400 flex items-center gap-2'>
+
+          <div>
+            <div className='text-gray-400 flex items-center gap-2 !-mb-24 mt-3 text-xs'>{storageUsed}</div>
+          </div>
+          <div>
+            <RemainingTableTime />
+          </div>
+          {/* <div className='text-gray-400 flex items-center gap-2'>
             <div>{storageUsed}</div>
             <button
               type='button'
@@ -106,7 +186,7 @@ export default function Home() {
               {" "}
               export{" "}
             </button>
-          </div>
+          </div> */}
         </div>
 
         <br />
