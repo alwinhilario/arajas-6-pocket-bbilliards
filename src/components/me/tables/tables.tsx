@@ -61,7 +61,13 @@ export default function Tables() {
                 return {
                   ...item,
                   ...data,
-                  is_open_time: item?.is_open_time || !data?.out,
+                  is_open_time: (() => {
+                    if (item?.is_open_time && data?.out) {
+                      return false;
+                    }
+
+                    return item?.is_open_time || !data?.out;
+                  })(),
                 };
               }
 
