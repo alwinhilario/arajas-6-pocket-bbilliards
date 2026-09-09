@@ -29,7 +29,7 @@ const formatRemaining = (ms: number) => {
   const d = dayjs.duration(safe);
   const hours = Math.floor(safe / 3_600_000);
 
-  return `${String(hours).padStart(2, "0")}:${String(d.minutes()).padStart(2, "0")}:${String(d.seconds()).padStart(2, "0")}`;
+  return `${String(hours).padStart(2, "0")}h ${String(d.minutes()).padStart(2, "0")}m`;
 };
 
 const RemainingTableTime = () => {
@@ -76,13 +76,13 @@ const RemainingTableTime = () => {
               key={item.value}
               className={clsx("flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-sm", {
                 "border-red-400 bg-red-100 text-red-800": isOut,
-                "border-yellow-400 bg-yellow-100 text-yellow-800": isSoon,
+                "border-yellow-400 bg-yellow-100/50 text-yellow-800": isSoon,
                 "border-gray-200 bg-gray-50 text-gray-800": !isOut && !isSoon,
               })}
             >
               <span className='font-semibold'>{item.label}</span>
               <span className='font-mono tabular-nums'>
-                {isOut ? "Timed out" : formatRemaining(item.remainingMs)}
+                ({isOut ? "Timed out" : formatRemaining(item.remainingMs)})
               </span>
             </div>
           );
