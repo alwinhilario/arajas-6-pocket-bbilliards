@@ -66,7 +66,7 @@ const RemainingTableTime = ({ storageUsed }) => {
   return (
     <div className='mb-3 rounded-lg border border-gray-200 bg-white p-3'>
       <div className='flex items-center gap-2 mb-2'>
-        <div className='text-xs font-semibold uppercase tracking-wide text-gray-500'>About to timeout</div>
+        <div className='text-xs font-semibold uppercase tracking-wide text-gray-700'>Timeout in order</div>
         <div className='text-gray-400/70 flex items-center text-xs'>{storageUsed}</div>
       </div>
       <div className='flex flex-wrap gap-2'>
@@ -77,16 +77,17 @@ const RemainingTableTime = ({ storageUsed }) => {
           return (
             <div
               key={item.value}
-              className={clsx("flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-sm", {
+              className={clsx("flex flex-col  rounded-md border px-2.5 py-1.5 text-xs", {
                 "border-red-400 bg-red-100 text-red-800": isOut,
                 "border-yellow-400 bg-yellow-100/50 text-yellow-800": isSoon,
                 "border-gray-200 bg-gray-50 text-gray-800": !isOut && !isSoon,
               })}
             >
-              <span className='font-semibold'>{item.label}</span>
-              <span className='font-mono tabular-nums'>
-                ({isOut ? "Timed out" : formatRemaining(item.remainingMs)})
-              </span>
+              <div className='font-semibold'>{item.label}</div>
+              <div className='font-mono tabular-nums'>Out: {dayjs(item?.out)?.format("hh:mm A")}</div>
+              <div className='font-mono tabular-nums text-blue-500'>
+                Remaining: {isOut ? "Timed out" : formatRemaining(item.remainingMs)}
+              </div>
             </div>
           );
         })}
