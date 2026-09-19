@@ -1,6 +1,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
-import storage from "@/lib/localforage";
+import storage, { onStorageChange } from "@/lib/localforage";
 import { TInventoryData, TInventoryList } from "../tables/types";
 
 import { TableBody, TableCell, TableHead, Table, TableHeader, TableRow } from "@/components/ui/table";
@@ -24,24 +24,9 @@ export default function InventoryList() {
     };
 
     load();
-  }, []);
-
-  React.useEffect(() => {
-    const t = setInterval(() => {
-      const update = async () => {
-        const x = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
-
-        await storage.setItem("inventory_list", x);
-
-        setOtherOrders(x);
-      };
-
-      update();
-    }, 1000);
-
-    return () => {
-      clearInterval(t);
-    };
+    return onStorageChange("inventory_list", () => {
+      load();
+    });
   }, []);
 
   const [state, setState] = React.useState({

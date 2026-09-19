@@ -104,7 +104,12 @@ export default function Table({
   const [remaining, setRemaining] = React.useState("");
 
   React.useEffect(() => {
-    const t = setInterval(() => {
+    if (!data?.out) {
+      setRemaining("");
+      return;
+    }
+
+    const updateTimer = () => {
       const currentTime = dayjs();
       const outTime = dayjs(data?.out);
       const diff = outTime.diff(currentTime);
@@ -113,7 +118,10 @@ export default function Table({
       setRemaining(
         `${String(d.hours()).padStart(2, "0")}:${String(d.minutes()).padStart(2, "0")}:${String(d.seconds()).padStart(2, "0")}`,
       );
-    }, 1000);
+    };
+
+    updateTimer();
+    const t = setInterval(updateTimer, 1000);
 
     return () => {
       clearInterval(t);

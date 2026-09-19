@@ -15,8 +15,7 @@ import DailyRevenue from "@/components/me/daily-revenue";
 import PlasadaList from "@/components/me/plasada-list";
 import RemarksList from "@/components/me/remarks-list";
 import RevenueList from "@/components/me/revenue-list";
-import localforage from "localforage";
-import storage from "@/lib/localforage";
+import storage, { onStorageChange } from "@/lib/localforage";
 import { TABLE_OPTS } from "./constants";
 import { TTableOpts } from "@/components/me/tables/types";
 import duration from "dayjs/plugin/duration";
@@ -32,19 +31,52 @@ const formatRemaining = (ms: number) => {
   return `${String(hours).padStart(2, "0")}h ${String(d.minutes()).padStart(2, "0")}m`;
 };
 
-const RemainingTableTime = ({ storageUsed }) => {
+const LiveClock = React.memo(function LiveClock() {
+  const [currentDay, setCurrentDay] = React.useState<dayjs.Dayjs | null>(null);
+
+  React.useEffect(() => {
+    setCurrentDay(dayjs());
+    const t = setInterval(() => {
+      setCurrentDay(dayjs());
+    }, 1000);
+
+    return () => {
+      clearInterval(t);
+    };
+  }, []);
+
+  return (
+    <div className='font-black'>
+      <div className='flex items-end'>
+        <div className='text-xl'>{currentDay ? currentDay.format("MMMM DD, YYYY") : "-"}</div>
+        <div className='pl-2 font-normal text-sm'>(8AM - 8AM)</div>
+      </div>
+      <div className='text-5xl text-green-500'>{currentDay ? currentDay.format("hh:mm:ss A") : "-"}</div>
+    </div>
+  );
+});
+
+const RemainingTableTime = ({ storageUsed }: { storageUsed: string }) => {
   const [now, setNow] = React.useState<dayjs.Dayjs | null>(null);
   const [tables, setTables] = React.useState<TTableOpts>([]);
 
   React.useEffect(() => {
-    const tick = async () => {
+    const loadTables = async () => {
       const data = ((await storage.getItem("tables")) || TABLE_OPTS) as TTableOpts;
       setTables(data || []);
-      setNow(dayjs());
     };
 
-    tick();
-    const t = setInterval(tick, 1000);
+    loadTables();
+    return onStorageChange("tables", () => {
+      loadTables();
+    });
+  }, []);
+
+  React.useEffect(() => {
+    setNow(dayjs());
+    const t = setInterval(() => {
+      setNow(dayjs());
+    }, 1000);
 
     return () => {
       clearInterval(t);
@@ -77,7 +109,7 @@ const RemainingTableTime = ({ storageUsed }) => {
           return (
             <div
               key={item.value}
-              className={clsx("flex flex-col  rounded-md border px-2.5 py-1.5 text-[0.85rem]", {
+              className={clsx("flex flex-col rounded-md border px-2.5 py-1.5 text-[0.85rem]", {
                 "border-red-400 bg-red-100 text-red-800": isOut,
                 "border-yellow-400 bg-yellow-100/50 text-yellow-800": isSoon,
                 "border-gray-200 bg-gray-50 text-gray-800": !isOut && !isSoon,
@@ -97,64 +129,18 @@ const RemainingTableTime = ({ storageUsed }) => {
 };
 
 export default function Home() {
-  const [currentDay, setCurrentDay] = React.useState(dayjs().add(1, "second"));
-
-  React.useEffect(() => {
-    const t = setInterval(() => {
-      setCurrentDay(dayjs().add(1, "second"));
-    }, 1000);
-
-    return () => {
-      clearInterval(t);
-    };
-  }, []);
-
   const [storageUsed, setStorageUsed] = React.useState("");
 
   React.useEffect(() => {
     if (navigator.storage && navigator.storage.estimate) {
       navigator.storage.estimate().then((estimate) => {
-        const usedSpace = estimate.usage; // Bytes used
-        const totalQuota = estimate.quota; // Total bytes allowed
+        const usedSpace = estimate.usage || 0; // Bytes used
+        const totalQuota = estimate.quota || 1; // Total bytes allowed
         const percentageUsed = (usedSpace / totalQuota) * 100;
 
         setStorageUsed(`Used: ${usedSpace} of ${totalQuota} bytes (${percentageUsed.toFixed(2)}%)`);
       });
     }
-  }, []);
-
-  const download = async () => {
-    const keys = await storage.keys();
-    const data = {};
-    for (const key of keys) {
-      data[key] = await storage.getItem(key);
-    }
-
-    const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "ipad-localforage-export.json";
-    a.click();
-  };
-
-  React.useEffect(() => {
-    const download = async () => {
-      const keys = await storage.keys();
-      const data = {};
-      for (const key of keys) {
-        data[key] = await storage.getItem(key);
-      }
-
-      const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "ipad-localforage-export.json";
-      a.click();
-    };
-
-    download();
   }, []);
 
   return (
@@ -164,35 +150,12 @@ export default function Home() {
 
         <div className='flex items-center gap-3'>
           <div className='flex-1'>
-            <button
-              type='button'
-              onClick={() => download()}
-              className='bg-blue-600 text-white rounded-md p-2 px-3 cursor-pointer'
-            >
-              {" "}
-              export{" "}
-            </button>
-
-            <div className='font-black'>
-              <div className='flex items-end'>
-                <div className='text-xl'>{currentDay ? dayjs(currentDay).format("MMMM DD, YYYY") : "-"}</div>
-                <div className='pl-2 font-normal text-sm'>(8AM - 8AM)</div>
-              </div>
-              <div className='text-5xl text-green-500'>
-                {currentDay ? dayjs(currentDay).format("hh:mm:ss A") : "-"}
-              </div>
-            </div>
+            <LiveClock />
           </div>
 
-          {/* <div>
-            <div className='text-gray-400 flex items-center gap-2 !-mb-24 mt-3 text-xs'>{storageUsed}</div>
-          </div> */}
           <div>
             <RemainingTableTime storageUsed={storageUsed} />
           </div>
-          {/* <div className='text-gray-400 flex items-center gap-2'>
-            <div>{storageUsed}</div>
-          </div> */}
         </div>
 
         <br />

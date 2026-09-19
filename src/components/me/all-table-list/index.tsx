@@ -1,7 +1,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import storage from "@/lib/localforage";
+import storage, { onStorageChange } from "@/lib/localforage";
 import { TTableOpts, TTableOptsData } from "../tables/types";
 import { Badge } from "@/components/ui/badge";
 import { filterObject } from "@/lib/utils";
@@ -26,28 +26,9 @@ export default function AllTableList() {
     };
 
     load();
-  }, []);
-
-  React.useEffect(() => {
-    const t = setInterval(() => {
-      const update = async () => {
-        const x = ((await storage.getItem("all_tables_list")) || []) as TTableOpts;
-
-        await storage.setItem("all_tables_list", x);
-
-        setTables(
-          x
-            ?.filter((x) => x?.timed_out_at)
-            ?.sort((a, b) => dayjs(a?.timed_out_at).diff(dayjs(b?.timed_out_at))),
-        );
-      };
-
-      update();
-    }, 1000);
-
-    return () => {
-      clearInterval(t);
-    };
+    return onStorageChange("all_tables_list", () => {
+      load();
+    });
   }, []);
 
   const { value } = React.useContext(SESSION_CONTEXT);

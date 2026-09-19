@@ -1,6 +1,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
-import storage from "@/lib/localforage";
+import storage, { onStorageChange } from "@/lib/localforage";
 import { TInventoryList, TOptions, TOtherOrdersOpts } from "../tables/types";
 
 import OtherOrder, { capitalizeFirstLetter } from "./other-order";
@@ -35,26 +35,9 @@ export default function OtherOrders() {
     };
 
     load();
-  }, []);
-
-  React.useEffect(() => {
-    const t = setInterval(() => {
-      const update = async () => {
-        const data = ((await storage.getItem("other_orders")) || []) as TOtherOrdersOpts;
-        const data1 = ((await storage.getItem("name_list")) || NAME_OPTS) as TOptions;
-        const data2 = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
-
-        setOtherOrders(data);
-        setNameOpts(data1);
-        setInventoryOpts(data2);
-      };
-
-      update();
-    }, 1000);
-
-    return () => {
-      clearInterval(t);
-    };
+    return onStorageChange(["other_orders", "name_list", "inventory_list"], () => {
+      load();
+    });
   }, []);
 
   const filtered = filterObject({

@@ -1,6 +1,6 @@
 import React from "react";
 import { Card } from "../ui/card";
-import storage from "@/lib/localforage";
+import storage, { onStorageChange } from "@/lib/localforage";
 import { convertCurrency, filterObject, getTotalAmount } from "@/lib/utils";
 import { SESSION_CONTEXT } from "@/app/provider";
 import { TOtherOrdersOpts, TOutList, TTableOpts } from "./tables/types";
@@ -18,73 +18,71 @@ export default function DailyRevenue() {
   const { value } = React.useContext(SESSION_CONTEXT);
 
   React.useEffect(() => {
-    const t = setInterval(() => {
-      const load = async () => {
-        const orders = (await storage.getItem("other_orders")) as TOtherOrdersOpts;
-        const expenses = (await storage.getItem("out_list")) as TOutList;
-        const tableHistory = (await storage.getItem("all_tables_list")) as TTableOpts; // brb
-        const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
-        const plasada = (await storage.getItem("plasada_list")) as TOutList;
-        const remarks = (await storage.getItem("remarks_list")) as TOutList;
+    const load = async () => {
+      const orders = (await storage.getItem("other_orders")) as TOtherOrdersOpts;
+      const expenses = (await storage.getItem("out_list")) as TOutList;
+      const tableHistory = (await storage.getItem("all_tables_list")) as TTableOpts;
+      const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
+      const plasada = (await storage.getItem("plasada_list")) as TOutList;
+      const remarks = (await storage.getItem("remarks_list")) as TOutList;
 
-        console.log({ pendingPayment, date: value?.date });
-        pendingPayment?.map((x) =>
-          console.log(dayjs(x?.date).isBetween(value?.date?.date_from, value?.date?.date_to, "second", "[]")),
-        );
+      setRemarks(
+        filterObject({
+          object: remarks,
+          filter_from: value?.date?.date_from,
+          filter_to: value?.date?.date_to,
+          propertyName: "date",
+        }),
+      );
+      setOrders(
+        filterObject({
+          object: orders,
+          filter_from: value?.date?.date_from,
+          filter_to: value?.date?.date_to,
+          propertyName: "date",
+        }),
+      );
+      setExpenses(
+        filterObject({
+          object: expenses,
+          filter_from: value?.date?.date_from,
+          filter_to: value?.date?.date_to,
+          propertyName: "date",
+        }),
+      );
+      setTableHistory(
+        filterObject({
+          object: tableHistory,
+          filter_from: value?.date?.date_from,
+          filter_to: value?.date?.date_to,
+          propertyName: "in",
+        }),
+      );
+      setPendingPayment(
+        filterObject({
+          object: pendingPayment,
+          filter_from: value?.date?.date_from,
+          filter_to: value?.date?.date_to,
+          propertyName: "date",
+        }),
+      );
+      setPlasada(
+        filterObject({
+          object: plasada,
+          filter_from: value?.date?.date_from,
+          filter_to: value?.date?.date_to,
+          propertyName: "date",
+        }),
+      );
+    };
 
-        setRemarks(
-          filterObject({
-            object: remarks,
-            filter_from: value?.date?.date_from,
-            filter_to: value?.date?.date_to,
-            propertyName: "date",
-          }),
-        );
-        setOrders(
-          filterObject({
-            object: orders,
-            filter_from: value?.date?.date_from,
-            filter_to: value?.date?.date_to,
-            propertyName: "date",
-          }),
-        );
-        setExpenses(
-          filterObject({
-            object: expenses,
-            filter_from: value?.date?.date_from,
-            filter_to: value?.date?.date_to,
-            propertyName: "date",
-          }),
-        );
-        setTableHistory(
-          filterObject({
-            object: tableHistory,
-            filter_from: value?.date?.date_from,
-            filter_to: value?.date?.date_to,
-            propertyName: "in",
-          }),
-        );
-        setPendingPayment(
-          filterObject({
-            object: pendingPayment,
-            filter_from: value?.date?.date_from,
-            filter_to: value?.date?.date_to,
-            propertyName: "date",
-          }),
-        );
-        setPlasada(
-          filterObject({
-            object: plasada,
-            filter_from: value?.date?.date_from,
-            filter_to: value?.date?.date_to,
-            propertyName: "date",
-          }),
-        );
-      };
-      load();
-    }, 1000);
-
-    return () => clearInterval(t);
+    load();
+    return onStorageChange(
+      ["other_orders", "out_list", "all_tables_list", "pending_payment", "plasada_list", "remarks_list"],
+      () => {
+        load();
+      },
+    );
   }, [value?.date?.date_from, value?.date?.date_to]);
 
   const totalAmount = getTotalAmount(plasada) + getTotalAmount(orders) + getTotalAmount(tableHistory);

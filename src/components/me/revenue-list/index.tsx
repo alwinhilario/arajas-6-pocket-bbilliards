@@ -1,7 +1,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import storage from "@/lib/localforage";
+import storage, { onStorageChange } from "@/lib/localforage";
 import { TOtherOrdersOpts, TOutList, TTableOpts } from "../tables/types";
 import { Badge } from "@/components/ui/badge";
 import { convertCurrency, filterObject, getTotalAmount } from "@/lib/utils";
@@ -22,35 +22,34 @@ export default function RevenueList() {
   const [remarks, setRemarks] = React.useState<TOutList>();
   const { value } = React.useContext(SESSION_CONTEXT);
 
-  const from = dayjs("July 15, 2026");
-  const to = dayjs();
-  const dateArray = [];
-  let currentDate = from;
+  const dateArray = React.useMemo(() => {
+    const from = dayjs("July 15, 2026");
+    const to = dayjs();
+    const arr = [];
+    let currentDate = from;
 
-  // Loop until currentDate passes the "to" date
-  while (currentDate.isBefore(to) || currentDate.isSame(to, "day")) {
-    dateArray.push({
-      // Formats as "July 1, 2026"
-      dateStringFrom: currentDate.set("hour", 8).set("minute", 0).set("second", 0),
-      dateStringFrom2: currentDate
-        .set("hour", 8)
-        .set("minute", 0)
-        .set("second", 0)
-        .format("MMM DD, YYYY hh:mm A"),
-      dateStringTo: currentDate.add(1, "day").set("hour", 8).set("minute", 0).set("second", 0),
-      dateStringto2: currentDate
-        .add(1, "day")
-        .set("hour", 8)
-        .set("minute", 0)
-        .set("second", 0)
-        .format("MMM DD, YYYY hh:mm A"),
-      // Keeps the raw Day.js object if you need to manipulate it later
-      raw: currentDate,
-    });
+    while (currentDate.isBefore(to) || currentDate.isSame(to, "day")) {
+      arr.push({
+        dateStringFrom: currentDate.set("hour", 8).set("minute", 0).set("second", 0),
+        dateStringFrom2: currentDate
+          .set("hour", 8)
+          .set("minute", 0)
+          .set("second", 0)
+          .format("MMM DD, YYYY hh:mm A"),
+        dateStringTo: currentDate.add(1, "day").set("hour", 8).set("minute", 0).set("second", 0),
+        dateStringto2: currentDate
+          .add(1, "day")
+          .set("hour", 8)
+          .set("minute", 0)
+          .set("second", 0)
+          .format("MMM DD, YYYY hh:mm A"),
+        raw: currentDate,
+      });
 
-    // Move to the next day
-    currentDate = currentDate.add(1, "day");
-  }
+      currentDate = currentDate.add(1, "day");
+    }
+    return arr;
+  }, []);
 
   const dateArrayMemo = React.useMemo(() => {
     return dateArray
@@ -112,30 +111,32 @@ export default function RevenueList() {
       )
       ?.sort((a, b) => dayjs(b?.dateStringFrom2).diff(dayjs(a?.dateStringFrom2)));
   }, [dateArray, expenses, orders, pendingPayment, plasada, remarks, tableHistory]);
-  console.log({ dateArrayMemo });
 
   React.useEffect(() => {
-    const t = setInterval(() => {
-      const load = async () => {
-        const orders = (await storage.getItem("other_orders")) as TOtherOrdersOpts;
-        const expenses = (await storage.getItem("out_list")) as TOutList;
-        const tableHistory = (await storage.getItem("all_tables_list")) as TTableOpts; // brb
-        const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
-        const plasada = (await storage.getItem("plasada_list")) as TOutList;
-        const remarks = (await storage.getItem("remarks_list")) as TOutList;
+    const load = async () => {
+      const orders = (await storage.getItem("other_orders")) as TOtherOrdersOpts;
+      const expenses = (await storage.getItem("out_list")) as TOutList;
+      const tableHistory = (await storage.getItem("all_tables_list")) as TTableOpts;
+      const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
+      const plasada = (await storage.getItem("plasada_list")) as TOutList;
+      const remarks = (await storage.getItem("remarks_list")) as TOutList;
 
-        setRemarks(remarks);
-        setOrders(orders);
-        setExpenses(expenses);
-        setTableHistory(tableHistory);
-        setPendingPayment(pendingPayment);
-        setPlasada(plasada);
-      };
-      load();
-    }, 1000);
+      setRemarks(remarks);
+      setOrders(orders);
+      setExpenses(expenses);
+      setTableHistory(tableHistory);
+      setPendingPayment(pendingPayment);
+      setPlasada(plasada);
+    };
 
-    return () => clearInterval(t);
-  }, [value?.date?.date_from, value?.date?.date_to]);
+    load();
+    return onStorageChange(
+      ["other_orders", "out_list", "all_tables_list", "pending_payment", "plasada_list", "remarks_list"],
+      () => {
+        load();
+      },
+    );
+  }, []);
   const [isOpen, setIsOpen] = React.useState(false);
 
   const [isViewOpen, setIsViewOpen] = React.useState(false);

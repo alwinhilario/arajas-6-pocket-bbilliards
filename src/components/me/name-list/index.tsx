@@ -1,6 +1,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
-import storage from "@/lib/localforage";
+import storage, { onStorageChange } from "@/lib/localforage";
 import { TOptions } from "../tables/types";
 
 import { TableBody, TableCell, TableHead, Table, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,24 +19,9 @@ export default function NameList() {
     };
 
     load();
-  }, []);
-
-  React.useEffect(() => {
-    const t = setInterval(() => {
-      const update = async () => {
-        const x = ((await storage.getItem("name_list")) || NAME_OPTS) as TOptions;
-
-        await storage.setItem("name_list", x);
-
-        setOtherOrders(x);
-      };
-
-      update();
-    }, 1000);
-
-    return () => {
-      clearInterval(t);
-    };
+    return onStorageChange("name_list", () => {
+      load();
+    });
   }, []);
 
   const [isOpen, setIsOpen] = React.useState(false);

@@ -1,6 +1,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
-import storage from "@/lib/localforage";
+import storage, { onStorageChange } from "@/lib/localforage";
 import { TInventoryList, TOtherOrdersOpts, TPendingPaymentOpts, TTableOpts } from "../tables/types";
 import { INVENTORY_OPTS, OTHER_ORDERS } from "@/app/constants";
 import dayjs from "dayjs";
@@ -28,23 +28,9 @@ export default function NotPaidList() {
     };
 
     load();
-  }, []);
-
-  React.useEffect(() => {
-    const t = setInterval(() => {
-      const load = async () => {
-        const x = ((await storage.getItem("pending_payment")) || OTHER_ORDERS) as TOtherOrdersOpts;
-        const data1 = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
-
-        setTables(x);
-        setInventoryOpts(data1);
-      };
+    return onStorageChange(["pending_payment", "inventory_list"], () => {
       load();
-    }, 1000);
-
-    return () => {
-      clearInterval(t);
-    };
+    });
   }, []);
 
   const totalAmount = tables?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);

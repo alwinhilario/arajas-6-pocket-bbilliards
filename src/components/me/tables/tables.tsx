@@ -3,7 +3,7 @@
 import React from "react";
 import TableEdit from "./table-edit";
 import Table from "./table";
-import storage from "@/lib/localforage";
+import storage, { onStorageChange } from "@/lib/localforage";
 import { TTableOpts, TTableOptsData } from "./types";
 import { isEmpty } from "lodash";
 import { NAME_OPTS, TABLE_OPTS } from "@/app/constants";
@@ -18,35 +18,13 @@ export default function Tables() {
   React.useEffect(() => {
     const load = async () => {
       const data = ((await storage.getItem("tables")) || TABLE_OPTS) as TTableOpts;
-
-      // Object.entries(myData).map(([key, value]) => {
-      //   const load = async () => {
-      //     const data1 = await storage.setItem(key, value);
-      //   };
-
-      //   load();
-      // });
-      // const data1 = await storage.setItem("tables", TABLE_OPTS);
-      // const data2 = await storage.setItem("inventory_list", [
-      //   {
-      //     id: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
-      //     label: "Fillet",
-      //     value: dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
-      //     amount: "100",
-      //   },
-      // ]);
-      // const data3 = await storage.setItem("name_list", NAME_OPTS);
-      // const data4 = await storage.setItem("other_orders", []);
-      // const data5 = await storage.setItem("out_list", []);
-      // const data6 = await storage.setItem("all_tables_list", []);
-      // const data7 = await storage.setItem("pending_payment", []);
-      // const data8 = await storage.setItem("plasada_list", []);
-      // const data9 = await storage.setItem("remarks_list", []);
-
       setTables(data);
     };
 
     load();
+    return onStorageChange("tables", () => {
+      load();
+    });
   }, []);
 
   return (
