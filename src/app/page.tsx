@@ -137,32 +137,42 @@ export default function Home() {
     a.download = "ipad-localforage-export.json";
     a.click();
   };
-  // React.useEffect(() => {
-  //   const download = async () => {
-  //     const keys = await storage.keys();
-  //     const data = {};
-  //     for (const key of keys) {
-  //       data[key] = await storage.getItem(key);
-  //     }
 
-  //     const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-  //     const url = URL.createObjectURL(blob);
-  //     const a = document.createElement("a");
-  //     a.href = url;
-  //     a.download = "ipad-localforage-export.json";
-  //     a.click();
-  //   };
+  React.useEffect(() => {
+    const download = async () => {
+      const keys = await storage.keys();
+      const data = {};
+      for (const key of keys) {
+        data[key] = await storage.getItem(key);
+      }
 
-  //   download();
-  // }, []);
+      const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "ipad-localforage-export.json";
+      a.click();
+    };
+
+    download();
+  }, []);
 
   return (
     <SessionProvider>
-      <div className='p-5 py-2.5 bg-gray-100 flex flex-col'>
+      <div className='p-5 py-0 bg-gray-100 flex flex-col'>
         <br />
 
         <div className='flex items-center gap-3'>
           <div className='flex-1'>
+            <button
+              type='button'
+              onClick={() => download()}
+              className='bg-blue-600 text-white rounded-md p-2 px-3 cursor-pointer'
+            >
+              {" "}
+              export{" "}
+            </button>
+
             <div className='font-black'>
               <div className='flex items-end'>
                 <div className='text-xl'>{currentDay ? dayjs(currentDay).format("MMMM DD, YYYY") : "-"}</div>
@@ -182,14 +192,6 @@ export default function Home() {
           </div>
           {/* <div className='text-gray-400 flex items-center gap-2'>
             <div>{storageUsed}</div>
-            <button
-              type='button'
-              onClick={() => download()}
-              className='bg-blue-600 text-white rounded-md p-2 px-3 cursor-pointer'
-            >
-              {" "}
-              export{" "}
-            </button>
           </div> */}
         </div>
 
