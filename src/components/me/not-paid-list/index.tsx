@@ -292,88 +292,90 @@ export default function NotPaidList() {
                           <div className='w-36 p-3 px-3.5 font-bold'>{item?.name}</div>
                           <div className=''>
                             <div className='divide-x divide-y border-b '>
-                              {item?.items?.map((x, key) => (
-                                <div className='flex items-center divide-x ' key={key}>
-                                  <div className='w-68 p-2 px-3'>
-                                    {(() => {
-                                      const exists = !isEmpty(
-                                        inventoryOpts?.find((xx) => xx?.value === x?.item),
-                                      );
-
-                                      if (x?.item && exists) {
-                                        return inventoryOpts?.find((xx) => xx?.value === x?.item)?.label;
-                                      } else if (x?.item) {
-                                        return x?.item;
-                                      }
-
-                                      return "--";
-                                    })()}
-                                  </div>
-                                  <div className='w-28 p-2 px-3'>{x?.amount}</div>
-                                  <div className='w-80 p-2 px-3'>{x?.remarks || "--"}</div>
-                                  <div className='w-48 p-2 px-3 text-gray-500'>
-                                    {dayjs(x?.date).isValid()
-                                      ? dayjs(x?.date)?.format("MMM DD, YYYY hh:mm A")
-                                      : "--"}
-                                  </div>
-                                  <div
-                                    className={clsx("p-1.5 flex items-center gap-2", {
-                                      " w-56": (item?.name || "")?.toLowerCase()?.includes("table"),
-                                    })}
-                                  >
-                                    <Payment
-                                      // withBorder={x?.mop === "cash" ? true : false}
-                                      mop={x?.mop}
-                                      onPayClick={async (type) => {
-                                        const pp = ((await storage.getItem("pending_payment")) ||
-                                          OTHER_ORDERS) as TOtherOrdersOpts;
-
-                                        await storage.setItem(
-                                          "pending_payment",
-                                          pp?.map((xx) => {
-                                            if (xx?.id === x?.id) {
-                                              return {
-                                                ...xx,
-                                                mop: type,
-                                              };
-                                            }
-
-                                            return xx;
-                                          }),
+                              {item?.items
+                                ?.sort((a, b) => (a?.date || "")?.localeCompare(b.date))
+                                ?.map((x, key) => (
+                                  <div className='flex items-center divide-x ' key={key}>
+                                    <div className='w-68 p-2 px-3'>
+                                      {(() => {
+                                        const exists = !isEmpty(
+                                          inventoryOpts?.find((xx) => xx?.value === x?.item),
                                         );
 
-                                        // @ts-expect-error
-                                        setTables((prevState) =>
-                                          prevState?.map((xx) => {
-                                            if (xx?.id === x?.id) {
-                                              return {
-                                                ...xx,
-                                                mop: type,
-                                              };
-                                            }
+                                        if (x?.item && exists) {
+                                          return inventoryOpts?.find((xx) => xx?.value === x?.item)?.label;
+                                        } else if (x?.item) {
+                                          return x?.item;
+                                        }
 
-                                            return xx;
-                                          }),
-                                        );
-                                      }}
-                                    />
+                                        return "--";
+                                      })()}
+                                    </div>
+                                    <div className='w-28 p-2 px-3'>{x?.amount}</div>
+                                    <div className='w-80 p-2 px-3'>{x?.remarks || "--"}</div>
+                                    <div className='w-48 p-2 px-3 text-gray-500'>
+                                      {dayjs(x?.date).isValid()
+                                        ? dayjs(x?.date)?.format("MMM DD, YYYY hh:mm A")
+                                        : "--"}
+                                    </div>
+                                    <div
+                                      className={clsx("p-1.5 flex items-center gap-2", {
+                                        " w-56": (item?.name || "")?.toLowerCase()?.includes("table"),
+                                      })}
+                                    >
+                                      <Payment
+                                        // withBorder={x?.mop === "cash" ? true : false}
+                                        mop={x?.mop}
+                                        onPayClick={async (type) => {
+                                          const pp = ((await storage.getItem("pending_payment")) ||
+                                            OTHER_ORDERS) as TOtherOrdersOpts;
 
-                                    {(item?.name || "")?.toLowerCase()?.includes("table") && (
-                                      <Button
-                                        size={"xl"}
-                                        className='cursor-pointer'
-                                        onClick={async () => {
-                                          const res = await getTable(x?.id);
-                                          setCurrentView(res);
-                                          setIsViewOpen(!isViewOpen);
+                                          await storage.setItem(
+                                            "pending_payment",
+                                            pp?.map((xx) => {
+                                              if (xx?.id === x?.id) {
+                                                return {
+                                                  ...xx,
+                                                  mop: type,
+                                                };
+                                              }
+
+                                              return xx;
+                                            }),
+                                          );
+
+                                          // @ts-expect-error
+                                          setTables((prevState) =>
+                                            prevState?.map((xx) => {
+                                              if (xx?.id === x?.id) {
+                                                return {
+                                                  ...xx,
+                                                  mop: type,
+                                                };
+                                              }
+
+                                              return xx;
+                                            }),
+                                          );
                                         }}
-                                      >
-                                        View details
-                                      </Button>
-                                    )}
+                                      />
+
+                                      {(item?.name || "")?.toLowerCase()?.includes("table") && (
+                                        <Button
+                                          size={"xl"}
+                                          className='cursor-pointer'
+                                          onClick={async () => {
+                                            const res = await getTable(x?.id);
+                                            setCurrentView(res);
+                                            setIsViewOpen(!isViewOpen);
+                                          }}
+                                        >
+                                          View details
+                                        </Button>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                ))}
                             </div>
 
                             <div className='flex items-center gap-2  p-1.5'>
