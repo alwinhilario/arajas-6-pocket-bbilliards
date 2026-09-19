@@ -27,10 +27,16 @@ export default function NotPaidList() {
       setInventoryOpts(data1);
     };
 
-    load();
-    return onStorageChange(["pending_payment", "inventory_list"], () => {
+    const t = setInterval(() => {
       load();
-    });
+    }, 1000);
+
+    return () => {
+      clearInterval(t);
+    };
+    // return onStorageChange(["pending_payment", "inventory_list"], () => {
+    //   load();
+    // });
   }, []);
 
   const totalAmount = tables?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
