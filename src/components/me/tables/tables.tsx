@@ -34,6 +34,7 @@ export default function Tables() {
           setIsOpen={setIsOpen}
           currentTable={currentTable}
           onConfirm={async (data) => {
+            console.log({ data });
             const newTables = tables?.map((item) => {
               if (item?.value === data?.value) {
                 return {
@@ -51,6 +52,8 @@ export default function Tables() {
 
               return item;
             });
+
+            console.log({ newTables });
 
             await storage.setItem("tables", newTables);
 

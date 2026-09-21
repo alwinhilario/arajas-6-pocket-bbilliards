@@ -43,7 +43,7 @@ export default function Table({
   const [isOpenTransfer, setIsOpenTransfer] = React.useState(false);
   const [isCancel, setIsCancel] = React.useState(false);
 
-  const totalOthers = data?.others?.reduce((acc, item) => acc + parseInt(item?.amount), 0);
+  const totalOthers = data?.others?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
 
   const currentTime = dayjs();
   const outTime = dayjs(data?.out);
@@ -223,7 +223,7 @@ export default function Table({
                 return value;
               };
 
-              const totalOthers = data?.others?.reduce((acc, item) => acc + parseInt(item?.amount), 0);
+              const totalOthers = data?.others?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
 
               const newTables = tables?.map((item) => {
                 const currentTime = dayjs().format("YYYY/MM/DD HH:mm:ss");
@@ -488,7 +488,7 @@ export default function Table({
                           };
 
                           const totalOthers = data?.others?.reduce(
-                            (acc, item) => acc + parseInt(item?.amount),
+                            (acc, item) => acc + parseInt(item?.amount || "0"),
                             0,
                           );
 
