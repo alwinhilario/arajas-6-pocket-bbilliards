@@ -1,6 +1,6 @@
 import localforage from "localforage";
 
-const storage = localforage.createInstance({
+const rawStorage = localforage.createInstance({
   name: "arajas-6-pocket-billiards",
   storeName: "app_storage",
 });
@@ -39,22 +39,40 @@ export const onStorageChange = (
   };
 };
 
-const originalSetItem = storage.setItem.bind(storage);
-storage.setItem = async function <T>(
-  key: string,
-  value: T,
-  callback?: (err: unknown, value: T) => void,
-): Promise<T> {
-  const res = await originalSetItem(key, value, callback);
-  emitStorageChange(key, value);
-  return res;
-};
+// localforage overwrites instance methods when the driver is selected
+// (`_wrapLibraryMethodsWithReady` / `_extend`). Patching setItem on the
+// instance at module load is therefore discarded. A Proxy intercepts the
+// current method on every call instead.
+const storage = new Proxy(rawStorage, {
+  get(target, prop, receiver) {
+    const value = Reflect.get(target, prop, receiver);
 
-const originalRemoveItem = storage.removeItem.bind(storage);
-storage.removeItem = async function (key: string, callback?: (err: unknown) => void): Promise<void> {
-  const res = await originalRemoveItem(key, callback);
-  emitStorageChange(key);
-  return res;
-};
+    if (prop === "setItem" && typeof value === "function") {
+      return async function setItem<T>(
+        key: string,
+        item: T,
+        callback?: (err: unknown, value: T) => void,
+      ): Promise<T> {
+        const res = await value.call(target, key, item, callback);
+        emitStorageChange(key, item);
+        return res;
+      };
+    }
+
+    if (prop === "removeItem" && typeof value === "function") {
+      return async function removeItem(key: string, callback?: (err: unknown) => void): Promise<void> {
+        const res = await value.call(target, key, callback);
+        emitStorageChange(key);
+        return res;
+      };
+    }
+
+    if (typeof value === "function") {
+      return value.bind(target);
+    }
+
+    return value;
+  },
+});
 
 export default storage;
