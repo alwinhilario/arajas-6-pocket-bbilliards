@@ -379,6 +379,42 @@ export default function NotPaidList() {
                                           View details
                                         </Button>
                                       )}
+
+                                      {x?.mop && x?.mop?.length > 0 && (
+                                        <Button
+                                          variant={"destructive"}
+                                          size={"sm"}
+                                          className={"cursor-pointer"}
+                                          onClick={async () => {
+                                            const res = (await storage.getItem(
+                                              "other_orders",
+                                            )) as TOtherOrdersOpts;
+                                            await storage.setItem(
+                                              "other_orders",
+                                              res?.map((y) => {
+                                                if (y?.id === x?.id) {
+                                                  return {
+                                                    ...y,
+                                                    mop: x?.mop,
+                                                  };
+                                                }
+
+                                                return y;
+                                              }),
+                                            );
+
+                                            const res2 = await storage.getItem("pending_payment");
+                                            await storage.setItem(
+                                              "pending_payment",
+                                              res2?.filter((xxx) => x?.id !== xxx?.id),
+                                            );
+                                            setTables(res2?.filter((xxx) => x?.id !== xxx?.id));
+                                          }}
+                                        >
+                                          <FaTrash className='h-4 w-4' />
+                                          <div>Remove</div>
+                                        </Button>
+                                      )}
                                     </div>
                                   </div>
                                 ))}
@@ -390,7 +426,7 @@ export default function NotPaidList() {
                                 <div className='p-0.5 px-3.5'>PHP {item?.total}.00</div>
                               </div>
 
-                              {item?.items?.every((xx) => xx?.mop && xx?.mop?.length > 0) && (
+                              {/* {item?.items?.every((xx) => xx?.mop && xx?.mop?.length > 0) && (
                                 <div className='pr-2'>
                                   <Button
                                     variant={"destructive"}
@@ -405,7 +441,7 @@ export default function NotPaidList() {
                                     <div>Remove</div>
                                   </Button>
                                 </div>
-                              )}
+                              )} */}
                             </div>
                           </div>
                         </div>
