@@ -20,6 +20,14 @@ import { TABLE_OPTS } from "./constants";
 import { TTableOpts } from "@/components/me/tables/types";
 import duration from "dayjs/plugin/duration";
 import clsx from "clsx";
+import MonthlyRevenue from "@/components/me/monthly-revenue";
+import { IoHome, IoPeople, IoReceipt, IoWarning } from "react-icons/io5";
+import { IoMdCart } from "react-icons/io";
+import { TbCurrencyPeso } from "react-icons/tb";
+import { FaPesoSign } from "react-icons/fa6";
+import { FaCashRegister, FaMoneyBillWave } from "react-icons/fa";
+import { PiNoteFill } from "react-icons/pi";
+import { MdOutlineDoubleArrow, MdOutlineInventory, MdTableRestaurant } from "react-icons/md";
 
 dayjs.extend(duration);
 
@@ -96,11 +104,11 @@ const RemainingTableTime = ({ storageUsed }: { storageUsed: string }) => {
   if (upcoming.length === 0) return null;
 
   return (
-    <div className='mb-3 rounded-lg border border-gray-200 bg-white p-3'>
-      <div className='flex items-center gap-2 mb-2'>
+    <div className='mb-3 rounded-lg border border-gray-200 bg-white p-1.5'>
+      {/* <div className='flex items-center gap-2 mb-2'>
         <div className='text-xs font-semibold uppercase tracking-wide text-gray-700'>Timeout in order</div>
         <div className='text-gray-400/70 flex items-center text-xs'>{storageUsed}</div>
-      </div>
+      </div> */}
       <div className='flex flex-wrap gap-2'>
         {upcoming.map((item) => {
           const isOut = item.remainingMs <= 0;
@@ -109,7 +117,7 @@ const RemainingTableTime = ({ storageUsed }: { storageUsed: string }) => {
           return (
             <div
               key={item.value}
-              className={clsx("flex flex-col rounded-md border px-2.5 py-1.5 text-[0.85rem]", {
+              className={clsx("flex flex-col rounded-md border p-1.5 text-[0.80rem] leading-tight", {
                 "border-red-400 bg-red-100 text-red-800": isOut,
                 "border-yellow-400 bg-yellow-100/50 text-yellow-800": isSoon,
                 "border-gray-200 bg-gray-50 text-gray-800": !isOut && !isSoon,
@@ -130,6 +138,8 @@ const RemainingTableTime = ({ storageUsed }: { storageUsed: string }) => {
 
 export default function Home() {
   const [storageUsed, setStorageUsed] = React.useState("");
+  const [show, setShow] = React.useState(false);
+  const [page, setPage] = React.useState(1);
 
   React.useEffect(() => {
     if (navigator.storage && navigator.storage.estimate) {
@@ -146,9 +156,7 @@ export default function Home() {
   return (
     <SessionProvider>
       <div className='p-5 py-0 bg-gray-100 flex flex-col'>
-        <br />
-
-        <div className='flex items-center gap-3'>
+        <div className='flex items-bottom gap-3 pt-3'>
           <div className='flex-1'>
             <LiveClock />
           </div>
@@ -158,30 +166,137 @@ export default function Home() {
           </div>
         </div>
 
+        <div className='text-sm flex items-center flex-wrap gap-1.5'>
+          <button
+            onClick={() => setPage(1)}
+            type='button'
+            className={clsx("flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md", {
+              "bg-white": page === 1,
+            })}
+          >
+            <IoHome className='h-4 w-4 text-gray-700' />
+            <div>Home</div>
+          </button>
+          <button
+            onClick={() => setPage(2)}
+            type='button'
+            className={clsx("flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md", {
+              "bg-white": page === 2,
+            })}
+          >
+            <IoReceipt className='h-4 w-4 text-gray-700' />
+            <div>Orders</div>
+          </button>
+          <button
+            onClick={() => setPage(3)}
+            type='button'
+            className={clsx("flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md", {
+              "bg-white": page === 3,
+            })}
+          >
+            <FaPesoSign className='h-4 w-4 text-gray-700' />
+            <div>Plasada</div>
+          </button>
+          <button
+            onClick={() => setPage(4)}
+            type='button'
+            className={clsx("flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md", {
+              "bg-white": page === 4,
+            })}
+          >
+            <FaMoneyBillWave className='h-5 w-5 text-gray-700' />
+            <div>Expenses</div>
+          </button>
+          <button
+            onClick={() => setPage(5)}
+            type='button'
+            className={clsx("flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md", {
+              "bg-white": page === 5,
+            })}
+          >
+            <PiNoteFill className='h-5 w-5 text-gray-700' />
+            <div>Remarks</div>
+          </button>
+          <button
+            onClick={() => setPage(6)}
+            type='button'
+            className={clsx(
+              "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md animate-bounce",
+              {
+                "bg-white": page === 6,
+              },
+            )}
+          >
+            <div>
+              <IoWarning className='h-5 w-5 text-orange-500' />
+            </div>
+            <div>Pending Payment</div>
+          </button>
+        </div>
+
+        <div className='text-sm flex items-center flex-wrap gap-1.5 pt-2'>
+          <button
+            onClick={() => setPage(7)}
+            type='button'
+            className={clsx("flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md", {
+              "bg-white": page === 7,
+            })}
+          >
+            <FaCashRegister className='h-[13px] w-[13px] text-gray-700' />
+            <div>Revenue History</div>
+          </button>
+          <button
+            onClick={() => setPage(8)}
+            type='button'
+            className={clsx("flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md", {
+              "bg-white": page === 8,
+            })}
+          >
+            <MdTableRestaurant className='h-5 w-5 text-gray-700' />
+            <div>Table History</div>
+          </button>
+          <button
+            onClick={() => setPage(9)}
+            type='button'
+            className={clsx("flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md", {
+              "bg-white": page === 9,
+            })}
+          >
+            <MdOutlineInventory className='h-5 w-5 text-gray-700' />
+            <div>Inventory</div>
+          </button>
+          <button
+            onClick={() => setPage(10)}
+            type='button'
+            className={clsx("flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md", {
+              "bg-white": page === 10,
+            })}
+          >
+            <IoPeople className='h-5 w-5 text-gray-700' />
+            <div>Players</div>
+          </button>
+        </div>
         <br />
 
         <div>
-          <Tables />
-          <br />
-          <OtherOrders />
-          <br />
-          <PlasadaList />
-          <br />
-          <OutList />
-          <br />
-          <RemarksList />
-          <br />
-          <AllTableList />
+          {page === 1 && <Tables />}
+          {page === 2 && <OtherOrders />}
+          {page === 3 && <PlasadaList />}
+          {page === 4 && <OutList />}
+          {page === 5 && <RemarksList />}
+          {page === 6 && <NotPaidList />}
+          {page === 7 && (
+            <>
+              <RevenueList />
+              <MonthlyRevenue />
+            </>
+          )}
+          {page === 8 && <AllTableList />}
+          {page === 9 && <InventoryList />}
+          {page === 10 && <NameList />}
+
           <br />
           <DailyRevenue />
-          <br />
-          <NotPaidList />
-          <br />
-          <RevenueList />
-          <br />
-          <InventoryList />
-          <br />
-          <NameList />
         </div>
 
         <br />
