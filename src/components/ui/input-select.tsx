@@ -136,7 +136,7 @@ function InputSelect({
 
       <PopoverContent
         data-slot='combobox-content'
-        className='w-(--anchor-width) p-0'
+        className='w-(--anchor-width) p-1'
         align='start'
         onOpenAutoFocus={(e) => e.preventDefault()}
         onCloseAutoFocus={(e) => e.preventDefault()}
@@ -144,7 +144,7 @@ function InputSelect({
         {/* Pass value="" to stop cmdk from auto-selecting & scrolling list items */}
         <Command shouldFilter={false} value=''>
           <CommandInput
-            className='capitalize'
+            className='capitalize !h-20'
             placeholder={searchPlaceholder}
             value={search}
             onValueChange={setSearch}
@@ -153,7 +153,7 @@ function InputSelect({
           <CommandList className='max-h-[300px] overflow-y-auto'>
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
-              <CommandItem
+              {/* <CommandItem
                 value={""}
                 onSelect={() => {
                   setSearch("");
@@ -162,7 +162,7 @@ function InputSelect({
                 className='capitalize cursor-pointer'
               >
                 - Select -
-              </CommandItem>
+              </CommandItem> */}
               {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}

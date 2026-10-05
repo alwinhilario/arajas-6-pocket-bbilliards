@@ -56,18 +56,18 @@ function CommandDialog({
 function CommandInput({ onReset, className, ...props }: React.ComponentProps<typeof CommandPrimitive.Input>) {
   return (
     <div data-slot='command-input-wrapper' className='p-1 pb-0'>
-      <InputGroup className='h-8! rounded border-input/30 bg-input/30 shadow-none! *:data-[slot=input-group-addon]:pl-2!'>
+      <InputGroup className='h-12! rounded border-input/30 bg-input/30 shadow-none! *:data-[slot=input-group-addon]:pl-2!'>
         <CommandPrimitive.Input
           data-slot='command-input'
           className={cn(
-            "w-full text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
+            "w-full text-base outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
             className,
           )}
           {...props}
           placeholder='Search'
         />
         <InputGroupAddon>
-          <SearchIcon className='size-4 shrink-0 opacity-50' />
+          <SearchIcon className='size-6 shrink-0 opacity-50' />
         </InputGroupAddon>
 
         <button
@@ -75,7 +75,7 @@ function CommandInput({ onReset, className, ...props }: React.ComponentProps<typ
           className='absolute top-[5px] right-0.5 text-gray-500 cursor-pointer'
           onClick={onReset}
         >
-          <IoIosClose className='h-5 w-5' />
+          <IoIosClose className='h-8 w-8' />
         </button>
       </InputGroup>
     </div>
