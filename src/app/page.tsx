@@ -28,6 +28,8 @@ import { FaPesoSign } from "react-icons/fa6";
 import { FaCashRegister, FaMoneyBillWave } from "react-icons/fa";
 import { PiNoteFill } from "react-icons/pi";
 import { MdOutlineDoubleArrow, MdOutlineInventory, MdTableRestaurant } from "react-icons/md";
+import OutListAll from "@/components/me/out-list-all";
+import PendingPaymentMonitor from "@/components/me/monthly-revenue/pending-payment-monitor";
 
 dayjs.extend(duration);
 
@@ -170,6 +172,7 @@ export default function Home() {
 
   return (
     <SessionProvider>
+      <PendingPaymentMonitor />
       <div className='p-5 py-0 bg-gray-100 flex flex-col'>
         <div className='flex items-bottom gap-3 pt-3'>
           <div className='flex-1'>
@@ -341,12 +344,19 @@ export default function Home() {
           {page === 1 && <Tables />}
           {page === 2 && <OtherOrders />}
           {page === 3 && <PlasadaList />}
-          {page === 4 && <OutList />}
+          {page === 4 && (
+            <>
+              <OutList />
+              <br />
+              <OutListAll />
+            </>
+          )}
           {page === 5 && <RemarksList />}
           {page === 6 && <NotPaidList />}
           {page === 7 && (
             <>
               <RevenueList />
+              <br />
               <MonthlyRevenue />
             </>
           )}

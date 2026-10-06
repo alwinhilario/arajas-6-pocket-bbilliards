@@ -16,6 +16,15 @@ export default function Tables() {
   const [currentTable, setCurrentTable] = React.useState<TTableOptsData>();
 
   React.useEffect(() => {
+
+    //  Object.entries(myData).map(([key, value]) => {
+    //     const load = async () => {
+    //       const data1 = await storage.setItem(key, value);
+    //     };
+
+    //     load();
+    //   });
+
     const load = async () => {
       const data = ((await storage.getItem("tables")) || TABLE_OPTS) as TTableOpts;
       setTables(data);

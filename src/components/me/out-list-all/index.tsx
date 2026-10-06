@@ -10,7 +10,7 @@ import { FaPlus } from "react-icons/fa";
 import { filterObject } from "@/lib/utils";
 import { SESSION_CONTEXT } from "@/app/provider";
 
-export default function OutList() {
+export default function OutListAll() {
   const [otherOrders, setOtherOrders] = React.useState<TOutList>([]);
   const { value } = React.useContext(SESSION_CONTEXT);
 
@@ -18,19 +18,13 @@ export default function OutList() {
     const load = async () => {
       const item = ((await storage.getItem("out_list")) || OUT_LIST) as TOutList;
 
-      setOtherOrders(item?.sort((a, b) => dayjs(a?.date).diff(dayjs(b?.date))));
+      setOtherOrders(item?.sort((a, b) => dayjs(b?.date).diff(dayjs(a?.date))));
     };
 
     load();
   }, []);
 
-  const filtered = filterObject({
-    object: otherOrders?.filter((x) => !x?.is_all),
-    filter_from: value?.date?.date_from,
-    filter_to: value?.date?.date_to,
-    propertyName: "date",
-  });
-
+  const filtered = otherOrders?.filter((x) => x?.is_all);
   const totalAmount = filtered?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
 
   React.useEffect(() => {
@@ -39,7 +33,7 @@ export default function OutList() {
     const update = async () => {
       (await storage.setItem(
         "out_list",
-        otherOrders?.sort((a, b) => dayjs(a?.date).diff(dayjs(b?.date))),
+        otherOrders?.sort((a, b) => dayjs(b?.date).diff(dayjs(a?.date))),
       )) as TOutList;
     };
     update();
@@ -122,7 +116,13 @@ export default function OutList() {
                       ]);
 
                       setIsOpen(!isOpen);
-                      setOtherOrders((prevState) => [...prevState, state]);
+                      setOtherOrders((prevState) => [
+                        {
+                          ...state,
+                          is_all: true,
+                        },
+                        ...prevState,
+                      ]);
                       setState({
                         remarks: "",
                         label: "",
@@ -150,7 +150,7 @@ export default function OutList() {
 
         <div className='flex items-center gap-2 text-lg font-bold'>
           <div className='flex flex-1 gap-3 items-center'>
-            <div className='text-lg font-bold'>Expenses Daily (Out)</div>
+            <div className='text-lg font-bold'>Expenses Overall</div>
             <Button
               size={"xl"}
               className=' font-bold cursor-pointer py-3'

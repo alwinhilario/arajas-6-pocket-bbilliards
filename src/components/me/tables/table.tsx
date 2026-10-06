@@ -77,7 +77,6 @@ export default function Table({
   //   });
   // }, []);
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const hours = React.useMemo(() => {
     const currentTime = dayjs(data?.in);
     const outTime = dayjs(data?.out);
@@ -350,7 +349,7 @@ export default function Table({
         })}
       >
         <div className='flex items-center gap-2 p-5 pb-0 pt-2 '>
-          <div className='flex-1 text-2xl font-bold'>{data.label}</div>
+          <div className='flex-1 text-2xl font-bold'>{data?.label}</div>
 
           {!isView && (
             <div className='text-sm'>

@@ -72,7 +72,7 @@ export default function RevenueList() {
           }),
           expenses: filterObject({
             filterDate: true,
-            object: expenses,
+            object: expenses?.filter((x) => !x?.is_all),
             filter_from: dayjs(item?.dateStringFrom),
             filter_to: dayjs(item?.dateStringTo),
             propertyName: "date",
@@ -123,7 +123,7 @@ export default function RevenueList() {
 
       setRemarks(remarks);
       setOrders(orders);
-      setExpenses(expenses);
+      setExpenses(expenses?.filter((x) => !x?.is_all));
       setTableHistory(tableHistory);
       setPendingPayment(pendingPayment);
       setPlasada(plasada);

@@ -1,3 +1,6 @@
+export type TAggregateData = { date: string };
+export type TAggregateList = TAggregateData[];
+
 export type TTableOptsData = {
   id: string;
   label: string;

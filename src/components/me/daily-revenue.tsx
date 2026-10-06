@@ -44,7 +44,7 @@ export default function DailyRevenue() {
       );
       setExpenses(
         filterObject({
-          object: expenses,
+          object: expenses?.filter((x) => !x?.is_all),
           filter_from: value?.date?.date_from,
           filter_to: value?.date?.date_to,
           propertyName: "date",
