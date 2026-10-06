@@ -29,8 +29,6 @@ type LedgerEvent = {
   kind: "income" | "expense" | "pending";
 };
 
-type LedgerRow = LedgerEvent & { currentTotal: number; isVisible: boolean };
-
 const getAmount = (amount: string | number | undefined) => Number.parseInt(String(amount || "0"), 10) || 0;
 const sumAmounts = (items: Array<{ amount?: string | number }>) =>
   items.reduce((total, item) => total + getAmount(item.amount), 0);
@@ -38,6 +36,7 @@ const sumAmounts = (items: Array<{ amount?: string | number }>) =>
 export default function MonthlyRevenue() {
   const [myMonths, setMyMonths] = React.useState<MonthBreakdown[]>([]);
   const [selectedMonth, setSelectedMonth] = React.useState<MonthBreakdown | null>(null);
+  const [selectedExpense, setSelectedExpense] = React.useState<TOutList[number] | null>(null);
 
   React.useEffect(() => {
     const load = async () => {
@@ -133,10 +132,10 @@ export default function MonthlyRevenue() {
     );
   }, []);
 
-  const ledgerRows = React.useMemo<LedgerRow[]>(() => {
+  const ledgerEvents = React.useMemo<LedgerEvent[]>(() => {
     if (!selectedMonth) return [];
 
-    const events: LedgerEvent[] = [
+    return [
       ...selectedMonth.filteredTableHistory.map((record) => ({
         date: record.in,
         type: "Table rates" as const,
@@ -158,6 +157,13 @@ export default function MonthlyRevenue() {
         amount: getAmount(record.amount),
         kind: "income" as const,
       })),
+      ...selectedMonth.filteredPendingPayments.map((record) => ({
+        date: record.date,
+        type: "Pending payments" as const,
+        description: [record.name, record.item].filter(Boolean).join(" - ") || "Pending payment",
+        amount: getAmount(record.amount),
+        kind: "pending" as const,
+      })),
       ...selectedMonth.filteredExpenses.map((record) => ({
         date: record.date,
         type: "Expenses" as const,
@@ -176,38 +182,89 @@ export default function MonthlyRevenue() {
         amount: snapshot.amount,
         kind: "pending" as const,
       })),
-    ].sort((first, second) => dayjs(first.date).valueOf() - dayjs(second.date).valueOf());
-
-    let grossIncome = 0;
-    let expenses = 0;
-    let pending = 0;
-
-    return events
-      .map((event) => {
-      if (event.kind === "income") grossIncome += event.amount;
-      if (event.kind === "expense") expenses += event.amount;
-      if (event.kind === "pending") pending = event.amount;
-
-      return {
-        ...event,
-        currentTotal: grossIncome - expenses - pending,
-        isVisible: event.kind === "expense" || (event.kind === "pending" && event.amount > 0),
-      };
-      })
-      .reverse();
+    ].sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf());
   }, [selectedMonth]);
 
-  const selectedTotals = selectedMonth
-    ? {
-        tableRates: sumAmounts(selectedMonth.filteredTableHistory),
-        orders: sumAmounts(selectedMonth.filteredOrders),
-        plasada: sumAmounts(selectedMonth.filteredPlasada),
-        expenses: sumAmounts(selectedMonth.filteredExpenses),
-        pending: selectedMonth.pendingSnapshots[selectedMonth.pendingSnapshots.length - 1]?.amount || 0,
+  const previousExpense = selectedExpense
+    ? selectedMonth?.filteredExpenses
+        .filter((expense) => dayjs(expense.date).isBefore(dayjs(selectedExpense.date)))
+        .sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())[0]
+    : undefined;
+
+  const getExpenseAuditEvents = React.useCallback((expense: TOutList[number]) => {
+    const expenseDate = dayjs(expense.date);
+    const previousExpense = selectedMonth?.filteredExpenses
+      .filter((item) => dayjs(item.date).isBefore(expenseDate))
+      .sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())[0];
+    const previousExpenseDate = previousExpense ? dayjs(previousExpense.date) : null;
+
+    return ledgerEvents.filter(
+      (event) =>
+        event.kind !== "expense" &&
+        dayjs(event.date).isValid() &&
+        (!previousExpenseDate || dayjs(event.date).isAfter(previousExpenseDate)) &&
+        !dayjs(event.date).isAfter(expenseDate),
+    );
+  }, [ledgerEvents, selectedMonth]);
+
+  const expenseAuditEvents = React.useMemo(() => {
+    if (!selectedExpense) return [];
+    return getExpenseAuditEvents(selectedExpense);
+  }, [getExpenseAuditEvents, selectedExpense]);
+
+  const expenseAuditRows = React.useMemo(() => {
+    if (!selectedExpense) return [];
+    const previousExpenseDate = previousExpense ? dayjs(previousExpense.date) : null;
+    let currentAmount = ledgerEvents.reduce((total, event) => {
+      const eventDate = dayjs(event.date);
+      if (!eventDate.isValid() || (previousExpenseDate && eventDate.isAfter(previousExpenseDate))) {
+        return total;
       }
-    : null;
-  const selectedGross =
-    (selectedTotals?.tableRates || 0) + (selectedTotals?.orders || 0) + (selectedTotals?.plasada || 0);
+      if (event.kind === "income") return total + event.amount;
+      if (event.kind === "expense") return total - event.amount;
+      return total;
+    }, 0);
+
+    return [...expenseAuditEvents]
+      .sort((first, second) => dayjs(first.date).valueOf() - dayjs(second.date).valueOf())
+      .map((event) => {
+        if (event.kind === "income") currentAmount += event.amount;
+        return { ...event, currentAmount };
+      })
+      .reverse();
+  }, [expenseAuditEvents, ledgerEvents, previousExpense, selectedExpense]);
+
+  const expenseAuditTotal = selectedExpense
+    ? ledgerEvents.reduce((total, event) => {
+        const eventDate = dayjs(event.date);
+        if (previousExpense && !eventDate.isAfter(dayjs(previousExpense.date))) return total;
+        if (eventDate.isAfter(dayjs(selectedExpense.date))) return total;
+        if (event.kind === "income") return total + event.amount;
+        if (event.kind === "expense") return total - event.amount;
+        return total;
+      }, 0)
+    : 0;
+  const amountBeforePreviousExpense = previousExpense
+    ? ledgerEvents.reduce((total, event) => {
+        const eventDate = dayjs(event.date);
+        if (!eventDate.isValid() || eventDate.isAfter(dayjs(previousExpense.date))) return total;
+        if (event.kind === "income") return total + event.amount;
+        if (event.kind === "expense") return total - event.amount;
+        return total;
+      }, 0)
+    : 0;
+  const currentAmountAfterExpense = amountBeforePreviousExpense + expenseAuditTotal;
+
+  const getCurrentAmountAtExpense = (expense: TOutList[number]) => {
+    const expenseDate = dayjs(expense.date);
+    return ledgerEvents.reduce((total, event) => {
+      const eventDate = dayjs(event.date);
+      if (!eventDate.isValid() || eventDate.isAfter(expenseDate)) return total;
+      if (event.kind === "income") return total + event.amount;
+      if (event.kind === "expense") return total - event.amount;
+      return total;
+    }, 0);
+  };
 
   return (
     <Card className='space-y-5 p-5'>
@@ -247,17 +304,21 @@ export default function MonthlyRevenue() {
                     <TableCell>{convertCurrency(totalOrders)}</TableCell>
                     <TableCell>{convertCurrency(totalPlasada)}</TableCell>
                     <TableCell>{convertCurrency(totalAmount)}</TableCell>
-                    <TableCell className='text-red-400 font-bold'>
-                      -{convertCurrency(totalPendingPayments, false)}
-                    </TableCell>
+                    <TableCell className='font-bold'>{convertCurrency(totalPendingPayments, false)}</TableCell>
                     <TableCell className='text-red-400 font-bold'>
                       -{convertCurrency(totalExpenses, false)}
                     </TableCell>
                     <TableCell className='text-green-400 font-bold'>
-                      +{convertCurrency(totalAmount - totalPendingPayments - totalExpenses, false)}
+                      +{convertCurrency(totalAmount - totalExpenses, false)}
                     </TableCell>
                     <TableCell>
-                      <Button className='cursor-pointer' onClick={() => setSelectedMonth(item)}>
+                      <Button
+                        className='cursor-pointer'
+                        onClick={() => {
+                          setSelectedExpense(null);
+                          setSelectedMonth(item);
+                        }}
+                      >
                         View details
                       </Button>
                     </TableCell>
@@ -277,73 +338,139 @@ export default function MonthlyRevenue() {
       <Dialog
         open={selectedMonth !== null}
         onOpenChange={(open) => {
-          if (!open) setSelectedMonth(null);
+          if (!open) {
+            setSelectedMonth(null);
+            setSelectedExpense(null);
+          }
         }}
       >
         <DialogContent className='max-h-[90vh] w-[calc(100%-2rem)] max-w-5xl overflow-y-auto sm:max-w-5xl'>
           <DialogHeader>
-            <DialogTitle>{selectedMonth?.label} Details</DialogTitle>
+            <DialogTitle>
+              {selectedExpense ? `${selectedExpense.label || "Expense"} Audit` : `${selectedMonth?.label} Expense Audits`}
+            </DialogTitle>
             <DialogDescription>
-              Expense and pending-payment audit from the start of the month. Pending payments are snapshotted
-              every two hours while the app is open.
+              {selectedExpense
+                ? `${previousExpense ? `Changes since ${dayjs(previousExpense.date).format("MMM D, YYYY h:mm A")}` : "Changes since the start of the month"} through ${dayjs(selectedExpense.date).format("MMM D, YYYY h:mm A")}.`
+                : "Select an expense to view income and pending-payment changes since the previous expense."}
             </DialogDescription>
           </DialogHeader>
 
-          {selectedMonth && selectedTotals && (
+          {selectedMonth && (
             <>
+              {selectedExpense ? (
+                <>
+                  <div className='flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3'>
+                    <div>
+                      <div className='font-semibold'>{selectedExpense.label || selectedExpense.remarks || "Expense"}</div>
+                      <div className='text-sm text-muted-foreground'>
+                        {dayjs(selectedExpense.date).format("MMM D, YYYY h:mm A")} · Expense{" "}
+                        {convertCurrency(getAmount(selectedExpense.amount))}
+                      </div>
+                    </div>
+                    <div className='text-right'>
+                      <div className='text-sm text-muted-foreground'>Current amount after expense</div>
+                      <div className='font-bold text-green-500'>
+                        {convertCurrency(currentAmountAfterExpense)}
+                      </div>
+                    </div>
+                  </div>
+                  <Button variant='outline' onClick={() => setSelectedExpense(null)}>
+                    Back to expense audits
+                  </Button>
+                  <div className='max-h-[55vh] overflow-auto'>
+                    <Table>
+                      <TableHeader className='sticky top-0 bg-gray-100/95'>
+                        <TableRow>
+                          <TableHead>Date &amp; time</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead className='text-right'>Amount</TableHead>
+                          <TableHead className='text-right'>Current amount</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {expenseAuditRows.length > 0 ? (
+                          expenseAuditRows.map((event, index) => (
+                            <TableRow key={`${event.type}-${event.date}-${index}`}>
+                              <TableCell>{dayjs(event.date).format("MMM D, YYYY h:mm A")}</TableCell>
+                              <TableCell>{event.type}</TableCell>
+                              <TableCell className='max-w-72 whitespace-normal'>{event.description}</TableCell>
+                              <TableCell
+                                className={`text-right font-medium ${
+                                  event.kind === "income" ? "text-green-600" : "text-amber-600"
+                                }`}
+                              >
+                                {convertCurrency(event.amount, false)}
+                              </TableCell>
+                              <TableCell className='text-right font-semibold text-green-500'>
+                                {convertCurrency(event.currentAmount)}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={5} className='py-8 text-center text-muted-foreground'>
+                              No income or pending-payment records before this expense.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
+              ) : (
               <div className='max-h-[55vh] overflow-auto'>
                 <Table>
                   <TableHeader className='sticky top-0 bg-gray-100/95'>
                     <TableRow>
                       <TableHead>Date &amp; time</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Description</TableHead>
+                      <TableHead>Expense</TableHead>
                       <TableHead className='text-right'>Amount</TableHead>
-                      <TableHead className='text-right'>Current total</TableHead>
+                      <TableHead className='text-right'>Current amount</TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {ledgerRows.filter((row) => row.isVisible).length > 0 ? (
-                      ledgerRows
-                        .filter((row) => row.isVisible)
-                        .map((row, index) => (
-                          <TableRow key={`${row.type}-${row.date}-${index}`}>
-                            <TableCell>{dayjs(row.date).format("MMM D, YYYY h:mm A")}</TableCell>
-                            <TableCell>{row.type}</TableCell>
-                            <TableCell className='max-w-72 whitespace-normal'>{row.description}</TableCell>
-                            <TableCell
-                              className={`text-right font-medium ${
-                                row.kind === "income" ? "text-green-600" : "text-red-500"
-                              }`}
-                            >
-                              {row.kind === "income" ? "+" : "-"}
-                              {convertCurrency(row.amount, false)}
-                            </TableCell>
-                            <TableCell className='text-right font-semibold'>
-                              {convertCurrency(row.currentTotal)}
-                            </TableCell>
-                          </TableRow>
-                        ))
+                    {selectedMonth.filteredExpenses.length > 0 ? (
+                      [...selectedMonth.filteredExpenses]
+                        .sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())
+                        .map((expense, index) => {
+                          const auditEventCount = getExpenseAuditEvents(expense).length;
+
+                          return (
+                            <TableRow key={`${expense.date}-${expense.label}-${index}`}>
+                              <TableCell>{dayjs(expense.date).format("MMM D, YYYY h:mm A")}</TableCell>
+                              <TableCell className='max-w-72 whitespace-normal'>
+                                {expense.label || expense.remarks || "Expense"}
+                              </TableCell>
+                              <TableCell className='text-right font-medium text-red-500'>
+                                -{convertCurrency(getAmount(expense.amount), false)}
+                              </TableCell>
+                              <TableCell className='text-right font-semibold text-green-500'>
+                                {convertCurrency(getCurrentAmountAtExpense(expense))}
+                              </TableCell>
+                              <TableCell className='text-right'>
+                                {auditEventCount > 0 && (
+                                  <Button size='sm' onClick={() => setSelectedExpense(expense)}>
+                                    View details ({auditEventCount})
+                                  </Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
                     ) : (
                       <TableRow>
                         <TableCell colSpan={5} className='py-8 text-center text-muted-foreground'>
-                          No expenses or pending payments to audit for this month.
+                          No expenses to audit for this month.
                         </TableCell>
                       </TableRow>
                     )}
                   </TableBody>
-                  <tfoot>
-                    <TableRow>
-                      <TableCell colSpan={4} className='text-right font-bold'>
-                        Cumulative total
-                      </TableCell>
-                      <TableCell className='text-right font-bold text-green-600'>
-                        {convertCurrency(selectedGross - selectedTotals.expenses - selectedTotals.pending)}
-                      </TableCell>
-                    </TableRow>
-                  </tfoot>
                 </Table>
               </div>
+              )}
             </>
           )}
         </DialogContent>
