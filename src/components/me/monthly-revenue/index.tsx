@@ -191,21 +191,24 @@ export default function MonthlyRevenue() {
         .sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())[0]
     : undefined;
 
-  const getExpenseAuditEvents = React.useCallback((expense: TOutList[number]) => {
-    const expenseDate = dayjs(expense.date);
-    const previousExpense = selectedMonth?.filteredExpenses
-      .filter((item) => dayjs(item.date).isBefore(expenseDate))
-      .sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())[0];
-    const previousExpenseDate = previousExpense ? dayjs(previousExpense.date) : null;
+  const getExpenseAuditEvents = React.useCallback(
+    (expense: TOutList[number]) => {
+      const expenseDate = dayjs(expense.date);
+      const previousExpense = selectedMonth?.filteredExpenses
+        .filter((item) => dayjs(item.date).isBefore(expenseDate))
+        .sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())[0];
+      const previousExpenseDate = previousExpense ? dayjs(previousExpense.date) : null;
 
-    return ledgerEvents.filter(
-      (event) =>
-        event.kind !== "expense" &&
-        dayjs(event.date).isValid() &&
-        (!previousExpenseDate || dayjs(event.date).isAfter(previousExpenseDate)) &&
-        !dayjs(event.date).isAfter(expenseDate),
-    );
-  }, [ledgerEvents, selectedMonth]);
+      return ledgerEvents.filter(
+        (event) =>
+          event.kind !== "expense" &&
+          dayjs(event.date).isValid() &&
+          (!previousExpenseDate || dayjs(event.date).isAfter(previousExpenseDate)) &&
+          !dayjs(event.date).isAfter(expenseDate),
+      );
+    },
+    [ledgerEvents, selectedMonth],
+  );
 
   const expenseAuditEvents = React.useMemo(() => {
     if (!selectedExpense) return [];
@@ -304,7 +307,9 @@ export default function MonthlyRevenue() {
                     <TableCell>{convertCurrency(totalOrders)}</TableCell>
                     <TableCell>{convertCurrency(totalPlasada)}</TableCell>
                     <TableCell>{convertCurrency(totalAmount)}</TableCell>
-                    <TableCell className='font-bold'>{convertCurrency(totalPendingPayments, false)}</TableCell>
+                    <TableCell className='font-bold'>
+                      {convertCurrency(totalPendingPayments, false)}
+                    </TableCell>
                     <TableCell className='text-red-400 font-bold'>
                       -{convertCurrency(totalExpenses, false)}
                     </TableCell>
@@ -347,12 +352,32 @@ export default function MonthlyRevenue() {
         <DialogContent className='max-h-[90vh] w-[calc(100%-2rem)] max-w-5xl overflow-y-auto sm:max-w-5xl'>
           <DialogHeader>
             <DialogTitle>
-              {selectedExpense ? `${selectedExpense.label || "Expense"} Audit` : `${selectedMonth?.label} Expense Audits`}
+              {selectedExpense
+                ? `${selectedExpense.label || "Expense"} Audit`
+                : `${selectedMonth?.label} Expense Audits`}
             </DialogTitle>
             <DialogDescription>
-              {selectedExpense
-                ? `${previousExpense ? `Changes since ${dayjs(previousExpense.date).format("MMM D, YYYY h:mm A")}` : "Changes since the start of the month"} through ${dayjs(selectedExpense.date).format("MMM D, YYYY h:mm A")}.`
-                : "Select an expense to view income and pending-payment changes since the previous expense."}
+              {selectedExpense ? (
+                <>
+                  {previousExpense ? (
+                    <>
+                      Changes since{" "}
+                      <span className='text-blue-500'>
+                        {dayjs(previousExpense.date).format("MMM D, YYYY h:mm A")}
+                      </span>
+                    </>
+                  ) : (
+                    "Changes since the start of the month"
+                  )}{" "}
+                  through{" "}
+                  <span className='text-blue-500'>
+                    {dayjs(selectedExpense.date).format("MMM D, YYYY h:mm A")}
+                  </span>
+                  .
+                </>
+              ) : (
+                "Select an expense to view income and pending-payment changes since the previous expense."
+              )}
             </DialogDescription>
           </DialogHeader>
 
@@ -362,20 +387,24 @@ export default function MonthlyRevenue() {
                 <>
                   <div className='flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3'>
                     <div>
-                      <div className='font-semibold'>{selectedExpense.label || selectedExpense.remarks || "Expense"}</div>
+                      <div className='font-semibold'>
+                        {selectedExpense.label || selectedExpense.remarks || "Expense"}
+                      </div>
                       <div className='text-sm text-muted-foreground'>
                         {dayjs(selectedExpense.date).format("MMM D, YYYY h:mm A")} · Expense{" "}
-                        {convertCurrency(getAmount(selectedExpense.amount))}
+                        <span className='font-semibold text-red-500'>
+                          -{convertCurrency(getAmount(selectedExpense.amount))}
+                        </span>
                       </div>
                     </div>
                     <div className='text-right'>
-                      <div className='text-sm text-muted-foreground'>Current amount after expense</div>
+                      <div className='text-sm '>Current Amount after Expense</div>
                       <div className='font-bold text-green-500'>
                         {convertCurrency(currentAmountAfterExpense)}
                       </div>
                     </div>
                   </div>
-                  <Button variant='outline' onClick={() => setSelectedExpense(null)}>
+                  <Button size='xl' onClick={() => setSelectedExpense(null)}>
                     Back to expense audits
                   </Button>
                   <div className='max-h-[55vh] overflow-auto'>
@@ -395,7 +424,11 @@ export default function MonthlyRevenue() {
                             <TableRow key={`${event.type}-${event.date}-${index}`}>
                               <TableCell>{dayjs(event.date).format("MMM D, YYYY h:mm A")}</TableCell>
                               <TableCell>{event.type}</TableCell>
-                              <TableCell className='max-w-72 whitespace-normal'>{event.description}</TableCell>
+                              <TableCell className='max-w-72 whitespace-normal'>
+                                <div className='line-clamp-3' title={event.description}>
+                                {event.description}
+                                </div>
+                              </TableCell>
                               <TableCell
                                 className={`text-right font-medium ${
                                   event.kind === "income" ? "text-green-600" : "text-amber-600"
@@ -420,56 +453,56 @@ export default function MonthlyRevenue() {
                   </div>
                 </>
               ) : (
-              <div className='max-h-[55vh] overflow-auto'>
-                <Table>
-                  <TableHeader className='sticky top-0 bg-gray-100/95'>
-                    <TableRow>
-                      <TableHead>Date &amp; time</TableHead>
-                      <TableHead>Expense</TableHead>
-                      <TableHead className='text-right'>Amount</TableHead>
-                      <TableHead className='text-right'>Current amount</TableHead>
-                      <TableHead></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {selectedMonth.filteredExpenses.length > 0 ? (
-                      [...selectedMonth.filteredExpenses]
-                        .sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())
-                        .map((expense, index) => {
-                          const auditEventCount = getExpenseAuditEvents(expense).length;
-
-                          return (
-                            <TableRow key={`${expense.date}-${expense.label}-${index}`}>
-                              <TableCell>{dayjs(expense.date).format("MMM D, YYYY h:mm A")}</TableCell>
-                              <TableCell className='max-w-72 whitespace-normal'>
-                                {expense.label || expense.remarks || "Expense"}
-                              </TableCell>
-                              <TableCell className='text-right font-medium text-red-500'>
-                                -{convertCurrency(getAmount(expense.amount), false)}
-                              </TableCell>
-                              <TableCell className='text-right font-semibold text-green-500'>
-                                {convertCurrency(getCurrentAmountAtExpense(expense))}
-                              </TableCell>
-                              <TableCell className='text-right'>
-                                {auditEventCount > 0 && (
-                                  <Button size='sm' onClick={() => setSelectedExpense(expense)}>
-                                    View details ({auditEventCount})
-                                  </Button>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })
-                    ) : (
+                <div className='max-h-[55vh] overflow-auto'>
+                  <Table>
+                    <TableHeader className='sticky top-0 bg-gray-100/95'>
                       <TableRow>
-                        <TableCell colSpan={5} className='py-8 text-center text-muted-foreground'>
-                          No expenses to audit for this month.
-                        </TableCell>
+                        <TableHead>Date &amp; time</TableHead>
+                        <TableHead>Expense</TableHead>
+                        <TableHead className='text-right'>Amount</TableHead>
+                        <TableHead className='text-right'>Current amount</TableHead>
+                        <TableHead></TableHead>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedMonth.filteredExpenses.length > 0 ? (
+                        [...selectedMonth.filteredExpenses]
+                          .sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())
+                          .map((expense, index) => {
+                            const auditEventCount = getExpenseAuditEvents(expense).length;
+
+                            return (
+                              <TableRow key={`${expense.date}-${expense.label}-${index}`}>
+                                <TableCell>{dayjs(expense.date).format("MMM D, YYYY h:mm A")}</TableCell>
+                                <TableCell className='max-w-72 whitespace-normal'>
+                                  {expense.label || expense.remarks || "Expense"}
+                                </TableCell>
+                                <TableCell className='text-right font-medium text-red-500'>
+                                  -{convertCurrency(getAmount(expense.amount), false)}
+                                </TableCell>
+                                <TableCell className='text-right font-semibold text-green-500'>
+                                  {convertCurrency(getCurrentAmountAtExpense(expense))}
+                                </TableCell>
+                                <TableCell className='text-right'>
+                                  {auditEventCount > 0 && (
+                                    <Button size='sm' onClick={() => setSelectedExpense(expense)}>
+                                      View details ({auditEventCount})
+                                    </Button>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className='py-8 text-center text-muted-foreground'>
+                            No expenses to audit for this month.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </>
           )}
