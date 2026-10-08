@@ -65,7 +65,11 @@ export default function MonthlyRevenue() {
     const months: MonthEntry[] = [];
 
     for (let month = firstMonth; !month.isAfter(now, "month"); month = month.add(1, "month")) {
-      const tableIncome = getAmountForMonth(tableHistory, (item) => item.in, month);
+      const tableIncome = getAmountForMonth(
+        tableHistory.filter((item) => item.status === "Timed out"),
+        (item) => item.in,
+        month,
+      );
       const orderIncome = getAmountForMonth(orders, (item) => item.date, month);
       const plasadaIncome = getAmountForMonth(plasada, (item) => item.date, month);
       const grossIncome = tableIncome + orderIncome + plasadaIncome;

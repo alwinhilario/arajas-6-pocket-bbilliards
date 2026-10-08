@@ -72,7 +72,7 @@ export default function MonthlyRevenue() {
           propertyName: "date",
         });
         const filteredTableHistory = filterObject({
-          object: tableHistory?.filter((x) => x?.mop?.every((payment) => payment?.amount?.length > 0)),
+          object: tableHistory?.filter((record) => record.status === "Timed out"),
           filter_from: from.toDate(),
           filter_to: to.toDate(),
           propertyName: "in",

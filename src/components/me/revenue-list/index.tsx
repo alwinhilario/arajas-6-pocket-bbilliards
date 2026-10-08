@@ -79,7 +79,7 @@ export default function RevenueList() {
           }),
           tableHistory: filterObject({
             filterDate: true,
-            object: tableHistory,
+            object: tableHistory?.filter((record) => record.status === "Timed out"),
             filter_from: dayjs(item?.dateStringFrom),
             filter_to: dayjs(item?.dateStringTo),
             propertyName: "in",

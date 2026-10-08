@@ -36,7 +36,7 @@ export default function DailyRevenue() {
       );
       setOrders(
         filterObject({
-          object: orders?.filter((x) => x?.mop && x?.mop?.length > 0),
+          object: orders,
           filter_from: value?.date?.date_from,
           filter_to: value?.date?.date_to,
           propertyName: "date",
@@ -52,11 +52,7 @@ export default function DailyRevenue() {
       );
       setTableHistory(
         filterObject({
-          object: tableHistory?.filter((x) =>
-            Array.isArray(x?.mop)
-              ? x?.mop?.every((y) => y?.amount?.length > 0)
-              : x?.mop && x?.mop?.length > 0,
-          ),
+          object: tableHistory?.filter((item) => item.status === "Timed out"),
           filter_from: value?.date?.date_from,
           filter_to: value?.date?.date_to,
           propertyName: "in",
