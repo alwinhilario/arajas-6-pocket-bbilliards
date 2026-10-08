@@ -1,7 +1,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import storage, { onStorageChange } from "@/lib/localforage";
+import storage, { onStorageChange, updateStorageItem } from "@/lib/localforage";
 import { TOtherOrdersOpts, TOutList, TTableOpts } from "../tables/types";
 import { Badge } from "@/components/ui/badge";
 import { convertCurrency, filterObject, getTotalAmount } from "@/lib/utils";
@@ -174,7 +174,11 @@ export default function RevenueList() {
                 className={"cursor-pointer flex-1"}
                 onClick={async () => {
                   await storage.setItem("all_tables_list", []);
-                  await storage.setItem("pending_payment", OTHER_ORDERS);
+                  await updateStorageItem<TOtherOrdersOpts>(
+                    "pending_payment",
+                    () => OTHER_ORDERS,
+                    [],
+                  );
                   await storage.setItem("plasada_list", PLASADA_LIST);
                   setIsOpen(!isOpen);
                 }}

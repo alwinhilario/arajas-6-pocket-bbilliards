@@ -1,10 +1,10 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
-import storage, { onStorageChange } from "@/lib/localforage";
-import { TInventoryList, TOptions, TOtherOrdersOpts } from "../tables/types";
+import storage, { onStorageChange, updateStorageItem } from "@/lib/localforage";
+import { TInventoryList, TOptions, TOtherOrdersOpts, TOtherOrdersOptsData } from "../tables/types";
 
 import OtherOrder, { capitalizeFirstLetter } from "./other-order";
-import { INVENTORY_OPTS, NAME_OPTS, OTHER_ORDERS } from "@/app/constants";
+import { INVENTORY_OPTS, NAME_OPTS } from "@/app/constants";
 import { filterObject } from "@/lib/utils";
 import { SESSION_CONTEXT } from "@/app/provider";
 import { Button } from "@/components/ui/button";
@@ -59,12 +59,14 @@ export default function OtherOrders() {
   }, [JSON.stringify(otherOrders)]);
 
   const [isResetOpen, setIsResetOpen] = React.useState(false);
-  const [state, setState] = React.useState({
+  const [state, setState] = React.useState<TOtherOrdersOptsData>({
+    id: "",
     name: "",
     item: "",
     amount: "",
     remarks: "",
     mop: "",
+    date: "",
   });
 
   return (
@@ -253,20 +255,27 @@ export default function OtherOrders() {
                     size={"xl"}
                     className={"cursor-pointer flex-1"}
                     onClick={async () => {
-                      const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
-
                       if (!state?.mop) {
-                        await storage.setItem("pending_payment", [...pendingPayment, state]);
+                        await updateStorageItem<TOtherOrdersOpts>(
+                          "pending_payment",
+                          (pendingPayments) => [
+                            ...pendingPayments.filter((payment) => payment.id !== state.id),
+                            state,
+                          ],
+                          [],
+                        );
                       }
 
                       setIsOpen(!isOpen);
                       setOtherOrders((prevState) => [...prevState, state]);
                       setState({
+                        id: "",
                         name: "",
                         item: "",
                         amount: "",
                         remarks: "",
                         mop: "",
+                        date: "",
                       });
                     }}
                   >

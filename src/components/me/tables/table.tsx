@@ -12,7 +12,7 @@ import { HOURLY_RATE, MID_THRESHOLD_RATE, TABLE_OPTS } from "@/app/constants";
 import { MdEdit } from "react-icons/md";
 import { FaClock, FaExchangeAlt } from "react-icons/fa";
 import TableTimeout from "./table-timeout";
-import storage from "@/lib/localforage";
+import storage, { updateStorageItem } from "@/lib/localforage";
 import TableTransfer from "./table-transfer";
 import Payment from "../payment";
 import { isEmpty } from "lodash";
@@ -271,21 +271,25 @@ export default function Table({
             const mopTotalAmount = dataCb?.mop?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
 
             if (parseInt(data?.amount || "0") > mopTotalAmount) {
-              const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
-              await storage.setItem("pending_payment", [
-                ...pendingPayment,
-                {
-                  ...data,
-                  name: data?.label,
-                  value: data?.label,
-                  item: "N/A",
-                  amount: parseInt(data?.amount || "0") - mopTotalAmount,
-                  date: data?.out,
-                  remarks: dataCb?.remarks,
-                  mop: "",
-                  is_table: true,
-                },
-              ]);
+              const pendingTablePayment = {
+                ...data,
+                name: data?.label,
+                value: data?.label,
+                item: "N/A",
+                amount: String(parseInt(data?.amount || "0") - mopTotalAmount),
+                date: data?.out,
+                remarks: dataCb?.remarks,
+                mop: "",
+                is_table: true,
+              };
+              await updateStorageItem<TOtherOrdersOpts>(
+                "pending_payment",
+                (pendingPayments) => [
+                  ...pendingPayments.filter((payment) => payment.id !== data.id),
+                  pendingTablePayment,
+                ],
+                [],
+              );
             }
 
             const newTables = tables?.map((item) => {

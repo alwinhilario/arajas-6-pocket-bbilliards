@@ -6,7 +6,7 @@ import { InputSelect } from "@/components/ui/input-select";
 import { TInventoryList, TOptions, TOtherOrdersOpts, TOtherOrdersOptsData } from "../tables/types";
 import Payment from "../payment";
 import dayjs from "dayjs";
-import storage from "@/lib/localforage";
+import storage, { updateStorageItem } from "@/lib/localforage";
 import { isEmpty } from "lodash";
 
 export function capitalizeFirstLetter(str) {
@@ -33,6 +33,9 @@ export default function OtherOrder({
   setNameOpts: React.Dispatch<React.SetStateAction<TOptions>>;
   setInventoryOpts: React.Dispatch<React.SetStateAction<TInventoryList>>;
 }) {
+  const updatePendingPayments = (update: (current: TOtherOrdersOpts) => TOtherOrdersOpts) =>
+    updateStorageItem<TOtherOrdersOpts>("pending_payment", update, []);
+
   // const [state, setState] = React.useState(data);
 
   // React.useEffect(() => {
@@ -61,39 +64,28 @@ export default function OtherOrder({
           setNameOpts(v);
         }}
         onValueChange={async (v) => {
-          const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
-          const dataExists = !isEmpty(pendingPayment?.find((x) => x?.id === data?.id));
-
-          await storage.setItem(
-            "pending_payment",
-            dataExists
-              ? pendingPayment?.map((x) => {
-                  if (x?.id === data?.id) {
-                    return {
+          await updatePendingPayments((pendingPayments) => {
+            const dataExists = !isEmpty(pendingPayments.find((item) => item.id === data.id));
+            if (dataExists) {
+              return pendingPayments.map((item) =>
+                item.id === data.id
+                  ? {
                       ...data,
                       name: v,
-                      date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                      item: x?.item,
-                    };
-                  }
+                      date: item.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                      item: item.item,
+                    }
+                  : item,
+              );
+            }
 
-                  return x;
-                })
-              : (() => {
-                  if (!data?.mop) {
-                    return [
-                      ...(pendingPayment || []),
-                      {
-                        ...data,
-                        name: v,
-                        date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                      },
-                    ];
-                  }
-
-                  return pendingPayment;
-                })(),
-          );
+            return !data?.mop
+              ? [
+                  ...pendingPayments,
+                  { ...data, name: v, date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A") },
+                ]
+              : pendingPayments;
+          });
 
           // @ts-expect-error
           setOtherOrders((prevState) =>
@@ -130,53 +122,43 @@ export default function OtherOrder({
           setInventoryOpts(v);
         }}
         onValueChange={async (v) => {
-          const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
-          const dataExists = !isEmpty(pendingPayment?.find((x) => x?.id === data?.id));
           const getAmount = inventoryOpts?.find((x) => x?.value === v);
 
-          await storage.setItem(
-            "pending_payment",
-            dataExists
-              ? pendingPayment?.map((x) => {
-                  if (x?.id === data?.id) {
-                    return {
+          await updatePendingPayments((pendingPayments) => {
+            const dataExists = pendingPayments.some((item) => item.id === data.id);
+            if (dataExists) {
+              return pendingPayments.map((item) =>
+                item.id === data.id
+                  ? {
                       ...data,
-                      item: inventoryOpts?.find((xxx) => xxx?.value === v)?.label,
-                      amount: (() => {
-                        if (getAmount?.amount !== x?.amount && getAmount?.amount) {
-                          return getAmount?.amount || "";
-                        }
+                      item: inventoryOpts?.find((option) => option?.value === v)?.label,
+                      amount:
+                        getAmount?.amount !== item.amount && getAmount?.amount
+                          ? getAmount.amount
+                          : item.amount || "",
+                      date: item.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                    }
+                  : item,
+              );
+            }
 
-                        return x?.amount || "";
-                      })(),
-                      date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                    };
-                  }
+            if (!data?.mop) {
+              return [
+                ...pendingPayments,
+                {
+                  ...data,
+                  item: inventoryOpts?.find((option) => option?.value === v)?.label,
+                  amount:
+                    getAmount?.amount !== data?.amount && getAmount?.amount
+                      ? getAmount.amount
+                      : data?.amount || "",
+                  date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                },
+              ];
+            }
 
-                  return x;
-                })
-              : (() => {
-                  if (!data?.mop) {
-                    return [
-                      ...pendingPayment,
-                      {
-                        ...data,
-                        item: inventoryOpts?.find((xxx) => xxx?.value === v)?.label,
-                        amount: (() => {
-                          if (getAmount?.amount !== data?.amount && getAmount?.amount) {
-                            return getAmount?.amount || "";
-                          }
-
-                          return data?.amount || "";
-                        })(),
-                        date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                      },
-                    ];
-                  }
-
-                  return pendingPayment;
-                })(),
-          );
+            return pendingPayments;
+          });
 
           // @ts-expect-error
           setOtherOrders((prevState) =>
@@ -211,38 +193,28 @@ export default function OtherOrder({
         disabled={data?.mop}
         onChange={(v) => {
           const xx = async (amount: string) => {
-            const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
-            const dataExists = !isEmpty(pendingPayment?.find((x) => x?.id === data?.id));
-            await storage.setItem(
-              "pending_payment",
-              dataExists
-                ? pendingPayment?.map((x) => {
-                    if (x?.id === data?.id) {
-                      return {
+            await updatePendingPayments((pendingPayments) => {
+              const dataExists = pendingPayments.some((item) => item.id === data.id);
+              if (dataExists) {
+                return pendingPayments.map((item) =>
+                  item.id === data.id
+                    ? {
                         ...data,
                         amount,
-                        date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                        item: x?.item,
-                      };
-                    }
+                        date: item.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                        item: item.item,
+                      }
+                    : item,
+                );
+              }
 
-                    return x;
-                  })
-                : (() => {
-                    if (!data?.mop) {
-                      return [
-                        ...pendingPayment,
-                        {
-                          ...data,
-                          amount,
-                          date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                        },
-                      ];
-                    }
-
-                    return pendingPayment;
-                  })(),
-            );
+              return !data?.mop
+                ? [
+                    ...pendingPayments,
+                    { ...data, amount, date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A") },
+                  ]
+                : pendingPayments;
+            });
           };
 
           setOtherOrders((prevState) =>
@@ -269,38 +241,28 @@ export default function OtherOrder({
         value={data?.remarks}
         onChange={(v) => {
           const xx = async (remarks: string) => {
-            const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
-            const dataExists = !isEmpty(pendingPayment?.find((x) => x?.id === data?.id));
-            await storage.setItem(
-              "pending_payment",
-              dataExists
-                ? pendingPayment?.map((x) => {
-                    if (x?.id === data?.id) {
-                      return {
+            await updatePendingPayments((pendingPayments) => {
+              const dataExists = pendingPayments.some((item) => item.id === data.id);
+              if (dataExists) {
+                return pendingPayments.map((item) =>
+                  item.id === data.id
+                    ? {
                         ...data,
                         remarks,
-                        date: x?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                        item: x?.item,
-                      };
-                    }
+                        date: item.date || dayjs().format("YYYY/MM/DD hh:mm A"),
+                        item: item.item,
+                      }
+                    : item,
+                );
+              }
 
-                    return x;
-                  })
-                : (() => {
-                    if (!data?.mop) {
-                      return [
-                        ...pendingPayment,
-                        {
-                          ...data,
-                          remarks,
-                          date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A"),
-                        },
-                      ];
-                    }
-
-                    return pendingPayment;
-                  })(),
-            );
+              return !data?.mop
+                ? [
+                    ...pendingPayments,
+                    { ...data, remarks, date: data?.date || dayjs().format("YYYY/MM/DD hh:mm A") },
+                  ]
+                : pendingPayments;
+            });
           };
 
           setOtherOrders((prevState) =>
@@ -327,16 +289,21 @@ export default function OtherOrder({
         // readOnly={data?.mop}
         onPayClick={async (type) => {
           const xx = async (v: TOtherOrdersOpts) => {
-            await storage.setItem(
-              "pending_payment",
-              v?.filter(
+            await updatePendingPayments((pendingPayments) =>
+              pendingPayments
+                .map((item) =>
+                  item.id === data.id
+                    ? { ...item, mop: type, date: item.date || dayjs().format("YYYY/MM/DD hh:mm A") }
+                    : item,
+                )
+                .filter(
                 (x) =>
                   (!x?.mop || x?.mop?.length <= 0) &&
                   (x?.amount?.length > 0 ||
                     x?.item?.length > 0 ||
                     x?.name?.length > 0 ||
                     x?.remarks?.length > 0),
-              ),
+                ),
             );
           };
 
@@ -421,11 +388,8 @@ export default function OtherOrder({
         size={"xl"}
         className='w-20 font-bold cursor-pointer'
         onClick={async () => {
-          const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
-
-          await storage.setItem(
-            "pending_payment",
-            pendingPayment?.filter((x) => x?.id !== data?.id),
+          await updatePendingPayments((pendingPayments) =>
+            pendingPayments.filter((item) => item.id !== data?.id),
           );
 
           const res = (await storage.getItem("other_orders")) || [];

@@ -1,6 +1,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
-import storage, { onStorageChange } from "@/lib/localforage";
+import storage, { onStorageChange, updateStorageItem } from "@/lib/localforage";
 import { TInventoryList, TOtherOrdersOpts, TPendingPaymentOpts, TTableOpts } from "../tables/types";
 import { INVENTORY_OPTS, OTHER_ORDERS } from "@/app/constants";
 import dayjs from "dayjs";
@@ -117,7 +117,7 @@ export default function NotPaidList() {
                 size={"xl"}
                 className={"cursor-pointer flex-1"}
                 onClick={async () => {
-                  await storage.setItem("pending_payment", []);
+                  await updateStorageItem<TOtherOrdersOpts>("pending_payment", () => [], []);
                   setIsResetOpen(!isResetOpen);
                 }}
               >
@@ -229,14 +229,13 @@ export default function NotPaidList() {
                     })(),
                   );
 
-                  const res2 = await storage.getItem("pending_payment");
-                  await storage.setItem(
+                  const clearedIds = new Set((currentView?.items || []).map((item) => item.id));
+                  const remainingPayments = await updateStorageItem<TOtherOrdersOpts>(
                     "pending_payment",
-                    res2?.filter((xxx) => !(currentView?.items || [])?.some((asd) => asd?.id === xxx?.id)),
+                    (pendingPayments) => pendingPayments.filter((payment) => !clearedIds.has(payment.id)),
+                    [],
                   );
-                  setTables(
-                    res2?.filter((xxx) => !(currentView?.items || [])?.some((asd) => asd?.id === xxx?.id)),
-                  );
+                  setTables(remainingPayments);
 
                   setIsOpen(!isOpen);
                 }}
@@ -333,21 +332,13 @@ export default function NotPaidList() {
                                         // withBorder={x?.mop === "cash" ? true : false}
                                         mop={x?.mop}
                                         onPayClick={async (type) => {
-                                          const pp = ((await storage.getItem("pending_payment")) ||
-                                            OTHER_ORDERS) as TOtherOrdersOpts;
-
-                                          await storage.setItem(
+                                          await updateStorageItem<TOtherOrdersOpts>(
                                             "pending_payment",
-                                            pp?.map((xx) => {
-                                              if (xx?.id === x?.id) {
-                                                return {
-                                                  ...xx,
-                                                  mop: type,
-                                                };
-                                              }
-
-                                              return xx;
-                                            }),
+                                            (pendingPayments) =>
+                                              pendingPayments.map((payment) =>
+                                                payment.id === x.id ? { ...payment, mop: type } : payment,
+                                              ),
+                                            [],
                                           );
 
                                           // @ts-expect-error
@@ -403,12 +394,13 @@ export default function NotPaidList() {
                                               }),
                                             );
 
-                                            const res2 = await storage.getItem("pending_payment");
-                                            await storage.setItem(
+                                            const remainingPayments = await updateStorageItem<TOtherOrdersOpts>(
                                               "pending_payment",
-                                              res2?.filter((xxx) => x?.id !== xxx?.id),
+                                              (pendingPayments) =>
+                                                pendingPayments.filter((payment) => payment.id !== x.id),
+                                              [],
                                             );
-                                            setTables(res2?.filter((xxx) => x?.id !== xxx?.id));
+                                            setTables(remainingPayments);
                                           }}
                                         >
                                           <FaTrash className='h-4 w-4' />

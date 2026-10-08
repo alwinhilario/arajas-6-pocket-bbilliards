@@ -75,4 +75,30 @@ const storage = new Proxy(rawStorage, {
   },
 });
 
+const pendingStorageUpdates = new Map<string, Promise<unknown>>();
+
+export const updateStorageItem = <T>(
+  key: string,
+  update: (current: T) => T,
+  initialValue: T,
+): Promise<T> => {
+  const previousUpdate = pendingStorageUpdates.get(key) || Promise.resolve();
+  const nextUpdate = previousUpdate
+    .catch(() => undefined)
+    .then(async () => {
+      const current = (await storage.getItem<T>(key)) ?? initialValue;
+      return storage.setItem(key, update(current));
+    });
+
+  pendingStorageUpdates.set(key, nextUpdate);
+  const clearPendingUpdate = () => {
+    if (pendingStorageUpdates.get(key) === nextUpdate) {
+      pendingStorageUpdates.delete(key);
+    }
+  };
+  void nextUpdate.then(clearPendingUpdate, clearPendingUpdate);
+
+  return nextUpdate;
+};
+
 export default storage;
