@@ -10,7 +10,7 @@ import dayjs from "dayjs";
 import { TOtherOrdersOpts, TTableOpts, TTableOptsData } from "./types";
 import { HOURLY_RATE, MID_THRESHOLD_RATE, TABLE_OPTS } from "@/app/constants";
 import { MdEdit } from "react-icons/md";
-import { FaClock, FaExchangeAlt } from "react-icons/fa";
+import { FaCalculator, FaClock, FaExchangeAlt } from "react-icons/fa";
 import TableTimeout from "./table-timeout";
 import storage, { updateStorageItem } from "@/lib/localforage";
 import TableTransfer from "./table-transfer";
@@ -510,7 +510,7 @@ export default function Table({
                           setTables(newTables);
                         }}
                       >
-                        <FaClock className='h-3 w-3' />
+                        <FaCalculator className='h-3 w-3' />
                       </Button>
                     )}
 
