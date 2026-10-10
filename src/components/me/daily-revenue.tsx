@@ -137,7 +137,7 @@ export default function DailyRevenue() {
 
           <div className='flex flex-col gap-0.5'>
             <div className='w-40'>Total Daily Income</div>
-            <div className='text-4xl font-black text-green-500'>
+            <div className='text-4xl font-black text-green-600'>
               {convertCurrency(totalAmount - totalPendingPayments - totalExpenses)}
             </div>
           </div>

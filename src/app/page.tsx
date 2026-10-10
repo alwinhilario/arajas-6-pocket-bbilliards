@@ -348,8 +348,8 @@ export default function Home() {
                       },
                     )}
                   >
-                    <FaMoneyBillWave className='h-4 w-4 text-blue-500' />
-                    <div className='text-blue-500'>Bale</div>
+                    <FaMoneyBillWave className='h-4 w-4 text-blue-600' />
+                    <div className=''>Bale</div>
                   </button>
                   <button
                     onClick={() => setPage(12)}
@@ -361,8 +361,8 @@ export default function Home() {
                       },
                     )}
                   >
-                    <FaMoneyBillWave className='h-4 w-4 text-blue-500' />
-                    <div className='text-blue-500'>Utang</div>
+                    <FaMoneyBillWave className='h-4 w-4' />
+                    <div className=''>Utang</div>
                   </button>
                 </div>
               </div>
