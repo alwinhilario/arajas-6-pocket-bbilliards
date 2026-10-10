@@ -533,7 +533,7 @@ export default function Table({
                         alt=''
                         width={15}
                         height={15}
-                        className='h-[1.125rem] w-[1.125rem] object-contain'
+                        className='h-[1.110rem] w-[1.110rem] object-contain'
                       />
                     </Button>
 
