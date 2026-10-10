@@ -324,7 +324,7 @@ export default function Home() {
                     )}
                   >
                     <FaCashRegister className='h-[13px] w-[13px] text-gray-700' />
-                    <div>Revenue History</div>
+                    <div>Revenue</div>
                   </button>
                   <button
                     onClick={() => setPage(8)}
@@ -337,7 +337,7 @@ export default function Home() {
                     )}
                   >
                     <MdTableRestaurant className='h-5 w-5 text-gray-700' />
-                    <div>Table History</div>
+                    <div>Tables</div>
                   </button>
                   <button
                     onClick={() => setPage(9)}
