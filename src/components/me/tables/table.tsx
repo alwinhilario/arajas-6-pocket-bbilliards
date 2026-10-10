@@ -3,6 +3,7 @@
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import duration from "dayjs/plugin/duration";
 import React from "react";
+import Image from "next/image";
 import { Button } from "../../ui/button";
 import { Card } from "../../ui/card";
 import clsx from "clsx";
@@ -10,7 +11,7 @@ import dayjs from "dayjs";
 import { TOtherOrdersOpts, TTableOpts, TTableOptsData } from "./types";
 import { HOURLY_RATE, MID_THRESHOLD_RATE, TABLE_OPTS } from "@/app/constants";
 import { MdEdit } from "react-icons/md";
-import { FaCalculator, FaClock, FaExchangeAlt } from "react-icons/fa";
+import { FaCalculator, FaExchangeAlt } from "react-icons/fa";
 import TableTimeout from "./table-timeout";
 import storage, { updateStorageItem } from "@/lib/localforage";
 import TableTransfer from "./table-transfer";
@@ -527,7 +528,13 @@ export default function Table({
                         setIsOpenTimeout((prevState) => !prevState);
                       }}
                     >
-                      <FaClock className='h-3 w-3' />
+                      <Image
+                        src='/logout.png'
+                        alt=''
+                        width={15}
+                        height={15}
+                        className='h-[1.125rem] w-[1.125rem] object-contain'
+                      />
                     </Button>
 
                     {/* {!(d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out)) && ( */}
