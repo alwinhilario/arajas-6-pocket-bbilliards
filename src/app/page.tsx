@@ -31,6 +31,7 @@ import { MdOutlineDoubleArrow, MdOutlineInventory, MdTableRestaurant } from "rea
 import OutListAll from "@/components/me/out-list-all";
 import PendingPaymentMonitor from "@/components/me/monthly-revenue/pending-payment-monitor";
 import BaleList from "@/components/me/bale-list";
+import UtangList from "@/components/me/utang-list";
 
 dayjs.extend(duration);
 
@@ -336,6 +337,19 @@ export default function Home() {
                 <FaMoneyBillWave className='h-4 w-4 text-blue-500' />
                 <div className='text-blue-500'>Bale</div>
               </button>
+              <button
+                onClick={() => setPage(12)}
+                type='button'
+                className={clsx(
+                  "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md",
+                  {
+                    "bg-white": page === 12,
+                  },
+                )}
+              >
+                <FaMoneyBillWave className='h-4 w-4 text-blue-500' />
+                <div className='text-blue-500'>Utang</div>
+              </button>
             </div>
           </div>
 
@@ -378,6 +392,7 @@ export default function Home() {
           {page === 9 && <InventoryList />}
           {page === 10 && <NameList />}
           {page === 11 && <BaleList />}
+          {page === 12 && <UtangList />}
 
           <br />
           <DailyRevenue />

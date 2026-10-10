@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { Card } from "@/components/ui/card";
 import storage, { onStorageChange } from "@/lib/localforage";
 import { convertCurrency, filterObject } from "@/lib/utils";
-import { TBaleList, TOtherOrdersOpts, TOutList, TTableOpts } from "../tables/types";
+import { TBaleList, TOtherOrdersOpts, TOutList, TTableOpts, TUtangList } from "../tables/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -19,15 +19,16 @@ type MonthBreakdown = {
   filteredPendingPayments: TOtherOrdersOpts;
   filteredPlasada: TOutList;
   filteredBale: TBaleList;
+  filteredUtang: TUtangList;
   pendingSnapshots: PendingPaymentSnapshot[];
 };
 
 type LedgerEvent = {
   date: string;
-  type: "Table rates" | "Orders" | "Plasada" | "Bale" | "Expenses" | "Pending payments";
+  type: "Table rates" | "Orders" | "Plasada" | "Bale" | "Utang" | "Expenses" | "Pending payments";
   description: string;
   amount: number;
-  kind: "income" | "expense" | "pending" | "bale";
+  kind: "income" | "expense" | "pending" | "bale" | "utang";
 };
 
 const getAmount = (amount: string | number | undefined) => Number.parseInt(String(amount || "0"), 10) || 0;
@@ -53,7 +54,7 @@ export default function MonthlyRevenue() {
       const startDate = dayjs("2026-07-01");
       const now = dayjs();
 
-      const [orders, expenses, tableHistory, pendingPayment, plasada, bale, pendingSnapshots] =
+      const [orders, expenses, tableHistory, pendingPayment, plasada, bale, utang, pendingSnapshots] =
         await Promise.all([
           readStorageList<TOtherOrdersOpts[number]>("other_orders"),
           readStorageList<TOutList[number]>("out_list"),
@@ -61,6 +62,7 @@ export default function MonthlyRevenue() {
           readStorageList<TOtherOrdersOpts[number]>("pending_payment"),
           readStorageList<TOutList[number]>("plasada_list"),
           readStorageList<TBaleList[number]>("bale_list"),
+          readStorageList<TUtangList[number]>("utang_list"),
           readStorageList<PendingPaymentSnapshot>(PENDING_PAYMENT_CHECK_STORAGE_KEY),
         ]);
       const months: MonthBreakdown[] = [];
@@ -79,6 +81,12 @@ export default function MonthlyRevenue() {
         });
         const filteredBale = filterObject({
           object: bale,
+          filter_from: from.toDate(),
+          filter_to: to.toDate(),
+          propertyName: "date",
+        });
+        const filteredUtang = filterObject({
+          object: utang,
           filter_from: from.toDate(),
           filter_to: to.toDate(),
           propertyName: "date",
@@ -124,6 +132,7 @@ export default function MonthlyRevenue() {
           filteredPendingPayments,
           filteredPlasada,
           filteredBale,
+          filteredUtang,
           pendingSnapshots: filteredPendingSnapshots,
         });
         month = month.add(1, "month");
@@ -144,6 +153,7 @@ export default function MonthlyRevenue() {
         "pending_payment",
         "plasada_list",
         "bale_list",
+        "utang_list",
         PENDING_PAYMENT_CHECK_STORAGE_KEY,
       ],
       () => {
@@ -169,6 +179,13 @@ export default function MonthlyRevenue() {
         description: [record.name, record.remarks].filter(Boolean).join(" - ") || "Bale",
         amount: getAmount(record.amount),
         kind: "bale" as const,
+      })),
+      ...selectedMonth.filteredUtang.map((record) => ({
+        date: record.date,
+        type: "Utang" as const,
+        description: [record.name, record.remarks].filter(Boolean).join(" - ") || "Utang",
+        amount: getAmount(record.amount),
+        kind: "utang" as const,
       })),
       ...selectedMonth.filteredOrders.map((record) => ({
         date: record.date,
@@ -219,7 +236,9 @@ export default function MonthlyRevenue() {
         const eventDate = dayjs(event.date);
         if (!eventDate.isValid() || eventDate.isAfter(cutoff)) return total;
         if (event.kind === "income") return total + event.amount;
-        if (event.kind === "expense" || event.kind === "bale") return total - event.amount;
+        if (event.kind === "expense" || event.kind === "bale" || event.kind === "utang") {
+          return total - event.amount;
+        }
         return total;
       }, 0);
     },
@@ -264,7 +283,7 @@ export default function MonthlyRevenue() {
       .sort((first, second) => dayjs(first.date).valueOf() - dayjs(second.date).valueOf())
       .map((event) => {
         if (event.kind === "income") currentAmount += event.amount;
-        if (event.kind === "bale") currentAmount -= event.amount;
+        if (event.kind === "bale" || event.kind === "utang") currentAmount -= event.amount;
         return { ...event, currentAmount };
       })
       .reverse();
@@ -275,23 +294,26 @@ export default function MonthlyRevenue() {
     return getCurrentAmountThrough(expense.date);
   };
 
-  const getCurrentAmountAtBale = (bale: TBaleList[number]) => {
-    const baleDate = dayjs(bale.date);
+  const getCurrentAmountAtDebt = (date: string) => {
+    const debtDate = dayjs(date);
     const previousExpense = selectedMonth?.filteredExpenses
-      .filter((expense) => dayjs(expense.date).isBefore(baleDate))
+      .filter((expense) => dayjs(expense.date).isBefore(debtDate))
       .sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())[0];
 
-    if (!previousExpense) return getCurrentAmountThrough(bale.date);
+    if (!previousExpense) return getCurrentAmountThrough(date);
 
-    const balesSincePreviousExpense = selectedMonth.filteredBale
+    const debtsSincePreviousExpense = [...selectedMonth.filteredBale, ...selectedMonth.filteredUtang]
       .filter(
         (item) =>
-          dayjs(item.date).isAfter(dayjs(previousExpense.date)) && !dayjs(item.date).isAfter(baleDate),
+          dayjs(item.date).isAfter(dayjs(previousExpense.date)) && !dayjs(item.date).isAfter(debtDate),
       )
       .reduce((total, item) => total + getAmount(item.amount), 0);
 
-    return getCurrentAmountAtExpense(previousExpense) - balesSincePreviousExpense;
+    return getCurrentAmountAtExpense(previousExpense) - debtsSincePreviousExpense;
   };
+
+  const getCurrentAmountAtBale = (bale: TBaleList[number]) => getCurrentAmountAtDebt(bale.date);
+  const getCurrentAmountAtUtang = (utang: TUtangList[number]) => getCurrentAmountAtDebt(utang.date);
 
   const monthlyAuditItems = selectedMonth
     ? [
@@ -313,6 +335,15 @@ export default function MonthlyRevenue() {
           key: `bale-${bale.id}`,
           expense: null,
         })),
+        ...selectedMonth.filteredUtang.map((utang) => ({
+          type: "Utang" as const,
+          date: utang.date,
+          description: [utang.name, utang.remarks].filter(Boolean).join(" - ") || "Utang",
+          amount: getAmount(utang.amount),
+          currentAmount: getCurrentAmountAtUtang(utang),
+          key: `utang-${utang.id}`,
+          expense: null,
+        })),
       ].sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())
     : [];
 
@@ -331,6 +362,7 @@ export default function MonthlyRevenue() {
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL AMOUNT</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL PENDING PAYMENTS</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL BALE</TableHead>
+              <TableHead className='font-bold px-2 text-gray-600'>TOTAL UTANG</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL EXPENSES</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL INCOME</TableHead>
               <TableHead className='font-bold px-2 '></TableHead>
@@ -343,6 +375,7 @@ export default function MonthlyRevenue() {
                 const totalTableRates = sumAmounts(item.filteredTableHistory);
                 const totalPlasada = sumAmounts(item.filteredPlasada);
                 const totalBale = sumAmounts(item.filteredBale);
+                const totalUtang = sumAmounts(item.filteredUtang);
                 const totalOrders = sumAmounts(item.filteredOrders);
                 const totalPendingPayments = sumAmounts(item.filteredPendingPayments);
                 const totalExpenses = sumAmounts(item.filteredExpenses);
@@ -363,11 +396,14 @@ export default function MonthlyRevenue() {
                     <TableCell className='font-bold text-blue-500'>
                       -{convertCurrency(totalBale, false)}
                     </TableCell>
+                    <TableCell className='font-bold text-blue-500'>
+                      -{convertCurrency(totalUtang, false)}
+                    </TableCell>
                     <TableCell className='text-red-400 font-bold'>
                       -{convertCurrency(totalExpenses, false)}
                     </TableCell>
                     <TableCell className='text-green-400 font-bold'>
-                      +{convertCurrency(totalAmount - totalExpenses - totalBale, false)}
+                      +{convertCurrency(totalAmount - totalExpenses - totalBale - totalUtang, false)}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -385,7 +421,7 @@ export default function MonthlyRevenue() {
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={10} className='text-center pt-5 text-gray-400'>
+                <TableCell colSpan={11} className='text-center pt-5 text-gray-400'>
                   No data found...
                 </TableCell>
               </TableRow>
@@ -486,12 +522,12 @@ export default function MonthlyRevenue() {
                                 className={`text-right font-medium ${
                                   event.kind === "income"
                                     ? "text-green-600"
-                                    : event.kind === "bale"
+                                    : event.kind === "bale" || event.kind === "utang"
                                       ? "text-blue-500"
                                       : "text-amber-600"
                                 }`}
                               >
-                                {event.kind === "bale" ? "-" : "+"}
+                                {event.kind === "bale" || event.kind === "utang" ? "-" : "+"}
                                 {convertCurrency(event.amount, false)}
                               </TableCell>
                               <TableCell className='text-right font-semibold text-green-500'>
@@ -534,7 +570,9 @@ export default function MonthlyRevenue() {
                             return (
                               <TableRow key={item.key}>
                                 <TableCell>{dayjs(item.date).format("MMM D, YYYY h:mm A")}</TableCell>
-                                <TableCell className={item.type === "Bale" ? "text-blue-500" : ""}>
+                                <TableCell
+                                  className={item.type === "Bale" || item.type === "Utang" ? "text-blue-500" : ""}
+                                >
                                   {item.type}
                                 </TableCell>
                                 <TableCell className='max-w-72 whitespace-normal'>
@@ -542,7 +580,7 @@ export default function MonthlyRevenue() {
                                 </TableCell>
                                 <TableCell
                                   className={`text-right font-medium ${
-                                    item.type === "Bale" ? "text-blue-500" : "text-red-500"
+                                    item.type === "Bale" || item.type === "Utang" ? "text-blue-500" : "text-red-500"
                                   }`}
                                 >
                                   -{convertCurrency(item.amount, false)}

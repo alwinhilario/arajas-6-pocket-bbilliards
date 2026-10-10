@@ -70,6 +70,9 @@ export type TBaleEntry = {
 
 export type TBaleList = TBaleEntry[];
 
+export type TUtangEntry = TBaleEntry;
+export type TUtangList = TUtangEntry[];
+
 export type TOptions = { id: string; label: string; value: string }[];
 export type TInventoryData = {
   id: string;
