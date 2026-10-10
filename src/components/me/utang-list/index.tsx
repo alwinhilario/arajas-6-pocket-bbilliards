@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import Payment from "../payment";
 import { convertCurrency } from "@/lib/utils";
 import storage, { onStorageChange, updateStorageItem } from "@/lib/localforage";
-import type { TUtangEntry, TUtangList } from "../tables/types";
+import type { TUtangEntry, TUtangList, TUtangPaymentMethod } from "../tables/types";
 
 const STORAGE_KEY = "utang_list";
 
@@ -40,7 +41,13 @@ export default function UtangList() {
   };
 
   const addItem = async () => {
-    if (!newItem.name.trim() || !newItem.amount.trim() || !Number.isFinite(Number(newItem.amount)) || Number(newItem.amount) <= 0) return;
+    if (
+      !newItem.name.trim() ||
+      !newItem.amount.trim() ||
+      !Number.isFinite(Number(newItem.amount)) ||
+      Number(newItem.amount) <= 0
+    )
+      return;
 
     const item: TUtangEntry = {
       ...newItem,
@@ -58,6 +65,39 @@ export default function UtangList() {
 
   const removeItem = (id: string) => {
     void saveUpdate((current) => current.filter((item) => item.id !== id));
+  };
+
+  const markAsPaid = async (item: TUtangEntry, method: string) => {
+    if (!method) {
+      await saveUpdate((current) =>
+        current.map((currentItem) =>
+          currentItem.id === item.id
+            ? { ...currentItem, mop: undefined, paidAt: undefined, paidAmount: undefined }
+            : currentItem,
+        ),
+      );
+      return;
+    }
+
+    const mop: TUtangPaymentMethod | null =
+      method === "Cash" || method === "cash"
+        ? "Cash"
+        : method === "Maya" || method === "maya"
+          ? "Maya"
+          : method === "GCash" || method === "gcash"
+            ? "GCash"
+            : null;
+    if (!mop) return;
+
+    await saveUpdate((current) =>
+      current.map((currentItem) =>
+        currentItem.id === item.id
+          ? currentItem.paidAt
+            ? { ...currentItem, mop }
+            : { ...currentItem, mop, paidAt: dayjs().toISOString(), paidAmount: currentItem.amount }
+          : currentItem,
+      ),
+    );
   };
 
   const total = items.reduce((sum, item) => sum + (Number.parseFloat(item.amount) || 0), 0);
@@ -140,6 +180,7 @@ export default function UtangList() {
               <TableHead className='font-bold px-2 bg-gray-100'>Amount</TableHead>
               <TableHead className='font-bold px-2 bg-gray-100'>Remarks</TableHead>
               <TableHead className='font-bold px-2 bg-gray-100'>Date &amp; time</TableHead>
+              <TableHead className='font-bold px-2 bg-gray-100'>MOP</TableHead>
               <TableHead className='font-bold px-2 bg-gray-100'></TableHead>
             </TableRow>
           </TableHeader>
@@ -161,8 +202,10 @@ export default function UtangList() {
                     min='0'
                     value={item.amount}
                     onChange={(event) => updateItem(item.id, { amount: event.target.value })}
+                    disabled={Boolean(item.paidAt)}
                   />
                 </TableCell>
+
                 <TableCell>
                   <Input
                     aria-label='Utang remarks'
@@ -180,6 +223,17 @@ export default function UtangList() {
                   />
                 </TableCell>
                 <TableCell>
+                  <div className='flex items-center gap-2'>
+                    <Payment
+                      className=''
+                      mop={item.mop?.toLowerCase() || ""}
+                      portal
+                      onPayClick={(method) => void markAsPaid(item, method)}
+                    />
+                    {/* {item.paidAt && <span className='text-xs font-semibold text-green-600'>Paid</span>} */}
+                  </div>
+                </TableCell>
+                <TableCell>
                   <Button variant='destructive' onClick={() => removeItem(item.id)}>
                     Remove
                   </Button>
@@ -188,7 +242,7 @@ export default function UtangList() {
             ))}
             {items.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className='py-8 text-center text-muted-foreground'>
+                <TableCell colSpan={6} className='py-8 text-center text-muted-foreground'>
                   No utang entries found.
                 </TableCell>
               </TableRow>
@@ -196,7 +250,7 @@ export default function UtangList() {
           </TableBody>
         </Table>
       </div>
-      <div className='font-bold text-blue-500'>Total Utang: -{convertCurrency(total, false)}</div>
+      <div className='font-bold text-blue-500 text-xl'>Total Utang: -{convertCurrency(total, false)}</div>
     </Card>
   );
 }

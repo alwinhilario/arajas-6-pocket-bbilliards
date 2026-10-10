@@ -11,6 +11,7 @@ import Table from "../tables/table";
 import clsx from "clsx";
 import { isEmpty } from "lodash";
 import { IoWarning } from "react-icons/io5";
+import { recordPaidPendingPayments } from "@/lib/pending-payment-audit";
 
 export default function NotPaidList() {
   const [tables, setTables] = React.useState<TOtherOrdersOpts>([]);
@@ -186,6 +187,7 @@ export default function NotPaidList() {
                 size='xl'
                 className={"cursor-pointer flex-1"}
                 onClick={async () => {
+                  await recordPaidPendingPayments(currentView?.items || []);
                   let res = (await storage.getItem("other_orders")) as TOtherOrdersOpts;
                   await storage.setItem(
                     "other_orders",
@@ -332,6 +334,7 @@ export default function NotPaidList() {
                                         // withBorder={x?.mop === "cash" ? true : false}
                                         mop={x?.mop}
                                         onPayClick={async (type) => {
+                                          await recordPaidPendingPayments([{ ...x, mop: type }]);
                                           await updateStorageItem<TOtherOrdersOpts>(
                                             "pending_payment",
                                             (pendingPayments) =>
@@ -377,6 +380,7 @@ export default function NotPaidList() {
                                           size={"sm"}
                                           className={"cursor-pointer"}
                                           onClick={async () => {
+                                            await recordPaidPendingPayments([x]);
                                             const res = (await storage.getItem(
                                               "other_orders",
                                             )) as TOtherOrdersOpts;

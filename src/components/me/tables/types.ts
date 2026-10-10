@@ -51,6 +51,8 @@ export type TOtherOrdersOptsData = {
 };
 
 export type TOtherOrdersOpts = TOtherOrdersOptsData[];
+export type TPaidPendingPayment = TOtherOrdersOptsData & { paidAt: string };
+export type TPaidPendingPaymentList = TPaidPendingPayment[];
 export type TOutList = {
   id?: string;
   label: string;
@@ -70,7 +72,12 @@ export type TBaleEntry = {
 
 export type TBaleList = TBaleEntry[];
 
-export type TUtangEntry = TBaleEntry;
+export type TUtangPaymentMethod = "Cash" | "Maya" | "GCash";
+export type TUtangEntry = TBaleEntry & {
+  mop?: TUtangPaymentMethod;
+  paidAt?: string;
+  paidAmount?: string;
+};
 export type TUtangList = TUtangEntry[];
 
 export type TOptions = { id: string; label: string; value: string }[];

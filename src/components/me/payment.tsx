@@ -1,4 +1,5 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import { Button } from "../ui/button";
 import clsx from "clsx";
 import { IoChevronDownOutline } from "react-icons/io5";
@@ -10,6 +11,7 @@ interface IProps {
   readOnly?: boolean;
   withBorder?: boolean;
   className: string;
+  portal?: boolean;
 }
 
 export default function Payment({
@@ -19,20 +21,28 @@ export default function Payment({
   variant = "default",
   withBorder = true,
   readOnly = false,
+  portal = false,
 }: IProps) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [menuPosition, setMenuPosition] = React.useState<React.CSSProperties>();
 
   const onPay = (type: string) => {
-    setIsOpen(!isOpen);
-
+    setIsOpen(false);
     onPayClick(type);
   };
 
   const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const menuRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target) &&
+        !menuRef.current?.contains(target)
+      ) {
         setIsOpen(false);
       }
     }
@@ -44,53 +54,90 @@ export default function Payment({
     };
   }, []);
 
-  return (
-    <div className='relative' ref={dropdownRef}>
-      {isOpen && (
-        <div className='absolute top-[-78px] left-0 w-full bg-white border-2 border-yellow-500 rounded mt-0.5 z-10 overflow-hidden border-b-2 border-gray-100 rounded-b-none'>
-          {mop !== "gcash" && (
-            <button
-              className='p-2 py-1.5 w-full cursor-pointer font-bold bg-[#0479f7] text-white'
-              type='button'
-              onClick={() => onPay("gcash")}
-            >
-              Gcash
-            </button>
-          )}
+  React.useEffect(() => {
+    if (!isOpen || !portal) return;
 
-          {mop !== "maya" && (
-            <button
-              className='p-2 py-1.5 w-full  cursor-pointer font-bold bg-black text-[#1aec96]'
-              type='button'
-              onClick={() => onPay("maya")}
-            >
-              Maya
-            </button>
-          )}
+    const positionMenu = () => {
+      const trigger = buttonRef.current?.getBoundingClientRect();
+      if (!trigger) return;
 
-          {mop !== "cash" && (
-            <button
-              className='p-2 py-1.5 w-full  cursor-pointer font-bold text-blue-600'
-              type='button'
-              onClick={() => onPay("cash")}
-            >
-              Cash
-            </button>
-          )}
+      setMenuPosition({
+        position: "fixed",
+        left: trigger.left,
+        bottom: window.innerHeight - trigger.top,
+        width: trigger.width,
+        maxHeight: Math.max(80, trigger.top - 8),
+        overflowY: "auto",
+        zIndex: 100,
+      });
+    };
 
-          {mop !== "" && (
-            <button
-              className='p-2 py-1.5 w-full border-t cursor-pointer font-bold'
-              type='button'
-              onClick={() => onPay("")}
-            >
-              MOP
-            </button>
-          )}
-        </div>
+    positionMenu();
+    window.addEventListener("resize", positionMenu);
+    window.addEventListener("scroll", positionMenu, true);
+    return () => {
+      window.removeEventListener("resize", positionMenu);
+      window.removeEventListener("scroll", positionMenu, true);
+    };
+  }, [isOpen, portal]);
+
+  const menu = isOpen ? (
+    <div
+      ref={menuRef}
+      style={portal ? menuPosition : undefined}
+      className={clsx(
+        "bg-white border-2 border-yellow-500 rounded mt-0.5 z-10 overflow-hidden border-b-2 border-gray-100 rounded-b-none",
+        portal ? "w-full" : "absolute top-[-78px] left-0 w-full",
+      )}
+    >
+      {mop !== "gcash" && (
+        <button
+          className='p-2 py-1.5 w-full cursor-pointer font-bold bg-[#0479f7] text-white'
+          type='button'
+          onClick={() => onPay("gcash")}
+        >
+          Gcash
+        </button>
       )}
 
+      {mop !== "maya" && (
+        <button
+          className='p-2 py-1.5 w-full cursor-pointer font-bold bg-black text-[#1aec96]'
+          type='button'
+          onClick={() => onPay("maya")}
+        >
+          Maya
+        </button>
+      )}
+
+      {mop !== "cash" && (
+        <button
+          className='p-2 py-1.5 w-full cursor-pointer font-bold text-blue-600'
+          type='button'
+          onClick={() => onPay("cash")}
+        >
+          Cash
+        </button>
+      )}
+
+      {mop !== "" && (
+        <button
+          className='p-2 py-1.5 w-full border-t cursor-pointer font-bold'
+          type='button'
+          onClick={() => onPay("")}
+        >
+          MOP
+        </button>
+      )}
+    </div>
+  ) : null;
+
+  return (
+    <div className='relative' ref={dropdownRef}>
+      {!portal && menu}
+
       <Button
+        ref={buttonRef}
         variant={"outline"}
         size={"xl"}
         className={clsx(
@@ -111,6 +158,7 @@ export default function Payment({
         onClick={() => {
           if (readOnly) return;
 
+          if (!isOpen) setMenuPosition(undefined);
           setIsOpen(!isOpen);
         }}
       >
@@ -127,6 +175,7 @@ export default function Payment({
           </div>
         )}
       </Button>
+      {portal && menu && typeof document !== "undefined" ? createPortal(menu, document.body) : null}
     </div>
   );
 }

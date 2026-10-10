@@ -3,11 +3,18 @@ import dayjs from "dayjs";
 import { Card } from "@/components/ui/card";
 import storage, { onStorageChange } from "@/lib/localforage";
 import { convertCurrency, filterObject } from "@/lib/utils";
-import { TBaleList, TOtherOrdersOpts, TOutList, TTableOpts, TUtangList } from "../tables/types";
+import {
+  TBaleList,
+  TOtherOrdersOpts,
+  TOutList,
+  TPaidPendingPaymentList,
+  TTableOpts,
+  TUtangList,
+} from "../tables/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PENDING_PAYMENT_CHECK_STORAGE_KEY, type PendingPaymentSnapshot } from "./pending-payment-monitor";
+import { PAID_PENDING_PAYMENT_STORAGE_KEY } from "@/lib/pending-payment-audit";
 
 type MonthBreakdown = {
   label: string;
@@ -20,15 +27,26 @@ type MonthBreakdown = {
   filteredPlasada: TOutList;
   filteredBale: TBaleList;
   filteredUtang: TUtangList;
-  pendingSnapshots: PendingPaymentSnapshot[];
+  filteredUtangPayments: TUtangList;
+  filteredPaidPendingPayments: TPaidPendingPaymentList;
+  paidPendingPaymentIds: string[];
 };
 
 type LedgerEvent = {
   date: string;
-  type: "Table rates" | "Orders" | "Plasada" | "Bale" | "Utang" | "Expenses" | "Pending payments";
+  type:
+    | "Table rates"
+    | "Orders"
+    | "Plasada"
+    | "Bale"
+    | "Utang"
+    | "Utang Income"
+    | "Expenses"
+    | "Pending payments"
+    | `Pending payment - ${string}`;
   description: string;
   amount: number;
-  kind: "income" | "expense" | "pending" | "bale" | "utang";
+  kind: "income" | "expense" | "bale" | "utang";
 };
 
 const getAmount = (amount: string | number | undefined) => Number.parseInt(String(amount || "0"), 10) || 0;
@@ -54,7 +72,7 @@ export default function MonthlyRevenue() {
       const startDate = dayjs("2026-07-01");
       const now = dayjs();
 
-      const [orders, expenses, tableHistory, pendingPayment, plasada, bale, utang, pendingSnapshots] =
+      const [orders, expenses, tableHistory, pendingPayment, plasada, bale, utang, paidPendingPayments] =
         await Promise.all([
           readStorageList<TOtherOrdersOpts[number]>("other_orders"),
           readStorageList<TOutList[number]>("out_list"),
@@ -63,7 +81,7 @@ export default function MonthlyRevenue() {
           readStorageList<TOutList[number]>("plasada_list"),
           readStorageList<TBaleList[number]>("bale_list"),
           readStorageList<TUtangList[number]>("utang_list"),
-          readStorageList<PendingPaymentSnapshot>(PENDING_PAYMENT_CHECK_STORAGE_KEY),
+          readStorageList<TPaidPendingPaymentList[number]>(PAID_PENDING_PAYMENT_STORAGE_KEY),
         ]);
       const months: MonthBreakdown[] = [];
 
@@ -91,6 +109,12 @@ export default function MonthlyRevenue() {
           filter_to: to.toDate(),
           propertyName: "date",
         });
+        const filteredUtangPayments = filterObject({
+          object: utang.filter((record) => Boolean(record.paidAt)),
+          filter_from: from.toDate(),
+          filter_to: to.toDate(),
+          propertyName: "paidAt",
+        });
         const filteredExpenses = filterObject({
           object: expenses.filter((expense) => Number.parseInt(expense?.amount || "0", 10) > 0),
           filter_from: from.toDate(),
@@ -115,11 +139,11 @@ export default function MonthlyRevenue() {
           filter_to: to.toDate(),
           propertyName: "date",
         });
-        const filteredPendingSnapshots = filterObject({
-          object: pendingSnapshots,
+        const filteredPaidPendingPayments = filterObject({
+          object: paidPendingPayments,
           filter_from: from.toDate(),
           filter_to: to.toDate(),
-          propertyName: "date",
+          propertyName: "paidAt",
         });
 
         months.push({
@@ -133,7 +157,9 @@ export default function MonthlyRevenue() {
           filteredPlasada,
           filteredBale,
           filteredUtang,
-          pendingSnapshots: filteredPendingSnapshots,
+          filteredUtangPayments,
+          filteredPaidPendingPayments,
+          paidPendingPaymentIds: paidPendingPayments.map((payment) => payment.id),
         });
         month = month.add(1, "month");
       }
@@ -154,7 +180,7 @@ export default function MonthlyRevenue() {
         "plasada_list",
         "bale_list",
         "utang_list",
-        PENDING_PAYMENT_CHECK_STORAGE_KEY,
+        PAID_PENDING_PAYMENT_STORAGE_KEY,
       ],
       () => {
         load();
@@ -187,11 +213,27 @@ export default function MonthlyRevenue() {
         amount: getAmount(record.amount),
         kind: "utang" as const,
       })),
-      ...selectedMonth.filteredOrders.map((record) => ({
-        date: record.date,
-        type: "Orders" as const,
-        description: [record.name, record.item].filter(Boolean).join(" - ") || "Order",
-        amount: getAmount(record.amount),
+      ...selectedMonth.filteredUtangPayments.map((record) => ({
+        date: record.paidAt || record.date,
+        type: "Utang Income" as const,
+        description: [record.name, record.remarks].filter(Boolean).join(" - ") || "Utang payment",
+        amount: getAmount(record.paidAmount ?? record.amount),
+        kind: "income" as const,
+      })),
+      ...selectedMonth.filteredOrders
+        .filter((record) => !selectedMonth.paidPendingPaymentIds.includes(record.id))
+        .map((record) => ({
+          date: record.date,
+          type: "Orders" as const,
+          description: [record.name, record.item].filter(Boolean).join(" - ") || "Order",
+          amount: getAmount(record.amount),
+          kind: "income" as const,
+        })),
+      ...selectedMonth.filteredPaidPendingPayments.map((payment) => ({
+        date: payment.paidAt,
+        type: `Pending payment - ${payment.name || "Unknown"}` as const,
+        description: payment.item || payment.remarks || payment.name || "Paid pending payment",
+        amount: getAmount(payment.amount),
         kind: "income" as const,
       })),
       ...selectedMonth.filteredPlasada.map((record) => ({
@@ -201,30 +243,12 @@ export default function MonthlyRevenue() {
         amount: getAmount(record.amount),
         kind: "income" as const,
       })),
-      ...selectedMonth.filteredPendingPayments.map((record) => ({
-        date: record.date,
-        type: "Pending payments" as const,
-        description: [record.name, record.item].filter(Boolean).join(" - ") || "Pending payment",
-        amount: getAmount(record.amount),
-        kind: "pending" as const,
-      })),
       ...selectedMonth.filteredExpenses.map((record) => ({
         date: record.date,
         type: "Expenses" as const,
         description: record.label || record.remarks || "Expense",
         amount: getAmount(record.amount),
         kind: "expense" as const,
-      })),
-      ...selectedMonth.pendingSnapshots.map((snapshot) => ({
-        date: snapshot.date,
-        type: "Pending payments" as const,
-        description:
-          snapshot.items
-            .map((payment) => [payment.name, payment.item].filter(Boolean).join(" - "))
-            .filter(Boolean)
-            .join(", ") || "Outstanding payments",
-        amount: snapshot.amount,
-        kind: "pending" as const,
       })),
     ].sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf());
   }, [selectedMonth]);
@@ -294,26 +318,8 @@ export default function MonthlyRevenue() {
     return getCurrentAmountThrough(expense.date);
   };
 
-  const getCurrentAmountAtDebt = (date: string) => {
-    const debtDate = dayjs(date);
-    const previousExpense = selectedMonth?.filteredExpenses
-      .filter((expense) => dayjs(expense.date).isBefore(debtDate))
-      .sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())[0];
-
-    if (!previousExpense) return getCurrentAmountThrough(date);
-
-    const debtsSincePreviousExpense = [...selectedMonth.filteredBale, ...selectedMonth.filteredUtang]
-      .filter(
-        (item) =>
-          dayjs(item.date).isAfter(dayjs(previousExpense.date)) && !dayjs(item.date).isAfter(debtDate),
-      )
-      .reduce((total, item) => total + getAmount(item.amount), 0);
-
-    return getCurrentAmountAtExpense(previousExpense) - debtsSincePreviousExpense;
-  };
-
-  const getCurrentAmountAtBale = (bale: TBaleList[number]) => getCurrentAmountAtDebt(bale.date);
-  const getCurrentAmountAtUtang = (utang: TUtangList[number]) => getCurrentAmountAtDebt(utang.date);
+  const getCurrentAmountAtBale = (bale: TBaleList[number]) => getCurrentAmountThrough(bale.date);
+  const getCurrentAmountAtUtang = (utang: TUtangList[number]) => getCurrentAmountThrough(utang.date);
 
   const monthlyAuditItems = selectedMonth
     ? [
@@ -325,6 +331,8 @@ export default function MonthlyRevenue() {
           currentAmount: getCurrentAmountAtExpense(expense),
           key: `expense-${expense.date}-${index}`,
           expense,
+          utang: null,
+          isUtangIncome: false,
         })),
         ...selectedMonth.filteredBale.map((bale) => ({
           type: "Bale" as const,
@@ -334,6 +342,8 @@ export default function MonthlyRevenue() {
           currentAmount: getCurrentAmountAtBale(bale),
           key: `bale-${bale.id}`,
           expense: null,
+          utang: null,
+          isUtangIncome: false,
         })),
         ...selectedMonth.filteredUtang.map((utang) => ({
           type: "Utang" as const,
@@ -343,6 +353,19 @@ export default function MonthlyRevenue() {
           currentAmount: getCurrentAmountAtUtang(utang),
           key: `utang-${utang.id}`,
           expense: null,
+          utang,
+          isUtangIncome: false,
+        })),
+        ...selectedMonth.filteredUtangPayments.map((utang) => ({
+          type: "Utang Income" as const,
+          date: utang.paidAt || utang.date,
+          description: [utang.name, utang.remarks].filter(Boolean).join(" - ") || "Utang payment",
+          amount: getAmount(utang.paidAmount ?? utang.amount),
+          currentAmount: getCurrentAmountThrough(utang.paidAt || utang.date),
+          key: `utang-income-${utang.id}`,
+          expense: null,
+          utang,
+          isUtangIncome: true,
         })),
       ].sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())
     : [];
@@ -375,7 +398,11 @@ export default function MonthlyRevenue() {
                 const totalTableRates = sumAmounts(item.filteredTableHistory);
                 const totalPlasada = sumAmounts(item.filteredPlasada);
                 const totalBale = sumAmounts(item.filteredBale);
-                const totalUtang = sumAmounts(item.filteredUtang);
+                const totalUtangIssued = sumAmounts(item.filteredUtang);
+                const totalUtang = sumAmounts(item.filteredUtang.filter((entry) => !entry.paidAt));
+                const totalUtangPayments = sumAmounts(
+                  item.filteredUtangPayments.map((entry) => ({ amount: entry.paidAmount ?? entry.amount })),
+                );
                 const totalOrders = sumAmounts(item.filteredOrders);
                 const totalPendingPayments = sumAmounts(item.filteredPendingPayments);
                 const totalExpenses = sumAmounts(item.filteredExpenses);
@@ -403,7 +430,10 @@ export default function MonthlyRevenue() {
                       -{convertCurrency(totalExpenses, false)}
                     </TableCell>
                     <TableCell className='text-green-400 font-bold'>
-                      +{convertCurrency(totalAmount - totalExpenses - totalBale - totalUtang, false)}
+                      +{convertCurrency(
+                        totalAmount - totalExpenses - totalBale - totalUtangIssued + totalUtangPayments,
+                        false,
+                      )}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -443,7 +473,7 @@ export default function MonthlyRevenue() {
             <DialogTitle>
               {selectedExpense
                 ? `${selectedExpense.label || "Expense"} Audit`
-                : `${selectedMonth?.label} Expense Audits`}
+                  : `${selectedMonth?.label} Expense Audits`}
             </DialogTitle>
             <DialogDescription>
               {selectedExpense ? (
@@ -557,21 +587,28 @@ export default function MonthlyRevenue() {
                           <TableHead>Description</TableHead>
                           <TableHead className='text-right'>Amount</TableHead>
                           <TableHead className='text-right'>Current amount</TableHead>
+                          <TableHead>Payment status</TableHead>
                           <TableHead></TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {monthlyAuditItems.length > 0 ? (
                           monthlyAuditItems.map((item) => {
-                            const auditEventCount = item.expense
-                              ? getExpenseAuditEvents(item.expense).length
-                              : 0;
+                            const auditEvents = item.expense ? getExpenseAuditEvents(item.expense) : [];
+                            const auditEventCount = auditEvents.length;
+                            const hasIncome = auditEvents.some((event) => event.kind === "income");
 
                             return (
                               <TableRow key={item.key}>
                                 <TableCell>{dayjs(item.date).format("MMM D, YYYY h:mm A")}</TableCell>
                                 <TableCell
-                                  className={item.type === "Bale" || item.type === "Utang" ? "text-blue-500" : ""}
+                                  className={
+                                    item.type === "Bale" || item.type === "Utang"
+                                      ? "text-blue-500"
+                                      : item.isUtangIncome
+                                        ? "text-green-600"
+                                        : ""
+                                  }
                                 >
                                   {item.type}
                                 </TableCell>
@@ -580,16 +617,22 @@ export default function MonthlyRevenue() {
                                 </TableCell>
                                 <TableCell
                                   className={`text-right font-medium ${
-                                    item.type === "Bale" || item.type === "Utang" ? "text-blue-500" : "text-red-500"
+                                    item.type === "Bale" || item.type === "Utang"
+                                      ? "text-blue-500"
+                                      : item.isUtangIncome
+                                        ? "text-green-600"
+                                        : "text-red-500"
                                   }`}
                                 >
-                                  -{convertCurrency(item.amount, false)}
+                                  {item.isUtangIncome ? "+" : "-"}
+                                  {convertCurrency(item.amount, false)}
                                 </TableCell>
                                 <TableCell className='text-right font-semibold text-green-500'>
                                   {convertCurrency(item.currentAmount)}
                                 </TableCell>
+                                <TableCell>{item.utang ? (item.utang.paidAt ? "Paid" : "Unpaid") : "—"}</TableCell>
                                 <TableCell className='text-right'>
-                                  {item.expense && auditEventCount > 0 && (
+                                  {item.expense && hasIncome && (
                                     <Button size='sm' onClick={() => setSelectedExpense(item.expense)}>
                                       View details ({auditEventCount})
                                     </Button>
@@ -600,8 +643,8 @@ export default function MonthlyRevenue() {
                           })
                         ) : (
                           <TableRow>
-                            <TableCell colSpan={6} className='py-8 text-center text-muted-foreground'>
-                              No expenses or bale entries for this month.
+                            <TableCell colSpan={7} className='py-8 text-center text-muted-foreground'>
+                              No expense, bale, or utang entries for this month.
                             </TableCell>
                           </TableRow>
                         )}

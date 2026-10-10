@@ -7,6 +7,7 @@ import { TInventoryList, TOptions, TOtherOrdersOpts, TOtherOrdersOptsData } from
 import Payment from "../payment";
 import dayjs from "dayjs";
 import storage, { updateStorageItem } from "@/lib/localforage";
+import { recordPaidPendingPayments } from "@/lib/pending-payment-audit";
 import { isEmpty } from "lodash";
 
 export function capitalizeFirstLetter(str) {
@@ -288,9 +289,10 @@ export default function OtherOrder({
         mop={data?.mop}
         // readOnly={data?.mop}
         onPayClick={async (type) => {
-          const xx = async (v: TOtherOrdersOpts) => {
-            await updatePendingPayments((pendingPayments) =>
-              pendingPayments
+          let paidPendingPayment: TOtherOrdersOpts[number] | undefined;
+          await updatePendingPayments((pendingPayments) => {
+            paidPendingPayment = pendingPayments.find((item) => item.id === data.id);
+            return pendingPayments
                 .map((item) =>
                   item.id === data.id
                     ? { ...item, mop: type, date: item.date || dayjs().format("YYYY/MM/DD hh:mm A") }
@@ -303,9 +305,11 @@ export default function OtherOrder({
                     x?.item?.length > 0 ||
                     x?.name?.length > 0 ||
                     x?.remarks?.length > 0),
-                ),
-            );
-          };
+                );
+          });
+          if (paidPendingPayment) {
+            await recordPaidPendingPayments([{ ...paidPendingPayment, mop: type }]);
+          }
 
           setOtherOrders((prevState) => {
             const v = prevState?.map((x, y) => {
@@ -319,8 +323,6 @@ export default function OtherOrder({
 
               return x;
             });
-
-            xx(v);
 
             return v;
           });

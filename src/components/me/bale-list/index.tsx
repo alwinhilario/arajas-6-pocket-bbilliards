@@ -202,7 +202,7 @@ export default function BaleList() {
           </TableBody>
         </Table>
       </div>
-      <div className='font-bold text-blue-500'>Total Bale: -{convertCurrency(total, false)}</div>
+      <div className='font-bold text-blue-500 text-xl'>Total Bale: -{convertCurrency(total, false)}</div>
     </Card>
   );
 }
