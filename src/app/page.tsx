@@ -386,9 +386,7 @@ export default function Home() {
           </div>
         </div>
 
-        <br />
-
-        <div>
+        <div className='pt-3'>
           {page === 1 && <Tables />}
           {page === 2 && <OtherOrders />}
           {page === 3 && <PlasadaList />}
