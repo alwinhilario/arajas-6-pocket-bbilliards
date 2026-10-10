@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { Card } from "@/components/ui/card";
 import storage, { onStorageChange } from "@/lib/localforage";
 import { convertCurrency, filterObject } from "@/lib/utils";
-import { TOtherOrdersOpts, TOutList, TTableOpts } from "../tables/types";
+import { TBaleList, TOtherOrdersOpts, TOutList, TTableOpts } from "../tables/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -18,15 +18,16 @@ type MonthBreakdown = {
   filteredTableHistory: TTableOpts;
   filteredPendingPayments: TOtherOrdersOpts;
   filteredPlasada: TOutList;
+  filteredBale: TBaleList;
   pendingSnapshots: PendingPaymentSnapshot[];
 };
 
 type LedgerEvent = {
   date: string;
-  type: "Table rates" | "Orders" | "Plasada" | "Expenses" | "Pending payments";
+  type: "Table rates" | "Orders" | "Plasada" | "Bale" | "Expenses" | "Pending payments";
   description: string;
   amount: number;
-  kind: "income" | "expense" | "pending";
+  kind: "income" | "expense" | "pending" | "bale";
 };
 
 const getAmount = (amount: string | number | undefined) => Number.parseInt(String(amount || "0"), 10) || 0;
@@ -43,14 +44,16 @@ export default function MonthlyRevenue() {
       const startDate = dayjs("2026-07-01");
       const now = dayjs();
 
-      const [orders, expenses, tableHistory, pendingPayment, plasada, pendingSnapshots] = await Promise.all([
-        storage.getItem<TOtherOrdersOpts>("other_orders"),
-        storage.getItem<TOutList>("out_list"),
-        storage.getItem<TTableOpts>("all_tables_list"),
-        storage.getItem<TOtherOrdersOpts>("pending_payment"),
-        storage.getItem<TOutList>("plasada_list"),
-        storage.getItem<PendingPaymentSnapshot[]>(PENDING_PAYMENT_CHECK_STORAGE_KEY),
-      ]);
+      const [orders, expenses, tableHistory, pendingPayment, plasada, bale, pendingSnapshots] =
+        await Promise.all([
+          storage.getItem<TOtherOrdersOpts>("other_orders"),
+          storage.getItem<TOutList>("out_list"),
+          storage.getItem<TTableOpts>("all_tables_list"),
+          storage.getItem<TOtherOrdersOpts>("pending_payment"),
+          storage.getItem<TOutList>("plasada_list"),
+          storage.getItem<TBaleList>("bale_list"),
+          storage.getItem<PendingPaymentSnapshot[]>(PENDING_PAYMENT_CHECK_STORAGE_KEY),
+        ]);
       const months: MonthBreakdown[] = [];
 
       let month = startDate.startOf("month");
@@ -61,6 +64,12 @@ export default function MonthlyRevenue() {
 
         const filteredOrders = filterObject({
           object: orders?.filter((x) => x?.mop && x?.mop?.length > 0),
+          filter_from: from.toDate(),
+          filter_to: to.toDate(),
+          propertyName: "date",
+        });
+        const filteredBale = filterObject({
+          object: bale,
           filter_from: from.toDate(),
           filter_to: to.toDate(),
           propertyName: "date",
@@ -105,6 +114,7 @@ export default function MonthlyRevenue() {
           filteredTableHistory,
           filteredPendingPayments,
           filteredPlasada,
+          filteredBale,
           pendingSnapshots: filteredPendingSnapshots,
         });
         month = month.add(1, "month");
@@ -124,6 +134,7 @@ export default function MonthlyRevenue() {
         "all_tables_list",
         "pending_payment",
         "plasada_list",
+        "bale_list",
         PENDING_PAYMENT_CHECK_STORAGE_KEY,
       ],
       () => {
@@ -142,6 +153,13 @@ export default function MonthlyRevenue() {
         description: record.value?.replaceAll("_", " ") || "Table",
         amount: getAmount(record.amount),
         kind: "income" as const,
+      })),
+      ...selectedMonth.filteredBale.map((record) => ({
+        date: record.date,
+        type: "Bale" as const,
+        description: [record.name, record.remarks].filter(Boolean).join(" - ") || "Bale",
+        amount: getAmount(record.amount),
+        kind: "bale" as const,
       })),
       ...selectedMonth.filteredOrders.map((record) => ({
         date: record.date,
@@ -185,6 +203,20 @@ export default function MonthlyRevenue() {
     ].sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf());
   }, [selectedMonth]);
 
+  const getCurrentAmountThrough = React.useCallback(
+    (date: string) => {
+      const cutoff = dayjs(date);
+      return ledgerEvents.reduce((total, event) => {
+        const eventDate = dayjs(event.date);
+        if (!eventDate.isValid() || eventDate.isAfter(cutoff)) return total;
+        if (event.kind === "income") return total + event.amount;
+        if (event.kind === "expense" || event.kind === "bale") return total - event.amount;
+        return total;
+      }, 0);
+    },
+    [ledgerEvents],
+  );
+
   const previousExpense = selectedExpense
     ? selectedMonth?.filteredExpenses
         .filter((expense) => dayjs(expense.date).isBefore(dayjs(selectedExpense.date)))
@@ -217,57 +249,63 @@ export default function MonthlyRevenue() {
 
   const expenseAuditRows = React.useMemo(() => {
     if (!selectedExpense) return [];
-    const previousExpenseDate = previousExpense ? dayjs(previousExpense.date) : null;
-    let currentAmount = ledgerEvents.reduce((total, event) => {
-      const eventDate = dayjs(event.date);
-      if (!eventDate.isValid() || (previousExpenseDate && eventDate.isAfter(previousExpenseDate))) {
-        return total;
-      }
-      if (event.kind === "income") return total + event.amount;
-      if (event.kind === "expense") return total - event.amount;
-      return total;
-    }, 0);
+    let currentAmount = previousExpense ? getCurrentAmountThrough(previousExpense.date) : 0;
 
     return [...expenseAuditEvents]
       .sort((first, second) => dayjs(first.date).valueOf() - dayjs(second.date).valueOf())
       .map((event) => {
         if (event.kind === "income") currentAmount += event.amount;
+        if (event.kind === "bale") currentAmount -= event.amount;
         return { ...event, currentAmount };
       })
       .reverse();
-  }, [expenseAuditEvents, ledgerEvents, previousExpense, selectedExpense]);
-
-  const expenseAuditTotal = selectedExpense
-    ? ledgerEvents.reduce((total, event) => {
-        const eventDate = dayjs(event.date);
-        if (previousExpense && !eventDate.isAfter(dayjs(previousExpense.date))) return total;
-        if (eventDate.isAfter(dayjs(selectedExpense.date))) return total;
-        if (event.kind === "income") return total + event.amount;
-        if (event.kind === "expense") return total - event.amount;
-        return total;
-      }, 0)
-    : 0;
-  const amountBeforePreviousExpense = previousExpense
-    ? ledgerEvents.reduce((total, event) => {
-        const eventDate = dayjs(event.date);
-        if (!eventDate.isValid() || eventDate.isAfter(dayjs(previousExpense.date))) return total;
-        if (event.kind === "income") return total + event.amount;
-        if (event.kind === "expense") return total - event.amount;
-        return total;
-      }, 0)
-    : 0;
-  const currentAmountAfterExpense = amountBeforePreviousExpense + expenseAuditTotal;
+  }, [expenseAuditEvents, getCurrentAmountThrough, previousExpense, selectedExpense]);
+  const currentAmountAfterExpense = selectedExpense ? getCurrentAmountThrough(selectedExpense.date) : 0;
 
   const getCurrentAmountAtExpense = (expense: TOutList[number]) => {
-    const expenseDate = dayjs(expense.date);
-    return ledgerEvents.reduce((total, event) => {
-      const eventDate = dayjs(event.date);
-      if (!eventDate.isValid() || eventDate.isAfter(expenseDate)) return total;
-      if (event.kind === "income") return total + event.amount;
-      if (event.kind === "expense") return total - event.amount;
-      return total;
-    }, 0);
+    return getCurrentAmountThrough(expense.date);
   };
+
+  const getCurrentAmountAtBale = (bale: TBaleList[number]) => {
+    const baleDate = dayjs(bale.date);
+    const previousExpense = selectedMonth?.filteredExpenses
+      .filter((expense) => dayjs(expense.date).isBefore(baleDate))
+      .sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())[0];
+
+    if (!previousExpense) return getCurrentAmountThrough(bale.date);
+
+    const balesSincePreviousExpense = selectedMonth.filteredBale
+      .filter(
+        (item) =>
+          dayjs(item.date).isAfter(dayjs(previousExpense.date)) && !dayjs(item.date).isAfter(baleDate),
+      )
+      .reduce((total, item) => total + getAmount(item.amount), 0);
+
+    return getCurrentAmountAtExpense(previousExpense) - balesSincePreviousExpense;
+  };
+
+  const monthlyAuditItems = selectedMonth
+    ? [
+        ...selectedMonth.filteredExpenses.map((expense, index) => ({
+          type: "Expense" as const,
+          date: expense.date,
+          description: expense.label || expense.remarks || "Expense",
+          amount: getAmount(expense.amount),
+          currentAmount: getCurrentAmountAtExpense(expense),
+          key: `expense-${expense.date}-${index}`,
+          expense,
+        })),
+        ...selectedMonth.filteredBale.map((bale) => ({
+          type: "Bale" as const,
+          date: bale.date,
+          description: [bale.name, bale.remarks].filter(Boolean).join(" - ") || "Bale",
+          amount: getAmount(bale.amount),
+          currentAmount: getCurrentAmountAtBale(bale),
+          key: `bale-${bale.id}`,
+          expense: null,
+        })),
+      ].sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())
+    : [];
 
   return (
     <Card className='space-y-5 p-5'>
@@ -281,6 +319,7 @@ export default function MonthlyRevenue() {
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL TABLE RATES</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL ORDERS</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL PLASADA</TableHead>
+              <TableHead className='font-bold px-2 text-gray-600'>BALE</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL AMOUNT</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL PENDING PAYMENTS</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL EXPENSES</TableHead>
@@ -294,6 +333,7 @@ export default function MonthlyRevenue() {
               myMonths.map((item, key) => {
                 const totalTableRates = sumAmounts(item.filteredTableHistory);
                 const totalPlasada = sumAmounts(item.filteredPlasada);
+                const totalBale = sumAmounts(item.filteredBale);
                 const totalOrders = sumAmounts(item.filteredOrders);
                 const totalPendingPayments = sumAmounts(item.filteredPendingPayments);
                 const totalExpenses = sumAmounts(item.filteredExpenses);
@@ -306,6 +346,9 @@ export default function MonthlyRevenue() {
                     <TableCell>{convertCurrency(totalTableRates)}</TableCell>
                     <TableCell>{convertCurrency(totalOrders)}</TableCell>
                     <TableCell>{convertCurrency(totalPlasada)}</TableCell>
+                    <TableCell className='font-bold text-blue-500'>
+                      -{convertCurrency(totalBale, false)}
+                    </TableCell>
                     <TableCell>{convertCurrency(totalAmount)}</TableCell>
                     <TableCell className='font-bold'>
                       {convertCurrency(totalPendingPayments, false)}
@@ -314,7 +357,7 @@ export default function MonthlyRevenue() {
                       -{convertCurrency(totalExpenses, false)}
                     </TableCell>
                     <TableCell className='text-green-400 font-bold'>
-                      +{convertCurrency(totalAmount - totalExpenses, false)}
+                      +{convertCurrency(totalAmount - totalExpenses - totalBale, false)}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -332,7 +375,7 @@ export default function MonthlyRevenue() {
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={9} className='text-center pt-5 text-gray-400'>
+                <TableCell colSpan={10} className='text-center pt-5 text-gray-400'>
                   No data found...
                 </TableCell>
               </TableRow>
@@ -426,14 +469,19 @@ export default function MonthlyRevenue() {
                               <TableCell>{event.type}</TableCell>
                               <TableCell className='max-w-72 whitespace-normal'>
                                 <div className='line-clamp-3' title={event.description}>
-                                {event.description}
+                                  {event.description}
                                 </div>
                               </TableCell>
                               <TableCell
                                 className={`text-right font-medium ${
-                                  event.kind === "income" ? "text-green-600" : "text-amber-600"
+                                  event.kind === "income"
+                                    ? "text-green-600"
+                                    : event.kind === "bale"
+                                      ? "text-blue-500"
+                                      : "text-amber-600"
                                 }`}
                               >
+                                {event.kind === "bale" ? "-" : "+"}
                                 {convertCurrency(event.amount, false)}
                               </TableCell>
                               <TableCell className='text-right font-semibold text-green-500'>
@@ -453,39 +501,48 @@ export default function MonthlyRevenue() {
                   </div>
                 </>
               ) : (
-                <div className='max-h-[55vh] overflow-auto'>
-                  <Table>
-                    <TableHeader className='sticky top-0 bg-gray-100/95'>
-                      <TableRow>
-                        <TableHead>Date &amp; time</TableHead>
-                        <TableHead>Expense</TableHead>
-                        <TableHead className='text-right'>Amount</TableHead>
-                        <TableHead className='text-right'>Current amount</TableHead>
-                        <TableHead></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {selectedMonth.filteredExpenses.length > 0 ? (
-                        [...selectedMonth.filteredExpenses]
-                          .sort((first, second) => dayjs(second.date).valueOf() - dayjs(first.date).valueOf())
-                          .map((expense, index) => {
-                            const auditEventCount = getExpenseAuditEvents(expense).length;
+                <>
+                  <div className='max-h-[55vh] overflow-auto'>
+                    <Table>
+                      <TableHeader className='sticky top-0 bg-gray-100/95'>
+                        <TableRow>
+                          <TableHead>Date &amp; time</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Description</TableHead>
+                          <TableHead className='text-right'>Amount</TableHead>
+                          <TableHead className='text-right'>Current amount</TableHead>
+                          <TableHead></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {monthlyAuditItems.length > 0 ? (
+                          monthlyAuditItems.map((item) => {
+                            const auditEventCount = item.expense
+                              ? getExpenseAuditEvents(item.expense).length
+                              : 0;
 
                             return (
-                              <TableRow key={`${expense.date}-${expense.label}-${index}`}>
-                                <TableCell>{dayjs(expense.date).format("MMM D, YYYY h:mm A")}</TableCell>
-                                <TableCell className='max-w-72 whitespace-normal'>
-                                  {expense.label || expense.remarks || "Expense"}
+                              <TableRow key={item.key}>
+                                <TableCell>{dayjs(item.date).format("MMM D, YYYY h:mm A")}</TableCell>
+                                <TableCell className={item.type === "Bale" ? "text-blue-500" : ""}>
+                                  {item.type}
                                 </TableCell>
-                                <TableCell className='text-right font-medium text-red-500'>
-                                  -{convertCurrency(getAmount(expense.amount), false)}
+                                <TableCell className='max-w-72 whitespace-normal'>
+                                  {item.description}
+                                </TableCell>
+                                <TableCell
+                                  className={`text-right font-medium ${
+                                    item.type === "Bale" ? "text-blue-500" : "text-red-500"
+                                  }`}
+                                >
+                                  -{convertCurrency(item.amount, false)}
                                 </TableCell>
                                 <TableCell className='text-right font-semibold text-green-500'>
-                                  {convertCurrency(getCurrentAmountAtExpense(expense))}
+                                  {convertCurrency(item.currentAmount)}
                                 </TableCell>
                                 <TableCell className='text-right'>
-                                  {auditEventCount > 0 && (
-                                    <Button size='sm' onClick={() => setSelectedExpense(expense)}>
+                                  {item.expense && auditEventCount > 0 && (
+                                    <Button size='sm' onClick={() => setSelectedExpense(item.expense)}>
                                       View details ({auditEventCount})
                                     </Button>
                                   )}
@@ -493,16 +550,17 @@ export default function MonthlyRevenue() {
                               </TableRow>
                             );
                           })
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={5} className='py-8 text-center text-muted-foreground'>
-                            No expenses to audit for this month.
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+                        ) : (
+                          <TableRow>
+                            <TableCell colSpan={6} className='py-8 text-center text-muted-foreground'>
+                              No expenses or bale entries for this month.
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
               )}
             </>
           )}

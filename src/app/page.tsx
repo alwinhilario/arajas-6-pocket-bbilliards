@@ -30,6 +30,7 @@ import { PiNoteFill } from "react-icons/pi";
 import { MdOutlineDoubleArrow, MdOutlineInventory, MdTableRestaurant } from "react-icons/md";
 import OutListAll from "@/components/me/out-list-all";
 import PendingPaymentMonitor from "@/components/me/monthly-revenue/pending-payment-monitor";
+import BaleList from "@/components/me/bale-list";
 
 dayjs.extend(duration);
 
@@ -322,6 +323,19 @@ export default function Home() {
                 <IoPeople className='h-5 w-5 text-gray-700' />
                 <div>Players</div>
               </button>
+              <button
+                onClick={() => setPage(11)}
+                type='button'
+                className={clsx(
+                  "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md",
+                  {
+                    "bg-white": page === 11,
+                  },
+                )}
+              >
+                <FaMoneyBillWave className='h-4 w-4 text-blue-500' />
+                <div className='text-blue-500'>Bale</div>
+              </button>
             </div>
           </div>
 
@@ -363,6 +377,7 @@ export default function Home() {
           {page === 8 && <AllTableList />}
           {page === 9 && <InventoryList />}
           {page === 10 && <NameList />}
+          {page === 11 && <BaleList />}
 
           <br />
           <DailyRevenue />

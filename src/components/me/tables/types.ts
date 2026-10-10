@@ -58,6 +58,16 @@ export type TOutList = {
   remarks: string;
 }[];
 
+export type TBaleEntry = {
+  id: string;
+  name: string;
+  amount: string;
+  date: string;
+  remarks: string;
+};
+
+export type TBaleList = TBaleEntry[];
+
 export type TOptions = { id: string; label: string; value: string }[];
 export type TInventoryData = {
   id: string;
