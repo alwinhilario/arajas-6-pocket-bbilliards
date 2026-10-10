@@ -6,7 +6,7 @@ import Table from "./table";
 import storage, { onStorageChange } from "@/lib/localforage";
 import { TTableOpts, TTableOptsData } from "./types";
 import { isEmpty } from "lodash";
-import { NAME_OPTS, TABLE_OPTS } from "@/app/constants";
+import { mergeTableOptions, NAME_OPTS, TABLE_OPTS } from "@/app/constants";
 import dayjs from "dayjs";
 import { myData } from "@/app/test";
 
@@ -16,7 +16,6 @@ export default function Tables() {
   const [currentTable, setCurrentTable] = React.useState<TTableOptsData>();
 
   React.useEffect(() => {
-
     //  Object.entries(myData).map(([key, value]) => {
     //     const load = async () => {
     //       const data1 = await storage.setItem(key, value);
@@ -26,8 +25,8 @@ export default function Tables() {
     //   });
 
     const load = async () => {
-      const data = ((await storage.getItem("tables")) || TABLE_OPTS) as TTableOpts;
-      setTables(data);
+      const data = await storage.getItem<TTableOpts>("tables");
+      setTables(mergeTableOptions(data));
     };
 
     load();
@@ -43,7 +42,6 @@ export default function Tables() {
           setIsOpen={setIsOpen}
           currentTable={currentTable}
           onConfirm={async (data) => {
-            console.log({ data });
             const newTables = tables?.map((item) => {
               if (item?.value === data?.value) {
                 return {
@@ -61,8 +59,6 @@ export default function Tables() {
 
               return item;
             });
-
-            console.log({ newTables });
 
             await storage.setItem("tables", newTables);
 
@@ -103,7 +99,7 @@ export default function Tables() {
 
       {/* <br /> */}
 
-      <div className='grid grid-cols-3 gap-4'>
+      <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
         {tables?.map((item, key) => (
           <Table
             data={item}

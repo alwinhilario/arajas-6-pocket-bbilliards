@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import type { TTableOpts } from "@/components/me/tables/types";
 
 export const OTHER_ORDERS = [
   {
@@ -234,7 +235,52 @@ export const TABLE_OPTS = [
     ],
     remarks: "",
   },
+  {
+    label: "Table 7",
+    value: "table_7",
+    in: "",
+    out: "",
+    hours: "",
+    status: "",
+    diff: {
+      hours: 0,
+      minutes: 0,
+    },
+    remaining_time: "",
+    table_rates: "",
+    mop: [
+      {
+        label: "",
+        amount: "",
+        remarks: "",
+      },
+    ],
+    result: "",
+    is_open_time: false,
+    amount: "",
+    others: [
+      {
+        item: "",
+        amount: "",
+        remarks: "",
+      },
+    ],
+    remarks: "",
+  },
 ];
+
+export const mergeTableOptions = (storedTables: TTableOpts | null | undefined): TTableOpts => {
+  const savedTables = Array.isArray(storedTables) ? storedTables : [];
+  const configuredTables = TABLE_OPTS.map((defaultTable) => {
+    const savedTable = savedTables.find((table) => table?.value === defaultTable.value);
+    return savedTable ? { ...defaultTable, ...savedTable } : defaultTable;
+  });
+  const additionalTables = savedTables.filter(
+    (table) => !TABLE_OPTS.some((defaultTable) => defaultTable.value === table?.value),
+  );
+
+  return [...configuredTables, ...additionalTables];
+};
 
 export const INVENTORY_OPTS = [];
 export const NAME_OPTS = [];

@@ -18,6 +18,7 @@ import Payment from "../payment";
 import { isEmpty } from "lodash";
 import { convertCurrency } from "@/lib/utils";
 import { IoClose } from "react-icons/io5";
+import { getEffectiveOutTime, getTableDuration } from "./time-utils";
 
 dayjs.extend(duration);
 dayjs.extend(customParseFormat);
@@ -46,7 +47,7 @@ export default function Table({
   const totalOthers = data?.others?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
 
   const currentTime = dayjs();
-  const outTime = dayjs(data?.out);
+  const outTime = getEffectiveOutTime(data?.in || "", data?.out || "");
   const diff = outTime.diff(currentTime);
   const d = dayjs.duration(diff);
 
@@ -78,22 +79,19 @@ export default function Table({
   // }, []);
 
   const hours = React.useMemo(() => {
-    const currentTime = dayjs(data?.in);
-    const outTime = dayjs(data?.out);
-    const diff = outTime.diff(currentTime);
-    const d = dayjs.duration(diff);
+    const d = getTableDuration(data?.in || "", data?.out || "");
 
     let $v = "";
 
-    if (d.hours() > 0) {
-      $v = `${d.hours()} hour${d.hours() !== 1 ? "s" : ""}`;
+    if (d.hours > 0) {
+      $v = `${d.hours} hour${d.hours !== 1 ? "s" : ""}`;
 
-      if (d.minutes() !== 0) {
-        $v = $v.concat(` and ${d.minutes()} minute${d.minutes() !== 1 ? "s" : ""}`);
+      if (d.minutes !== 0) {
+        $v = $v.concat(` and ${d.minutes} minute${d.minutes !== 1 ? "s" : ""}`);
       }
     } else {
-      if (d.minutes() !== 0) {
-        $v = $v.concat(` ${d.minutes()} minute${d.minutes() !== 1 ? "s" : ""}`);
+      if (d.minutes !== 0) {
+        $v = $v.concat(` ${d.minutes} minute${d.minutes !== 1 ? "s" : ""}`);
       }
     }
 
@@ -110,7 +108,7 @@ export default function Table({
 
     const updateTimer = () => {
       const currentTime = dayjs();
-      const outTime = dayjs(data?.out);
+      const outTime = getEffectiveOutTime(data?.in || "", data?.out || "");
       const diff = outTime.diff(currentTime);
       const d = dayjs.duration(diff);
 
@@ -200,16 +198,13 @@ export default function Table({
                   return 750;
                 }
 
-                const inTime = dayjs(data.in);
-                const outTime = dayjs();
-                const diff = outTime.diff(inTime);
-                const d = dayjs.duration(diff);
+                const d = getTableDuration(data.in, dayjs().format("YYYY/MM/DD HH:mm:ss"));
 
                 let value;
-                const hourlyRate = d?.hours() * HOURLY_RATE;
+                const hourlyRate = d.hours * HOURLY_RATE;
                 value = hourlyRate;
 
-                const midRate = d?.minutes();
+                const midRate = d.minutes;
 
                 if (midRate > 30 && midRate > 30 + MID_THRESHOLD_RATE) {
                   value = value + 150;
@@ -451,7 +446,7 @@ export default function Table({
                     }}
                   >
                     {(data?.in || data?.out) && <MdEdit className='h-3 w-3' />}
-                    {data?.in || data?.out ? "Manage" : "Time In"}
+                    {data?.in || data?.out ? "" : "Time In"}
                   </Button>
                 </div>
 
@@ -468,16 +463,13 @@ export default function Table({
                               return 750;
                             }
 
-                            const inTime = dayjs(data.in);
-                            const outTime = dayjs();
-                            const diff = outTime.diff(inTime);
-                            const d = dayjs.duration(diff);
+                            const d = getTableDuration(data.in, dayjs().format("YYYY/MM/DD HH:mm:ss"));
 
                             let value;
-                            const hourlyRate = d?.hours() * HOURLY_RATE;
+                            const hourlyRate = d.hours * HOURLY_RATE;
                             value = hourlyRate;
 
-                            const midRate = d?.minutes();
+                            const midRate = d.minutes;
 
                             if (midRate > 30 && midRate > 30 + MID_THRESHOLD_RATE) {
                               value = value + 150;
@@ -519,7 +511,6 @@ export default function Table({
                         }}
                       >
                         <FaClock className='h-3 w-3' />
-                        Calculate
                       </Button>
                     )}
 
@@ -537,7 +528,6 @@ export default function Table({
                       }}
                     >
                       <FaClock className='h-3 w-3' />
-                      Time Out
                     </Button>
 
                     {/* {!(d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out)) && ( */}
@@ -550,7 +540,6 @@ export default function Table({
                       }}
                     >
                       <FaExchangeAlt className='h-3 w-3' />
-                      Transfer
                     </Button>
                     <Button
                       size='llg'

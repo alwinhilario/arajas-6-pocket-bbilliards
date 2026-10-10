@@ -16,6 +16,7 @@ import { HiSparkles } from "react-icons/hi2";
 import { IoClose } from "react-icons/io5";
 import clsx from "clsx";
 import Payment from "../payment";
+import { combineOutTime, getEffectiveOutTime, getTableDuration } from "./time-utils";
 
 dayjs.extend(duration);
 dayjs.extend(customParseFormat);
@@ -73,24 +74,21 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
     load();
   }, []);
 
-  const inTime = dayjs(state.in);
-  const outTime = dayjs(state.out);
-  const diff = outTime.diff(inTime);
-  const d = dayjs.duration(diff);
+  const d = getTableDuration(state.in, state.out);
   const ref = React.useRef(false);
 
   const result = React.useMemo(() => {
     let $v = "";
 
-    if (d.hours() > 0) {
-      $v = `${d.hours()} hour${d.hours() !== 1 ? "s" : ""}`;
+    if (d.hours > 0) {
+      $v = `${d.hours} hour${d.hours !== 1 ? "s" : ""}`;
 
-      if (d.minutes() !== 0) {
-        $v = $v.concat(` and ${d.minutes()} minute${d.minutes() !== 1 ? "s" : ""}`);
+      if (d.minutes !== 0) {
+        $v = $v.concat(` and ${d.minutes} minute${d.minutes !== 1 ? "s" : ""}`);
       }
     } else {
-      if (d.minutes() !== 0) {
-        $v = $v.concat(` ${d.minutes()} minute${d.minutes() !== 1 ? "s" : ""}`);
+      if (d.minutes !== 0) {
+        $v = $v.concat(` ${d.minutes} minute${d.minutes !== 1 ? "s" : ""}`);
       }
     }
 
@@ -106,7 +104,10 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
     setState((prevState) => ({
       ...prevState,
       in: currentTable?.in || currentTime,
-      out: currentTable?.out,
+      out:
+        currentTable?.in && currentTable?.out
+          ? getEffectiveOutTime(currentTable.in, currentTable.out).format("YYYY/MM/DD HH:mm:ss")
+          : currentTable?.out,
       id: currentTable?.id,
       mop: currentTable?.mop,
       others: currentTable?.others,
@@ -128,10 +129,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
     setState((prevState) => ({
       ...prevState,
       hours: result,
-      diff: {
-        hours: d.hours(),
-        minutes: d.minutes(),
-      },
+      diff: { hours: d.hours, minutes: d.minutes },
       table_rates: currentTable?.table_rates,
     }));
   }, [result]);
@@ -291,7 +289,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
               onChange={(e) =>
                 setState((prevState) => ({
                   ...prevState,
-                  out: `${dayjs(prevState.out).format("YYYY/MM/DD")} ${e.target.value}`,
+                  out: combineOutTime(prevState.in, e.target.value),
                 }))
               }
               className='h-14 !text-4xl appearance-none bg-gray-100 font-bold [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none'
@@ -679,16 +677,13 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
             className={"flex-1 cursor-pointer"}
             onClick={() => {
               const getAmount = () => {
-                const inTime = dayjs(state.in);
-                const outTime = dayjs(state.out);
-                const diff = outTime.diff(inTime);
-                const d = dayjs.duration(diff);
+                const d = getTableDuration(state.in, state.out);
 
                 let value;
-                const hourlyRate = d?.hours() * HOURLY_RATE;
+                const hourlyRate = d.hours * HOURLY_RATE;
                 value = hourlyRate;
 
-                const midRate = d?.minutes();
+                const midRate = d.minutes;
 
                 if (midRate >= 30 && midRate >= 30 + MID_THRESHOLD_RATE) {
                   value = value + 150;

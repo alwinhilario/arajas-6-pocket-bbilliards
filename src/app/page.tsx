@@ -16,7 +16,7 @@ import PlasadaList from "@/components/me/plasada-list";
 import RemarksList from "@/components/me/remarks-list";
 import RevenueList from "@/components/me/revenue-list";
 import storage, { onStorageChange } from "@/lib/localforage";
-import { TABLE_OPTS } from "./constants";
+import { mergeTableOptions } from "./constants";
 import { TTableOpts } from "@/components/me/tables/types";
 import duration from "dayjs/plugin/duration";
 import clsx from "clsx";
@@ -74,8 +74,8 @@ const RemainingTableTime = ({ storageUsed }: { storageUsed: string }) => {
 
   React.useEffect(() => {
     const loadTables = async () => {
-      const data = ((await storage.getItem("tables")) || TABLE_OPTS) as TTableOpts;
-      setTables(data || []);
+      const data = await storage.getItem<TTableOpts>("tables");
+      setTables(mergeTableOptions(data));
     };
 
     loadTables();
