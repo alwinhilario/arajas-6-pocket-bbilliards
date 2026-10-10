@@ -1,6 +1,13 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function DailyReport({ data }: { data: any }) {
+  const orders = Array.isArray(data?.orders) ? data.orders : [];
+  const expenses = Array.isArray(data?.expenses) ? data.expenses : [];
+  const remarks = Array.isArray(data?.remarks) ? data.remarks : [];
+  const plasada = Array.isArray(data?.plasada) ? data.plasada : [];
+  const tableHistory = Array.isArray(data?.tableHistory) ? data.tableHistory : [];
+  const pendingPayment = Array.isArray(data?.pendingPayment) ? data.pendingPayment : [];
+
   return (
     <div className='space-y-8'>
       {/* Orders */}
@@ -19,7 +26,7 @@ export default function DailyReport({ data }: { data: any }) {
           </TableHeader>
 
           <TableBody>
-            {data.orders.map((row: any) => (
+            {orders.map((row: any) => (
               <TableRow key={row.id}>
                 <TableCell>{row.name}</TableCell>
                 <TableCell>₱{row.amount}</TableCell>
@@ -47,7 +54,7 @@ export default function DailyReport({ data }: { data: any }) {
           </TableHeader>
 
           <TableBody>
-            {data.expenses.map((row: any) => (
+            {expenses.map((row: any) => (
               <TableRow key={row.id}>
                 <TableCell>{row.label}</TableCell>
                 <TableCell>₱{row.amount}</TableCell>
@@ -73,7 +80,7 @@ export default function DailyReport({ data }: { data: any }) {
           </TableHeader>
 
           <TableBody>
-            {data.remarks.map((row: any) => (
+            {remarks.map((row: any) => (
               <TableRow key={row.id}>
                 <TableCell>{row.label}</TableCell>
                 <TableCell>{row.remarks}</TableCell>
@@ -99,7 +106,7 @@ export default function DailyReport({ data }: { data: any }) {
           </TableHeader>
 
           <TableBody>
-            {data.plasada.map((row: any) => (
+            {plasada.map((row: any) => (
               <TableRow key={row.id}>
                 <TableCell>{row.label || "-"}</TableCell>
                 <TableCell>{row.amount || "-"}</TableCell>
@@ -131,7 +138,9 @@ export default function DailyReport({ data }: { data: any }) {
             </TableHeader>
 
             <TableBody>
-              {data.tableHistory.map((row: any) => (
+              {tableHistory.map((row: any) => {
+                const others = Array.isArray(row.others) ? row.others : [];
+                return (
                 <TableRow key={row.id}>
                   <TableCell>{row.label}</TableCell>
                   <TableCell>{row.in}</TableCell>
@@ -140,9 +149,9 @@ export default function DailyReport({ data }: { data: any }) {
                   <TableCell>₱{row.table_rates}</TableCell>
 
                   <TableCell className='min-w-40'>
-                    {row.others.length ? (
+                    {others.length ? (
                       <div className='space-y-1'>
-                        {row.others.map((o: any, i: number) => (
+                        {others.map((o: any, i: number) => (
                           <div key={i}>
                             {o.item} - ₱{o.amount}
                           </div>
@@ -157,7 +166,8 @@ export default function DailyReport({ data }: { data: any }) {
 
                   <TableCell>{row.remarks || "-"}</TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </div>
@@ -178,7 +188,7 @@ export default function DailyReport({ data }: { data: any }) {
           </TableHeader>
 
           <TableBody>
-            {data.pendingPayment.map((row: any) => (
+            {pendingPayment.map((row: any) => (
               <TableRow key={row.id}>
                 <TableCell>{row.name}</TableCell>
                 <TableCell>₱{row.amount}</TableCell>

@@ -28,7 +28,7 @@ export const filterObject = ({
   propertyName,
   filterDate = false,
 }: IProps) => {
-  const filteredData = object
+  const filteredData = (Array.isArray(object) ? object : [])
     ?.filter((item) => item?.[propertyName])
     .filter((item) => {
       return dayjs(item?.[propertyName]).isBetween(filter_from, filter_to, "second", "[]");

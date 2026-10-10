@@ -13,13 +13,23 @@ import { Button } from "@/components/ui/button";
 import { IoWarning } from "react-icons/io5";
 import DailyReport from "./details";
 
+const readStorageList = async <T,>(key: string): Promise<T[]> => {
+  const value = await storage.getItem<unknown>(key);
+  if (value === null || value === undefined) return [];
+  if (!Array.isArray(value)) {
+    console.error(`Expected local storage key "${key}" to contain a list.`);
+    return [];
+  }
+  return value.filter((item) => item !== null && typeof item === "object") as T[];
+};
+
 export default function RevenueList() {
   const [orders, setOrders] = React.useState<TOtherOrdersOpts>([]);
   const [expenses, setExpenses] = React.useState<TOutList>([]);
   const [tableHistory, setTableHistory] = React.useState<TTableOpts>([]);
   const [pendingPayment, setPendingPayment] = React.useState<TOtherOrdersOpts>([]);
-  const [plasada, setPlasada] = React.useState<TOutList>();
-  const [remarks, setRemarks] = React.useState<TOutList>();
+  const [plasada, setPlasada] = React.useState<TOutList>([]);
+  const [remarks, setRemarks] = React.useState<TOutList>([]);
   const { value } = React.useContext(SESSION_CONTEXT);
 
   const dateArray = React.useMemo(() => {
@@ -114,12 +124,14 @@ export default function RevenueList() {
 
   React.useEffect(() => {
     const load = async () => {
-      const orders = (await storage.getItem("other_orders")) as TOtherOrdersOpts;
-      const expenses = (await storage.getItem("out_list")) as TOutList;
-      const tableHistory = (await storage.getItem("all_tables_list")) as TTableOpts;
-      const pendingPayment = (await storage.getItem("pending_payment")) as TOtherOrdersOpts;
-      const plasada = (await storage.getItem("plasada_list")) as TOutList;
-      const remarks = (await storage.getItem("remarks_list")) as TOutList;
+      const [orders, expenses, tableHistory, pendingPayment, plasada, remarks] = await Promise.all([
+        readStorageList<TOtherOrdersOpts[number]>("other_orders"),
+        readStorageList<TOutList[number]>("out_list"),
+        readStorageList<TTableOpts[number]>("all_tables_list"),
+        readStorageList<TOtherOrdersOpts[number]>("pending_payment"),
+        readStorageList<TOutList[number]>("plasada_list"),
+        readStorageList<TOutList[number]>("remarks_list"),
+      ]);
 
       setRemarks(remarks);
       setOrders(orders);

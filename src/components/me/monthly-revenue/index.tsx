@@ -33,6 +33,15 @@ type LedgerEvent = {
 const getAmount = (amount: string | number | undefined) => Number.parseInt(String(amount || "0"), 10) || 0;
 const sumAmounts = (items: Array<{ amount?: string | number }>) =>
   items.reduce((total, item) => total + getAmount(item.amount), 0);
+const readStorageList = async <T,>(key: string): Promise<T[]> => {
+  const value = await storage.getItem<unknown>(key);
+  if (value === null || value === undefined) return [];
+  if (!Array.isArray(value)) {
+    console.error(`Expected local storage key "${key}" to contain a list.`);
+    return [];
+  }
+  return value.filter((item) => item !== null && typeof item === "object") as T[];
+};
 
 export default function MonthlyRevenue() {
   const [myMonths, setMyMonths] = React.useState<MonthBreakdown[]>([]);
@@ -46,13 +55,13 @@ export default function MonthlyRevenue() {
 
       const [orders, expenses, tableHistory, pendingPayment, plasada, bale, pendingSnapshots] =
         await Promise.all([
-          storage.getItem<TOtherOrdersOpts>("other_orders"),
-          storage.getItem<TOutList>("out_list"),
-          storage.getItem<TTableOpts>("all_tables_list"),
-          storage.getItem<TOtherOrdersOpts>("pending_payment"),
-          storage.getItem<TOutList>("plasada_list"),
-          storage.getItem<TBaleList>("bale_list"),
-          storage.getItem<PendingPaymentSnapshot[]>(PENDING_PAYMENT_CHECK_STORAGE_KEY),
+          readStorageList<TOtherOrdersOpts[number]>("other_orders"),
+          readStorageList<TOutList[number]>("out_list"),
+          readStorageList<TTableOpts[number]>("all_tables_list"),
+          readStorageList<TOtherOrdersOpts[number]>("pending_payment"),
+          readStorageList<TOutList[number]>("plasada_list"),
+          readStorageList<TBaleList[number]>("bale_list"),
+          readStorageList<PendingPaymentSnapshot>(PENDING_PAYMENT_CHECK_STORAGE_KEY),
         ]);
       const months: MonthBreakdown[] = [];
 
@@ -75,13 +84,13 @@ export default function MonthlyRevenue() {
           propertyName: "date",
         });
         const filteredExpenses = filterObject({
-          object: expenses?.filter((expense) => Number.parseInt(expense.amount || "0", 10) > 0),
+          object: expenses.filter((expense) => Number.parseInt(expense?.amount || "0", 10) > 0),
           filter_from: from.toDate(),
           filter_to: to.toDate(),
           propertyName: "date",
         });
         const filteredTableHistory = filterObject({
-          object: tableHistory?.filter((record) => record.status === "Timed out"),
+          object: tableHistory.filter((record) => record?.status === "Timed out"),
           filter_from: from.toDate(),
           filter_to: to.toDate(),
           propertyName: "in",
