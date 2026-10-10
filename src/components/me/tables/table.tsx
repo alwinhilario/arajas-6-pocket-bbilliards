@@ -335,7 +335,7 @@ export default function Table({
         />
       )}
       <Card
-        className={clsx("flex flex-col gap-5", {
+        className={clsx("flex flex-col gap-3.5", {
           "bg-yellow-100/60 border-yellow-500 border-2":
             d.hours() <= 0 &&
             d.minutes() < 15 &&
@@ -347,7 +347,7 @@ export default function Table({
             d.hours() <= 0 && d.minutes() <= 0 && (data?.in || data?.out) && !data?.is_open_time && !isView,
         })}
       >
-        <div className='flex items-center gap-2 p-5 pb-0 pt-2 '>
+        <div className='flex items-center gap-2 p-5 pb-0 py-0'>
           <div className='flex-1 text-2xl font-bold'>{data?.label}</div>
 
           {!isView && (
@@ -385,7 +385,7 @@ export default function Table({
               {parseInt(data?.table_rates) > 0 ? `PHP ${data?.table_rates}.00` : "--"}
             </div>
           </div>
-          <div className='flex gap-2 py-4'>
+          <div className='flex gap-2 py-5'>
             <div className='w-28'>Others</div>
             <div>
               {totalOthers > 0
@@ -415,7 +415,7 @@ export default function Table({
                 : "--"}
             </div>
           </div>
-          <div className='flex gap-2 pt-3'>
+          <div className='flex gap-2'>
             <div className='w-28'>Remarks</div>
             <div className=''>{data?.remarks || "--"}</div>
           </div>
@@ -426,7 +426,7 @@ export default function Table({
             // "!p-0 !-mt-3": !data?.in || !data?.out,
           })}
         >
-          <div className='flex flex-col gap-0.5 font-semibold'>
+          <div className='flex items-center justify-between gap-0.5 font-semibold'>
             <div className='w-40'>Total Amount</div>
             <div className='text-green-500 text-2xl font-bold'>
               {parseInt(data?.amount) > 0 ? `PHP ${parseInt(`${data?.amount || "0"}`)}.00` : "--"}
