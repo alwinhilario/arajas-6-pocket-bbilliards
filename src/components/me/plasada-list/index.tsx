@@ -212,7 +212,7 @@ export default function PlasadaList() {
               <div>Add</div>
             </Button>
           </div>
-          {filtered?.length > 0 && (
+          {/* {filtered?.length > 0 && (
             <div>
               <Button
                 variant={"warning"}
@@ -226,7 +226,7 @@ export default function PlasadaList() {
                 <div>Reset</div>
               </Button>
             </div>
-          )}
+          )} */}
         </div>
 
         {filtered?.length > 0 && (

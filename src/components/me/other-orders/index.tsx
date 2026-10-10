@@ -324,7 +324,7 @@ export default function OtherOrders() {
               <div>Add</div>
             </Button>
           </div>
-          {filtered?.length > 0 && (
+          {/* {filtered?.length > 0 && (
             <div>
               <Button
                 variant={"warning"}
@@ -338,7 +338,7 @@ export default function OtherOrders() {
                 <div>Reset</div>
               </Button>
             </div>
-          )}
+          )} */}
         </div>
 
         <div className='relative space-y-5 flex flex-col'>

@@ -138,7 +138,7 @@ export default function NotPaidList() {
         </div>
       )}
 
-      <div className='flex items-center gap-2 text-lg font-bold p-5 pb-0'>
+      {/* <div className='flex items-center gap-2 text-lg font-bold p-5 pb-0'>
         <div className='flex-1'>Pending Payments</div>
         {myResult?.length > 0 && (
           <div>
@@ -155,7 +155,7 @@ export default function NotPaidList() {
             </Button>
           </div>
         )}
-      </div>
+      </div> */}
 
       {isOpen && (
         <div
@@ -394,12 +394,13 @@ export default function NotPaidList() {
                                               }),
                                             );
 
-                                            const remainingPayments = await updateStorageItem<TOtherOrdersOpts>(
-                                              "pending_payment",
-                                              (pendingPayments) =>
-                                                pendingPayments.filter((payment) => payment.id !== x.id),
-                                              [],
-                                            );
+                                            const remainingPayments =
+                                              await updateStorageItem<TOtherOrdersOpts>(
+                                                "pending_payment",
+                                                (pendingPayments) =>
+                                                  pendingPayments.filter((payment) => payment.id !== x.id),
+                                                [],
+                                              );
                                             setTables(remainingPayments);
                                           }}
                                         >

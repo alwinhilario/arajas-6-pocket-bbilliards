@@ -93,7 +93,7 @@ export default function AllTableList() {
         </div>
       )}
 
-      <div className='flex items-center gap-2 text-lg font-bold p-5 pb-0'>
+      {/* <div className='flex items-center gap-2 text-lg font-bold p-5 pb-0'>
         <div className='flex-1'>Table Daily </div>
         <div>
           <Button
@@ -108,7 +108,7 @@ export default function AllTableList() {
             <div>Reset</div>
           </Button>
         </div>
-      </div>
+      </div> */}
 
       <div className='max-h-[290px] overflow-y-auto relative'>
         <Table>

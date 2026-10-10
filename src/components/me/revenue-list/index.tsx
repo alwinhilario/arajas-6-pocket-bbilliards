@@ -174,11 +174,7 @@ export default function RevenueList() {
                 className={"cursor-pointer flex-1"}
                 onClick={async () => {
                   await storage.setItem("all_tables_list", []);
-                  await updateStorageItem<TOtherOrdersOpts>(
-                    "pending_payment",
-                    () => OTHER_ORDERS,
-                    [],
-                  );
+                  await updateStorageItem<TOtherOrdersOpts>("pending_payment", () => OTHER_ORDERS, []);
                   await storage.setItem("plasada_list", PLASADA_LIST);
                   setIsOpen(!isOpen);
                 }}
@@ -232,7 +228,7 @@ export default function RevenueList() {
         </div>
       )}
 
-      <div className='flex items-center gap-2 text-lg font-bold p-5 pb-0'>
+      {/* <div className='flex items-center gap-2 text-lg font-bold p-5 pb-0'>
         <div className='flex-1'>Revenue History </div>
         <div>
           <Button
@@ -247,7 +243,7 @@ export default function RevenueList() {
             <div>Reset</div>
           </Button>
         </div>
-      </div>
+      </div> */}
 
       <div className='max-h-[290px] overflow-y-auto relative'>
         <Table>
