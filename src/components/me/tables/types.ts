@@ -52,10 +52,12 @@ export type TOtherOrdersOptsData = {
 
 export type TOtherOrdersOpts = TOtherOrdersOptsData[];
 export type TOutList = {
+  id?: string;
   label: string;
   date: string;
   amount: string;
   remarks: string;
+  is_all?: boolean;
 }[];
 
 export type TBaleEntry = {

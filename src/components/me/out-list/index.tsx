@@ -1,6 +1,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
-import storage from "@/lib/localforage";
+import storage, { onStorageChange, updateStorageItem } from "@/lib/localforage";
 import { TOutList } from "../tables/types";
 import { OUT_LIST } from "@/app/constants";
 import { Input } from "@/components/ui/input";
@@ -16,12 +16,18 @@ export default function OutList() {
 
   React.useEffect(() => {
     const load = async () => {
-      const item = ((await storage.getItem("out_list")) || OUT_LIST) as TOutList;
-
-      setOtherOrders(item?.sort((a, b) => dayjs(a?.date).diff(dayjs(b?.date))));
+      const item = (await storage.getItem<TOutList>("out_list")) || OUT_LIST;
+      setOtherOrders([...item].sort((a, b) => dayjs(a?.date).diff(dayjs(b?.date))));
     };
 
-    load();
+    void load();
+    return onStorageChange("out_list", (key, value) => {
+      if (Array.isArray(value)) {
+        setOtherOrders([...(value as TOutList)].sort((a, b) => dayjs(a?.date).diff(dayjs(b?.date))));
+      } else {
+        void load();
+      }
+    });
   }, []);
 
   const filtered = filterObject({
@@ -33,23 +39,25 @@ export default function OutList() {
 
   const totalAmount = filtered?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
 
-  React.useEffect(() => {
-    if (!Array.isArray(otherOrders) || (otherOrders || [])?.length <= 0) return;
-
-    const update = async () => {
-      (await storage.setItem(
-        "out_list",
-        otherOrders?.sort((a, b) => dayjs(a?.date).diff(dayjs(b?.date))),
-      )) as TOutList;
-    };
-    update();
-  }, [JSON.stringify(otherOrders)]);
+  const updateExpense = (id: string | undefined, changes: Partial<TOutList[number]>) => {
+    if (!id) return;
+    void updateStorageItem<TOutList>(
+      "out_list",
+      (current) =>
+        (Array.isArray(current) ? current : []).map((item) =>
+          item?.id === id ? { ...item, ...changes } : item,
+        ),
+      [],
+    );
+  };
 
   const [isOpen, setIsOpen] = React.useState(false);
-  const [state, setState] = React.useState({
+  const [state, setState] = React.useState<TOutList[number]>({
+    id: "",
     remarks: "",
     label: "",
     amount: "",
+    date: "",
   });
 
   return (
@@ -63,7 +71,7 @@ export default function OutList() {
             }}
           >
             <Card
-              className='p-5 cursor-default w-[420px]'
+              className='p-5 cursor-default w-105'
               onClick={(e) => {
                 e.stopPropagation();
               }}
@@ -112,21 +120,30 @@ export default function OutList() {
                     size={"xl"}
                     className={"cursor-pointer flex-1"}
                     onClick={async () => {
-                      const aggregateList = (await storage.getItem("aggregate_list")) || [];
-                      await storage.setItem("aggregate_list", [
-                        ...aggregateList,
-                        {
-                          date: dayjs().format("MMM DD, YYYY hh:mm A"),
-                          id: state?.id,
-                        },
-                      ]);
+                      await updateStorageItem<unknown[]>(
+                        "aggregate_list",
+                        (current) => [
+                          ...(Array.isArray(current) ? current : []),
+                          {
+                            date: dayjs().format("MMM DD, YYYY hh:mm A"),
+                            id: state.id,
+                          },
+                        ],
+                        [],
+                      );
 
                       setIsOpen(!isOpen);
-                      setOtherOrders((prevState) => [...prevState, state]);
+                      await updateStorageItem<TOutList>(
+                        "out_list",
+                        (current) => [...(Array.isArray(current) ? current : []), state],
+                        [],
+                      );
                       setState({
+                        id: "",
                         remarks: "",
                         label: "",
                         amount: "",
+                        date: "",
                       });
                     }}
                   >
@@ -181,18 +198,7 @@ export default function OutList() {
                       className='w-40'
                       value={item?.label}
                       onChange={(v) => {
-                        setOtherOrders((prevState) =>
-                          prevState?.map((x, y) => {
-                            if (item?.id === x?.id) {
-                              return {
-                                ...x,
-                                label: v.target.value,
-                              };
-                            }
-
-                            return x;
-                          }),
-                        );
+                        updateExpense(item.id, { label: v.target.value });
                       }}
                     />
                     <Input
@@ -201,18 +207,7 @@ export default function OutList() {
                       value={item?.amount}
                       type='number'
                       onChange={(v) => {
-                        setOtherOrders((prevState) =>
-                          prevState?.map((x, y) => {
-                            if (item?.id === x?.id) {
-                              return {
-                                ...x,
-                                amount: v.target.value,
-                              };
-                            }
-
-                            return x;
-                          }),
-                        );
+                        updateExpense(item.id, { amount: v.target.value });
                       }}
                     />
                     <Input
@@ -220,18 +215,7 @@ export default function OutList() {
                       className='w-60'
                       value={item?.remarks}
                       onChange={(v) => {
-                        setOtherOrders((prevState) =>
-                          prevState?.map((x, y) => {
-                            if (item?.id === x?.id) {
-                              return {
-                                ...x,
-                                remarks: v.target.value,
-                              };
-                            }
-
-                            return x;
-                          }),
-                        );
+                        updateExpense(item.id, { remarks: v.target.value });
                       }}
                     />
                     <Input placeholder='Date' className='w-48' value={item?.date} disabled />
@@ -241,13 +225,11 @@ export default function OutList() {
                       variant='destructive'
                       className='w-20 font-bold cursor-pointer'
                       onClick={async () => {
-                        const res = (await storage.getItem("out_list")) || [];
-                        await storage.setItem(
+                        await updateStorageItem<TOutList>(
                           "out_list",
-                          res?.filter((x, y) => item?.id !== x?.id),
+                          (current) => (Array.isArray(current) ? current : []).filter((x) => item.id !== x?.id),
+                          [],
                         );
-
-                        setOtherOrders((prevState) => prevState?.filter((x, y) => item?.id !== x?.id));
                       }}
                     >
                       <span>Remove</span>
