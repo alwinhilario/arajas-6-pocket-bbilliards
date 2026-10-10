@@ -319,9 +319,9 @@ export default function MonthlyRevenue() {
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL TABLE RATES</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL ORDERS</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL PLASADA</TableHead>
-              <TableHead className='font-bold px-2 text-gray-600'>BALE</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL AMOUNT</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL PENDING PAYMENTS</TableHead>
+              <TableHead className='font-bold px-2 text-gray-600'>TOTAL BALE</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL EXPENSES</TableHead>
               <TableHead className='font-bold px-2 text-gray-600'>TOTAL INCOME</TableHead>
               <TableHead className='font-bold px-2 '></TableHead>
@@ -346,12 +346,13 @@ export default function MonthlyRevenue() {
                     <TableCell>{convertCurrency(totalTableRates)}</TableCell>
                     <TableCell>{convertCurrency(totalOrders)}</TableCell>
                     <TableCell>{convertCurrency(totalPlasada)}</TableCell>
+
+                    <TableCell>{convertCurrency(totalAmount)}</TableCell>
+                    <TableCell className='font-bold text-red-400'>
+                      -{convertCurrency(totalPendingPayments, false)}
+                    </TableCell>
                     <TableCell className='font-bold text-blue-500'>
                       -{convertCurrency(totalBale, false)}
-                    </TableCell>
-                    <TableCell>{convertCurrency(totalAmount)}</TableCell>
-                    <TableCell className='font-bold'>
-                      {convertCurrency(totalPendingPayments, false)}
                     </TableCell>
                     <TableCell className='text-red-400 font-bold'>
                       -{convertCurrency(totalExpenses, false)}
