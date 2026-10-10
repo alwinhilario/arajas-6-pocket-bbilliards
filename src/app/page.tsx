@@ -25,7 +25,7 @@ import { IoHome, IoPeople, IoReceipt, IoWarning } from "react-icons/io5";
 import { IoMdCart } from "react-icons/io";
 import { TbCurrencyPeso } from "react-icons/tb";
 import { FaPesoSign } from "react-icons/fa6";
-import { FaCashRegister, FaMoneyBillWave } from "react-icons/fa";
+import { FaAngleDoubleRight, FaCashRegister, FaMoneyBillWave } from "react-icons/fa";
 import { PiNoteFill } from "react-icons/pi";
 import { MdOutlineDoubleArrow, MdOutlineInventory, MdTableRestaurant } from "react-icons/md";
 import OutListAll from "@/components/me/out-list-all";
@@ -268,6 +268,7 @@ export default function Home() {
                     <PiNoteFill className='h-5 w-5 text-gray-700' />
                     <div>Remarks</div>
                   </button>
+                  <FaAngleDoubleRight className='h-5 w-5 text-gray-500 mx-2' />
                   <button
                     onClick={() => setPage(6)}
                     type='button'
@@ -281,7 +282,33 @@ export default function Home() {
                     <div>
                       <IoWarning className='h-5 w-5 text-orange-500' />
                     </div>
-                    <div>Pending Payment</div>
+                    <div className='text-orange-600'>Pending Payment</div>
+                  </button>
+                  <button
+                    onClick={() => setPage(11)}
+                    type='button'
+                    className={clsx(
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md animate-bounce",
+                      {
+                        "bg-white": page === 11,
+                      },
+                    )}
+                  >
+                    <FaMoneyBillWave className='h-4 w-4 text-blue-500' />
+                    <div className='text-blue-600'>Bale</div>
+                  </button>
+                  <button
+                    onClick={() => setPage(12)}
+                    type='button'
+                    className={clsx(
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md animate-bounce",
+                      {
+                        "bg-white": page === 12,
+                      },
+                    )}
+                  >
+                    <FaMoneyBillWave className='h-4 w-4 text-blue-500' />
+                    <div className='text-blue-600'>Utang</div>
                   </button>
                 </div>
 
@@ -337,32 +364,6 @@ export default function Home() {
                   >
                     <IoPeople className='h-5 w-5 text-gray-700' />
                     <div>Players</div>
-                  </button>
-                  <button
-                    onClick={() => setPage(11)}
-                    type='button'
-                    className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md",
-                      {
-                        "bg-white": page === 11,
-                      },
-                    )}
-                  >
-                    <FaMoneyBillWave className='h-4 w-4 text-blue-600' />
-                    <div className=''>Bale</div>
-                  </button>
-                  <button
-                    onClick={() => setPage(12)}
-                    type='button'
-                    className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md",
-                      {
-                        "bg-white": page === 12,
-                      },
-                    )}
-                  >
-                    <FaMoneyBillWave className='h-4 w-4' />
-                    <div className=''>Utang</div>
                   </button>
                 </div>
               </div>
