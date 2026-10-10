@@ -32,6 +32,7 @@ import OutListAll from "@/components/me/out-list-all";
 import PendingPaymentMonitor from "@/components/me/monthly-revenue/pending-payment-monitor";
 import BaleList from "@/components/me/bale-list";
 import UtangList from "@/components/me/utang-list";
+import { getEffectiveOutTime } from "@/components/me/tables/time-utils";
 
 dayjs.extend(duration);
 
@@ -99,13 +100,18 @@ const RemainingTableTime = ({ storageUsed }: { storageUsed: string }) => {
 
   const upcoming = (tables || [])
     .filter((item) => item?.out && !item?.is_open_time)
-    .map((item) => ({
-      ...item,
-      remainingMs: dayjs(item.out).diff(now),
-    }))
+    .map((item) => {
+      const outTime = getEffectiveOutTime(item.in || "", item.out);
+      return {
+        ...item,
+        outTime,
+        remainingMs: outTime.diff(now),
+      };
+    })
     .sort((a, b) => a.remainingMs - b.remainingMs);
+  const openTimeTables = (tables || []).filter((item) => item?.is_open_time && item?.in);
 
-  if (upcoming.length === 0) return null;
+  if (upcoming.length === 0 && openTimeTables.length === 0) return null;
 
   return (
     <div className='mb-3 rounded-lg border border-gray-200 bg-white p-1.5'>
@@ -113,28 +119,42 @@ const RemainingTableTime = ({ storageUsed }: { storageUsed: string }) => {
         <div className='text-xs font-semibold uppercase tracking-wide text-gray-700'>Timeout in order</div>
         <div className='text-gray-400/70 flex items-center text-xs'>{storageUsed}</div>
       </div> */}
-      <div className='flex flex-wrap gap-2'>
-        {upcoming.map((item) => {
-          const isOut = item.remainingMs <= 0;
-          const isSoon = item.remainingMs > 0 && item.remainingMs < 15 * 60 * 1000;
+      <div className='flex items-start justify-between gap-2'>
+        <div className='flex flex-wrap gap-2'>
+          {upcoming.map((item) => {
+            const isOut = item.remainingMs <= 0;
+            const isSoon = item.remainingMs > 0 && item.remainingMs < 15 * 60 * 1000;
 
-          return (
-            <div
-              key={item.value}
-              className={clsx("flex flex-col rounded-md border p-1.5 text-[0.80rem] leading-tight", {
-                "border-red-400 bg-red-100 text-red-800": isOut,
-                "border-yellow-400 bg-yellow-100/50 text-yellow-800": isSoon,
-                "border-gray-200 bg-gray-50 text-gray-800": !isOut && !isSoon,
-              })}
-            >
-              <div className='font-semibold'>{item.label}</div>
-              <div className='font-mono tabular-nums'>Out: {dayjs(item?.out)?.format("hh:mm A")}</div>
-              <div className='font-mono tabular-nums text-blue-500'>
-                Remaining: {isOut ? "Timed out" : formatRemaining(item.remainingMs)}
+            return (
+              <div
+                key={item.value}
+                className={clsx("flex flex-col rounded-md border p-1.5 text-[0.80rem] leading-tight", {
+                  "border-red-400 bg-red-100 text-red-800": isOut,
+                  "border-yellow-400 bg-yellow-100/50 text-yellow-800": isSoon,
+                  "border-gray-200 bg-gray-50 text-gray-800": !isOut && !isSoon,
+                })}
+              >
+                <div className='font-semibold'>{item.label}</div>
+                <div className='font-mono tabular-nums'>Out: {item.outTime.format("hh:mm A")}</div>
+                <div className='font-mono tabular-nums text-blue-500'>
+                  Remaining: {isOut ? "Timed out" : formatRemaining(item.remainingMs)}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+        {openTimeTables.length > 0 && (
+          <div className='flex flex-wrap justify-end gap-2 h-full'>
+            {openTimeTables.map((item) => (
+              <div
+                key={item.value}
+                className='rounded-md border border-yellow-400 bg-yellow-100/50 p-1.5 text-[0.80rem] font-semibold leading-tight text-yellow-800'
+              >
+                {item.label}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
