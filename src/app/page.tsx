@@ -282,7 +282,7 @@ export default function Home() {
                     <div>
                       <IoWarning className='h-5 w-5 text-orange-500' />
                     </div>
-                    <div className='text-orange-600'>Pending Payment</div>
+                    <div>Pending Payment</div>
                   </button>
                   <button
                     onClick={() => setPage(11)}
@@ -295,7 +295,7 @@ export default function Home() {
                     )}
                   >
                     <FaMoneyBillWave className='h-4 w-4 text-blue-500' />
-                    <div className='text-blue-600'>Bale</div>
+                    <div>Bale</div>
                   </button>
                   <button
                     onClick={() => setPage(12)}
@@ -308,7 +308,7 @@ export default function Home() {
                     )}
                   >
                     <FaMoneyBillWave className='h-4 w-4 text-blue-500' />
-                    <div className='text-blue-600'>Utang</div>
+                    <div>Utang</div>
                   </button>
                 </div>
 
