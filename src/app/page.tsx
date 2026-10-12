@@ -207,7 +207,7 @@ export default function Home() {
                     onClick={() => setPage(1)}
                     type='button'
                     className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md",
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md border",
                       {
                         "bg-white": page === 1,
                       },
@@ -220,7 +220,7 @@ export default function Home() {
                     onClick={() => setPage(2)}
                     type='button'
                     className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md",
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md border",
                       {
                         "bg-white": page === 2,
                       },
@@ -233,7 +233,7 @@ export default function Home() {
                     onClick={() => setPage(3)}
                     type='button'
                     className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md",
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md border",
                       {
                         "bg-white": page === 3,
                       },
@@ -242,24 +242,70 @@ export default function Home() {
                     <FaPesoSign className='h-4 w-4 text-gray-700' />
                     <div>Plasada</div>
                   </button>
+
+                  <FaAngleDoubleRight className='h-5 w-5 text-gray-500 mx-2' />
+                  <button
+                    onClick={() => setPage(6)}
+                    type='button'
+                    className={clsx(
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-orange-100 text-orange-600/80 font-bold rounded-md animate-bounce border-orange-500 border-1",
+                      {
+                        "bg-white": page === 6,
+                      },
+                    )}
+                  >
+                    <div>
+                      <IoWarning className='h-5 w-5' />
+                    </div>
+                    <div>Pending Payment</div>
+                  </button>
+                  <button
+                    onClick={() => setPage(11)}
+                    type='button'
+                    className={clsx(
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-blue-100 text-blue-600/80 font-bold rounded-md animate-bounce border-blue-500 border-1",
+                      {
+                        "bg-white": page === 11,
+                      },
+                    )}
+                  >
+                    <FaMoneyBillWave className='h-4 w-4' />
+                    <div>Bale</div>
+                  </button>
+                  <button
+                    onClick={() => setPage(12)}
+                    type='button'
+                    className={clsx(
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-blue-100 text-blue-600/80 font-bold rounded-md animate-bounce border-blue-500 border-1",
+                      {
+                        "bg-white": page === 12,
+                      },
+                    )}
+                  >
+                    <FaMoneyBillWave className='h-4 w-4' />
+                    <div>Utang</div>
+                  </button>
+                </div>
+
+                <div className='text-sm flex items-center flex-wrap gap-1.5 pt-2'>
                   <button
                     onClick={() => setPage(4)}
                     type='button'
                     className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md",
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-red-100 text-red-600/80 rounded-md border-red-400 border-1 font-bold",
                       {
                         "bg-white": page === 4,
                       },
                     )}
                   >
-                    <FaMoneyBillWave className='h-5 w-5 text-gray-700' />
+                    <FaMoneyBillWave className='h-5 w-5 text-red-600' />
                     <div>Expenses</div>
                   </button>
                   <button
                     onClick={() => setPage(5)}
                     type='button'
                     className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md",
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md border",
                       {
                         "bg-white": page === 5,
                       },
@@ -268,69 +314,11 @@ export default function Home() {
                     <PiNoteFill className='h-5 w-5 text-gray-700' />
                     <div>Remarks</div>
                   </button>
-                  <FaAngleDoubleRight className='h-5 w-5 text-gray-500 mx-2' />
-                  <button
-                    onClick={() => setPage(6)}
-                    type='button'
-                    className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md animate-bounce",
-                      {
-                        "bg-white": page === 6,
-                      },
-                    )}
-                  >
-                    <div>
-                      <IoWarning className='h-5 w-5 text-orange-500' />
-                    </div>
-                    <div>Pending Payment</div>
-                  </button>
-                  <button
-                    onClick={() => setPage(11)}
-                    type='button'
-                    className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md animate-bounce",
-                      {
-                        "bg-white": page === 11,
-                      },
-                    )}
-                  >
-                    <FaMoneyBillWave className='h-4 w-4 text-blue-500' />
-                    <div>Bale</div>
-                  </button>
-                  <button
-                    onClick={() => setPage(12)}
-                    type='button'
-                    className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md animate-bounce",
-                      {
-                        "bg-white": page === 12,
-                      },
-                    )}
-                  >
-                    <FaMoneyBillWave className='h-4 w-4 text-blue-500' />
-                    <div>Utang</div>
-                  </button>
-                </div>
-
-                <div className='text-sm flex items-center flex-wrap gap-1.5 pt-2'>
-                  <button
-                    onClick={() => setPage(7)}
-                    type='button'
-                    className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md",
-                      {
-                        "bg-white": page === 7,
-                      },
-                    )}
-                  >
-                    <FaCashRegister className='h-[13px] w-[13px] text-gray-700' />
-                    <div>Revenue</div>
-                  </button>
                   <button
                     onClick={() => setPage(8)}
                     type='button'
                     className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md",
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md border",
                       {
                         "bg-white": page === 8,
                       },
@@ -343,7 +331,7 @@ export default function Home() {
                     onClick={() => setPage(9)}
                     type='button'
                     className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md",
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md border",
                       {
                         "bg-white": page === 9,
                       },
@@ -356,7 +344,7 @@ export default function Home() {
                     onClick={() => setPage(10)}
                     type='button'
                     className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md",
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md border",
                       {
                         "bg-white": page === 10,
                       },
@@ -364,6 +352,19 @@ export default function Home() {
                   >
                     <IoPeople className='h-5 w-5 text-gray-700' />
                     <div>Players</div>
+                  </button>
+                  <button
+                    onClick={() => setPage(7)}
+                    type='button'
+                    className={clsx(
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-green-100 text-green-600/80 font-bold rounded-md border-green-500 border-1",
+                      {
+                        "bg-white": page === 7,
+                      },
+                    )}
+                  >
+                    <FaCashRegister className='h-[13px] w-[13px] ' />
+                    <div>Revenue</div>
                   </button>
                 </div>
               </div>
