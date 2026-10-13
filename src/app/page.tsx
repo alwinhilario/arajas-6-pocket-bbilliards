@@ -368,18 +368,6 @@ export default function Home() {
                   </button>
                 </div>
               </div>
-
-              {/* <div>
-                <button
-                  type='button'
-                  className='bg-blue-500 p-3 py-2 rounded text-white cursor-pointer'
-                  onClick={() => {
-                    download();
-                  }}
-                >
-                  Export
-                </button>
-              </div> */}
             </div>
           </div>
 
@@ -421,6 +409,17 @@ export default function Home() {
         <br />
 
         <Version />
+        <div>
+          <button
+            type='button'
+            className='bg-blue-500 p-3 py-2 rounded text-white cursor-pointer'
+            onClick={() => {
+              download();
+            }}
+          >
+            Export
+          </button>
+        </div>
         <br />
         <br />
         <br />
