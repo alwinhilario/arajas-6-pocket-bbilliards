@@ -552,7 +552,7 @@ export default function MonthlyRevenue() {
                           <TableHead>Type</TableHead>
                           <TableHead>Description</TableHead>
                           <TableHead className='text-right'>Amount</TableHead>
-                          <TableHead className='text-right'>Balance at event time</TableHead>
+                          <TableHead className='text-right'>Balance after Expense</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -604,7 +604,7 @@ export default function MonthlyRevenue() {
                           <TableHead>Type</TableHead>
                           <TableHead>Description</TableHead>
                           <TableHead className='text-right'>Amount</TableHead>
-                          <TableHead className='text-right'>Balance at event time</TableHead>
+                          <TableHead className='text-right'>Balance after Expense </TableHead>
                           <TableHead>Payment status</TableHead>
                           <TableHead></TableHead>
                         </TableRow>
