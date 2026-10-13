@@ -216,7 +216,7 @@ export default function Home() {
                     <IoHome className='h-4 w-4 text-gray-700' />
                     <div>Home</div>
                   </button>
-                  <button
+                  {/* <button
                     onClick={() => setPage(2)}
                     type='button'
                     className={clsx(
@@ -228,7 +228,7 @@ export default function Home() {
                   >
                     <IoReceipt className='h-4 w-4 text-gray-700' />
                     <div>Orders</div>
-                  </button>
+                  </button> */}
                   <button
                     onClick={() => setPage(3)}
                     type='button'
@@ -377,8 +377,14 @@ export default function Home() {
         </div>
 
         <div className='pt-3'>
-          {page === 1 && <Tables />}
-          {page === 2 && <OtherOrders />}
+          {page === 1 && (
+            <>
+            <Tables />
+            <br/>
+            <OtherOrders />
+            </>
+            
+          )}
           {page === 3 && <PlasadaList />}
           {page === 4 && (
             <>
