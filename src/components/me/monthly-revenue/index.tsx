@@ -52,6 +52,35 @@ type LedgerEvent = {
 const getAmount = (amount: string | number | undefined) => Number.parseInt(String(amount || "0"), 10) || 0;
 const sumAmounts = (items: Array<{ amount?: string | number }>) =>
   items.reduce((total, item) => total + getAmount(item.amount), 0);
+const getMonthTotals = (month: MonthBreakdown) => {
+  const totalTableRates = sumAmounts(month.filteredTableHistory);
+  const totalPlasada = sumAmounts(month.filteredPlasada);
+  const totalBale = sumAmounts(month.filteredBale);
+  const totalUtangIssued = sumAmounts(month.filteredUtang);
+  const totalUtang = sumAmounts(month.filteredUtang.filter((entry) => !entry.paidAt));
+  const totalUtangPayments = sumAmounts(
+    month.filteredUtangPayments.map((entry) => ({ amount: entry.paidAmount ?? entry.amount })),
+  );
+  const paidPendingPaymentIds = new Set(month.paidPendingPaymentIds);
+  const totalOrders =
+    sumAmounts(month.filteredOrders.filter((order) => !paidPendingPaymentIds.has(order.id))) +
+    sumAmounts(month.filteredPaidPendingPayments);
+  const totalPendingPayments = sumAmounts(month.filteredPendingPayments);
+  const totalExpenses = sumAmounts(month.filteredExpenses);
+  const totalAmount = totalPlasada + totalOrders + totalTableRates;
+
+  return {
+    totalTableRates,
+    totalOrders,
+    totalPlasada,
+    totalAmount,
+    totalPendingPayments,
+    totalBale,
+    totalUtang,
+    totalExpenses,
+    totalIncome: totalAmount - totalExpenses - totalBale - totalUtangIssued + totalUtangPayments,
+  };
+};
 const readStorageList = async <T,>(key: string): Promise<T[]> => {
   const value = await storage.getItem<unknown>(key);
   if (value === null || value === undefined) return [];
@@ -395,45 +424,30 @@ export default function MonthlyRevenue() {
           <TableBody>
             {myMonths?.length > 0 ? (
               myMonths.map((item, key) => {
-                const totalTableRates = sumAmounts(item.filteredTableHistory);
-                const totalPlasada = sumAmounts(item.filteredPlasada);
-                const totalBale = sumAmounts(item.filteredBale);
-                const totalUtangIssued = sumAmounts(item.filteredUtang);
-                const totalUtang = sumAmounts(item.filteredUtang.filter((entry) => !entry.paidAt));
-                const totalUtangPayments = sumAmounts(
-                  item.filteredUtangPayments.map((entry) => ({ amount: entry.paidAmount ?? entry.amount })),
-                );
-                const totalOrders = sumAmounts(item.filteredOrders);
-                const totalPendingPayments = sumAmounts(item.filteredPendingPayments);
-                const totalExpenses = sumAmounts(item.filteredExpenses);
-
-                const totalAmount = totalPlasada + totalOrders + totalTableRates;
+                const totals = getMonthTotals(item);
 
                 return (
                   <TableRow key={key}>
                     <TableCell className='uppercase'>{item?.label}</TableCell>
-                    <TableCell>{convertCurrency(totalTableRates)}</TableCell>
-                    <TableCell>{convertCurrency(totalOrders)}</TableCell>
-                    <TableCell>{convertCurrency(totalPlasada)}</TableCell>
+                    <TableCell>{convertCurrency(totals.totalTableRates)}</TableCell>
+                    <TableCell>{convertCurrency(totals.totalOrders)}</TableCell>
+                    <TableCell>{convertCurrency(totals.totalPlasada)}</TableCell>
 
-                    <TableCell>{convertCurrency(totalAmount)}</TableCell>
+                    <TableCell>{convertCurrency(totals.totalAmount)}</TableCell>
                     <TableCell className='font-bold text-red-400'>
-                      -{convertCurrency(totalPendingPayments, false)}
+                      -{convertCurrency(totals.totalPendingPayments, false)}
                     </TableCell>
                     <TableCell className='font-bold text-blue-500'>
-                      -{convertCurrency(totalBale, false)}
+                      -{convertCurrency(totals.totalBale, false)}
                     </TableCell>
                     <TableCell className='font-bold text-blue-500'>
-                      -{convertCurrency(totalUtang, false)}
+                      -{convertCurrency(totals.totalUtang, false)}
                     </TableCell>
                     <TableCell className='text-red-400 font-bold'>
-                      -{convertCurrency(totalExpenses, false)}
+                      -{convertCurrency(totals.totalExpenses, false)}
                     </TableCell>
                     <TableCell className='text-green-400 font-bold'>
-                      +{convertCurrency(
-                        totalAmount - totalExpenses - totalBale - totalUtangIssued + totalUtangPayments,
-                        false,
-                      )}
+                      +{convertCurrency(totals.totalIncome, false)}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -517,9 +531,13 @@ export default function MonthlyRevenue() {
                       </div>
                     </div>
                     <div className='text-right'>
-                      <div className='text-sm '>Current Amount after Expense</div>
+                      <div className='text-sm'>Balance after this expense</div>
                       <div className='font-bold text-green-500'>
                         {convertCurrency(currentAmountAfterExpense)}
+                      </div>
+                      <div className='mt-2 text-sm'>Current month-to-date income</div>
+                      <div className='font-bold text-green-500'>
+                        {convertCurrency(getMonthTotals(selectedMonth).totalIncome)}
                       </div>
                     </div>
                   </div>
@@ -534,7 +552,7 @@ export default function MonthlyRevenue() {
                           <TableHead>Type</TableHead>
                           <TableHead>Description</TableHead>
                           <TableHead className='text-right'>Amount</TableHead>
-                          <TableHead className='text-right'>Current amount</TableHead>
+                          <TableHead className='text-right'>Balance at event time</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -586,7 +604,7 @@ export default function MonthlyRevenue() {
                           <TableHead>Type</TableHead>
                           <TableHead>Description</TableHead>
                           <TableHead className='text-right'>Amount</TableHead>
-                          <TableHead className='text-right'>Current amount</TableHead>
+                          <TableHead className='text-right'>Balance at event time</TableHead>
                           <TableHead>Payment status</TableHead>
                           <TableHead></TableHead>
                         </TableRow>
