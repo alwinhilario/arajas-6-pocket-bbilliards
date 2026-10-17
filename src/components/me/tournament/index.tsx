@@ -31,6 +31,7 @@ type TournamentPlayer = {
 type TournamentMatch = {
   players: [string | null, string | null];
   winnerId: string | null;
+  started?: boolean;
 };
 
 type TournamentState = {
@@ -80,6 +81,19 @@ const getMatchWinner = (
   return entrants.length === 2 && savedWinner !== null && entrants.includes(savedWinner) ? savedWinner : null;
 };
 
+const sameMatchPlayers = (
+  previous: [string | null, string | null] | undefined,
+  next: [string | null, string | null],
+) => {
+  if (!previous) return false;
+  const previousIds = previous.filter(Boolean).slice().sort().join(",");
+  const nextIds = next.filter(Boolean).slice().sort().join(",");
+  return next.filter(Boolean).length === 2 && previousIds === nextIds;
+};
+
+const isMatchStarted = (saved: TournamentMatch | undefined, players: [string | null, string | null]) =>
+  sameMatchPlayers(saved?.players, players) && Boolean(saved?.started);
+
 const buildRounds = (players: TournamentPlayer[], savedRounds: TournamentMatch[][]): TournamentMatch[][] => {
   if (!savedRounds[0]) return [];
 
@@ -94,6 +108,7 @@ const buildRounds = (players: TournamentPlayer[], savedRounds: TournamentMatch[]
     return {
       players: matchPlayers,
       winnerId: getMatchWinner(matchPlayers, savedWinner),
+      started: isMatchStarted(match, matchPlayers),
       index,
     };
   });
@@ -101,7 +116,11 @@ const buildRounds = (players: TournamentPlayer[], savedRounds: TournamentMatch[]
   let roundIndex = 0;
   while (currentMatches.length > 0) {
     rounds.push(
-      currentMatches.map(({ players: matchPlayers, winnerId }) => ({ players: matchPlayers, winnerId })),
+      currentMatches.map(({ players: matchPlayers, winnerId, started }) => ({
+        players: matchPlayers,
+        winnerId,
+        started: Boolean(started),
+      })),
     );
     if (currentMatches.length === 1) break;
 
@@ -124,6 +143,7 @@ const buildRounds = (players: TournamentPlayer[], savedRounds: TournamentMatch[]
       nextMatches.push({
         players: matchPlayers,
         winnerId: getMatchWinner(matchPlayers, savedWinner, false),
+        started: isMatchStarted(seededMatch, matchPlayers),
       });
     }
     currentMatches = nextMatches.map((match, index) => ({ ...match, index }));
@@ -150,6 +170,7 @@ const migrateEightPlayerDraw = (tournament: TournamentState): TournamentState =>
       string | null,
     ],
     winnerId: match.winnerId,
+    started: Boolean(match.started),
   }));
   const savedEntrants = savedQuarterfinals?.flatMap((match) => match.players.filter(Boolean)) || [];
   const quarterfinals =
@@ -161,10 +182,12 @@ const migrateEightPlayerDraw = (tournament: TournamentState): TournamentState =>
             tournament.players[index * 2 + 1]?.id || null,
           ] as [string | null, string | null],
           winnerId: null,
+          started: false,
         }));
   const emptyRoundOf16 = Array.from({ length: FIRST_ROUND_MATCHES }, () => ({
     players: [null, null] as [null, null],
     winnerId: null,
+    started: false,
   }));
 
   return {
@@ -251,6 +274,7 @@ export default function Tournament() {
       const firstRound = current.rounds[0].map((match) => ({
         players: match.players.map((id) => (id === playerId ? null : id)) as [string | null, string | null],
         winnerId: match.winnerId === playerId ? null : match.winnerId,
+        started: Boolean(match.started) && !match.players.includes(playerId),
       }));
       return {
         ...current,
@@ -272,7 +296,7 @@ export default function Tournament() {
     const activeMatchIndexes = [...leftMatchIndexes, ...rightMatchIndexes];
     const firstRound = Array.from({ length: FIRST_ROUND_MATCHES }, (_, matchIndex) => {
       if (isQuarterfinalDraw) {
-        return { players: [null, null] as [null, null], winnerId: null };
+        return { players: [null, null] as [null, null], winnerId: null, started: false };
       }
       const activeIndex = activeMatchIndexes.indexOf(matchIndex);
       return {
@@ -284,6 +308,7 @@ export default function Tournament() {
                 string | null,
               ]),
         winnerId: null,
+        started: false,
       };
     });
     const quarterfinals = isQuarterfinalDraw
@@ -293,6 +318,7 @@ export default function Tournament() {
             string | null,
           ],
           winnerId: null,
+          started: false,
         }))
       : null;
     await saveTournament({
@@ -310,6 +336,7 @@ export default function Tournament() {
       const seededRound = current.rounds[seededRoundIndex]?.map((match) => ({
         players: [...match.players] as [string | null, string | null],
         winnerId: null,
+        started: Boolean(match.started),
       }));
       if (!seededRound) return current;
 
@@ -327,6 +354,8 @@ export default function Tournament() {
 
       seededRound[firstPosition.matchIndex].players[firstPosition.playerIndex] = secondPlayerId;
       seededRound[secondPosition.matchIndex].players[secondPosition.playerIndex] = firstPlayerId;
+      seededRound[firstPosition.matchIndex].started = false;
+      seededRound[secondPosition.matchIndex].started = false;
 
       const savedRounds = seededRoundIndex === 1 ? [current.rounds[0] || [], seededRound] : [seededRound];
       return { ...current, rounds: buildRounds(current.players, savedRounds) };
@@ -362,6 +391,7 @@ export default function Tournament() {
         round.map((match) => ({
           players: [...match.players] as [string | null, string | null],
           winnerId: match.winnerId,
+          started: Boolean(match.started),
         })),
       ),
       missing,
@@ -391,13 +421,28 @@ export default function Tournament() {
       currentRounds[roundIndex][matchIndex] = {
         ...match,
         winnerId: match.winnerId === playerId ? null : playerId,
+        started: true,
       };
       for (let nextRound = roundIndex + 1; nextRound < currentRounds.length; nextRound += 1) {
         currentRounds[nextRound] = currentRounds[nextRound].map((nextMatch) => ({
           ...nextMatch,
           winnerId: null,
+          started: false,
         }));
       }
+      return { ...current, rounds: buildRounds(current.players, currentRounds) };
+    });
+  };
+
+  const toggleMatchStarted = (roundIndex: number, matchIndex: number) => {
+    void updateTournament((current) => {
+      const currentRounds = buildRounds(current.players, current.rounds);
+      const match = currentRounds[roundIndex]?.[matchIndex];
+      if (!match || match.players.filter(Boolean).length < 2) return current;
+      currentRounds[roundIndex][matchIndex] = {
+        ...match,
+        started: !match.started,
+      };
       return { ...current, rounds: buildRounds(current.players, currentRounds) };
     });
   };
@@ -431,6 +476,7 @@ export default function Tournament() {
         const firstRound = current.rounds[0]?.map((match) => ({
           players: [...match.players] as [string | null, string | null],
           winnerId: match.winnerId,
+          started: Boolean(match.started),
         }));
         if (!firstRound) return current;
         const previousId = firstRound[matchIndex].players[playerIndex];
@@ -696,8 +742,9 @@ export default function Tournament() {
             <div>
               <h3 className='text-lg font-bold'>16-Team Single Elimination</h3>
               <p className='text-sm text-muted-foreground'>
-                Click a player slot to select a match winner. Use the swap icon to change bracket positions or
-                the pencil to edit a player name.
+                Click Start when a match begins so staff can see who is already playing. Click a player slot
+                to select a winner. Use the swap icon to change bracket positions or the pencil to edit a
+                player name.
               </p>
               <div className='mt-2 flex flex-wrap gap-2 text-xs font-semibold'>
                 <span className='rounded-full border bg-gray-50 px-3 py-1'>
@@ -798,6 +845,7 @@ export default function Tournament() {
                     const visualMatchIndex = startRows.findIndex(
                       (_, index) => matchIndexes[index] === matchIndex,
                     );
+                    const bothPlayersReady = match.players.filter(Boolean).length === 2;
                     return (
                       <div
                         key={`${roundIndex}-${matchIndex}-${column}`}
@@ -924,6 +972,26 @@ export default function Tournament() {
                             </div>
                           );
                         })}
+                        {bothPlayersReady && (
+                          <Button
+                            type='button'
+                            size='xs'
+                            variant={match.started ? "default" : "outline"}
+                            aria-pressed={Boolean(match.started)}
+                            aria-label={match.started ? `Mark match as not started` : `Start match`}
+                            className={`absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-pointer border ${
+                              match.started
+                                ? "border-green-600 bg-green-600 text-white hover:bg-green-700 hover:text-white"
+                                : "bg-white border-gray-400"
+                            }`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              toggleMatchStarted(roundIndex, matchIndex);
+                            }}
+                          >
+                            {match.started ? "Started" : "Start"}
+                          </Button>
+                        )}
                       </div>
                     );
                   }),
