@@ -2,11 +2,20 @@
 
 import React from "react";
 import { FaPlus, FaTrash } from "react-icons/fa";
-import { MdEdit, MdEmojiEvents, MdRefresh, MdShuffle } from "react-icons/md";
+import { MdEdit, MdEmojiEvents, MdRefresh, MdShuffle, MdSwapHoriz } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import storage, { onStorageChange, updateStorageItem } from "@/lib/localforage";
+import { HiOutlineSwitchHorizontal } from "react-icons/hi";
 
 const STORAGE_KEY = "tournament";
 const AUDIT_STORAGE_KEY = "tournament-audits";
@@ -174,6 +183,9 @@ export default function Tournament() {
   const [tournamentAudits, setTournamentAudits] = React.useState<TournamentAudit[]>([]);
   const [isAuditing, setIsAuditing] = React.useState(false);
   const [auditError, setAuditError] = React.useState("");
+  const [isRandomizeDialogOpen, setIsRandomizeDialogOpen] = React.useState(false);
+  const [switchingPlayerId, setSwitchingPlayerId] = React.useState<string | null>(null);
+  const [switchTargetId, setSwitchTargetId] = React.useState("");
 
   React.useEffect(() => {
     const loadTournament = async () => {
@@ -287,6 +299,40 @@ export default function Tournament() {
       ...tournament,
       rounds: buildRounds(tournament.players, quarterfinals ? [firstRound, quarterfinals] : [firstRound]),
     });
+  };
+
+  const switchBracketPlayers = async (firstPlayerId: string, secondPlayerId: string) => {
+    await updateTournament((current) => {
+      const openingRoundIsEmpty = Boolean(
+        current.rounds[0]?.every((match) => match.players.every((playerId) => !playerId)),
+      );
+      const seededRoundIndex = current.players.length === 8 && openingRoundIsEmpty ? 1 : 0;
+      const seededRound = current.rounds[seededRoundIndex]?.map((match) => ({
+        players: [...match.players] as [string | null, string | null],
+        winnerId: null,
+      }));
+      if (!seededRound) return current;
+
+      const firstPosition = seededRound
+        .flatMap((match, matchIndex) =>
+          match.players.map((id, playerIndex) => ({ id, matchIndex, playerIndex })),
+        )
+        .find((position) => position.id === firstPlayerId);
+      const secondPosition = seededRound
+        .flatMap((match, matchIndex) =>
+          match.players.map((id, playerIndex) => ({ id, matchIndex, playerIndex })),
+        )
+        .find((position) => position.id === secondPlayerId);
+      if (!firstPosition || !secondPosition) return current;
+
+      seededRound[firstPosition.matchIndex].players[firstPosition.playerIndex] = secondPlayerId;
+      seededRound[secondPosition.matchIndex].players[secondPosition.playerIndex] = firstPlayerId;
+
+      const savedRounds = seededRoundIndex === 1 ? [current.rounds[0] || [], seededRound] : [seededRound];
+      return { ...current, rounds: buildRounds(current.players, savedRounds) };
+    });
+    setSwitchingPlayerId(null);
+    setSwitchTargetId("");
   };
 
   const auditAndRefresh = async () => {
@@ -438,9 +484,91 @@ export default function Tournament() {
     rightSideMatches?.reduce((total, match) => total + match.players.filter(Boolean).length, 0) || 0;
   const championId = tournament.rounds[3]?.[0]?.winnerId;
   const canArchiveTournament = Boolean(tournament.players.find((player) => player.id === championId));
+  const switchingPlayer = tournament.players.find((player) => player.id === switchingPlayerId);
+  const openingSeedRoundIndex = quarterfinalDraw ? 1 : 0;
+  const switchOptions = (tournament.rounds[openingSeedRoundIndex] || [])
+    .flatMap((match) => match.players)
+    .filter((playerId): playerId is string => Boolean(playerId && playerId !== switchingPlayerId))
+    .map((playerId) => playerById.get(playerId))
+    .filter((player): player is TournamentPlayer => Boolean(player));
 
   return (
     <div className='space-y-5'>
+      <Dialog open={isRandomizeDialogOpen} onOpenChange={setIsRandomizeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Randomize bracket?</DialogTitle>
+            <DialogDescription>
+              This will reshuffle the players and clear all current match results. Do you want to continue?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant='outline' onClick={() => setIsRandomizeDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant='warning'
+              onClick={() => {
+                setIsRandomizeDialogOpen(false);
+                void randomizePlayers();
+              }}
+            >
+              <MdShuffle /> Randomize
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={switchingPlayerId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSwitchingPlayerId(null);
+            setSwitchTargetId("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Switch bracket players</DialogTitle>
+            <DialogDescription>
+              Choose which seeded player to swap with {switchingPlayer?.name || "this player"}. Match results
+              will be cleared after the draw changes.
+            </DialogDescription>
+          </DialogHeader>
+          <label className='space-y-1'>
+            <span className='font-semibold'>Switch with</span>
+            <select
+              className='h-11 w-full rounded-md border bg-background px-3'
+              value={switchTargetId}
+              onChange={(event) => setSwitchTargetId(event.target.value)}
+            >
+              <option value=''>Select a player</option>
+              {switchOptions.map((player) => (
+                <option key={player.id} value={player.id}>
+                  {player.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <DialogFooter>
+            <Button variant='outline' onClick={() => setSwitchingPlayerId(null)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!switchingPlayerId || !switchTargetId}
+              onClick={() => {
+                if (switchingPlayerId && switchTargetId) {
+                  void switchBracketPlayers(switchingPlayerId, switchTargetId);
+                }
+              }}
+            >
+              Switch players
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Card className='space-y-2 p-5'>
         <div className='flex flex-wrap items-center justify-between gap-3'>
           <div>
@@ -455,7 +583,7 @@ export default function Tournament() {
           <div className='flex flex-wrap gap-2'>
             <Button
               disabled={tournament.players.length < 2}
-              onClick={() => void randomizePlayers()}
+              onClick={() => setIsRandomizeDialogOpen(true)}
               size='xl'
               variant='warning'
               className='cursor-pointer'
@@ -568,10 +696,8 @@ export default function Tournament() {
             <div>
               <h3 className='text-lg font-bold'>16-Team Single Elimination</h3>
               <p className='text-sm text-muted-foreground'>
-                Click a player&apos;s <span className='font-semibold'>Advance</span> button to move them
-                forward. Click
-                <span className='font-semibold'> Undo</span> to reverse that result; dependent later results
-                clear too. Use the pencil to edit a name.
+                Click a player slot to select a match winner. Use the swap icon to change bracket positions or
+                the pencil to edit a player name.
               </p>
               <div className='mt-2 flex flex-wrap gap-2 text-xs font-semibold'>
                 <span className='rounded-full border bg-gray-50 px-3 py-1'>
@@ -761,19 +887,37 @@ export default function Tournament() {
                                     )}
                                   </div>
                                   {canEdit && (
-                                    <Button
-                                      type='button'
-                                      size='icon-xs'
-                                      variant='ghost'
-                                      aria-label={`Edit ${player?.name || "bracket slot"}`}
-                                      className='mr-0.5 opacity-0 transition-opacity group-hover/slot:opacity-100 focus-visible:opacity-100'
-                                      onClick={(event) => {
-                                        event.stopPropagation();
-                                        startEditingSlot(roundIndex, matchIndex, playerIndex, playerId);
-                                      }}
-                                    >
-                                      <MdEdit />
-                                    </Button>
+                                    <div className='mr-0.5 flex shrink-0 items-center'>
+                                      {playerId && switchOptions.length > 0 && (
+                                        <Button
+                                          type='button'
+                                          size='sm'
+                                          variant='ghost'
+                                          aria-label={`Switch ${player?.name || "player"} in bracket`}
+                                          className='shrink-0'
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            setSwitchingPlayerId(playerId);
+                                            setSwitchTargetId("");
+                                          }}
+                                        >
+                                          <HiOutlineSwitchHorizontal className='h-10 w-10' />
+                                        </Button>
+                                      )}
+                                      <Button
+                                        type='button'
+                                        size='icon-xs'
+                                        variant='ghost'
+                                        aria-label={`Edit ${player?.name || "bracket slot"}`}
+                                        className='shrink-0'
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          startEditingSlot(roundIndex, matchIndex, playerIndex, playerId);
+                                        }}
+                                      >
+                                        <MdEdit />
+                                      </Button>
+                                    </div>
                                   )}
                                 </>
                               )}
