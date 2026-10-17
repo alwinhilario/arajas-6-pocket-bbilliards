@@ -25,14 +25,16 @@ import { IoHome, IoPeople, IoReceipt, IoWarning } from "react-icons/io5";
 import { IoMdCart } from "react-icons/io";
 import { TbCurrencyPeso } from "react-icons/tb";
 import { FaPesoSign } from "react-icons/fa6";
-import { FaAngleDoubleRight, FaCashRegister, FaMoneyBillWave } from "react-icons/fa";
+import { FaAngleDoubleRight, FaCashRegister, FaIdCard, FaMoneyBillWave } from "react-icons/fa";
 import { PiNoteFill } from "react-icons/pi";
-import { MdOutlineDoubleArrow, MdOutlineInventory, MdTableRestaurant } from "react-icons/md";
+import { MdEmojiEvents, MdOutlineDoubleArrow, MdOutlineInventory, MdTableRestaurant } from "react-icons/md";
 import OutListAll from "@/components/me/out-list-all";
 import PendingPaymentMonitor from "@/components/me/monthly-revenue/pending-payment-monitor";
 import BaleList from "@/components/me/bale-list";
 import UtangList from "@/components/me/utang-list";
 import { getEffectiveOutTime } from "@/components/me/tables/time-utils";
+import Membership from "@/components/me/membership";
+import Tournament from "@/components/me/tournament";
 
 dayjs.extend(duration);
 
@@ -242,6 +244,19 @@ export default function Home() {
                     <FaPesoSign className='h-4 w-4 text-gray-700' />
                     <div>Plasada</div>
                   </button>
+                  <button
+                    onClick={() => setPage(4)}
+                    type='button'
+                    className={clsx(
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-red-100 text-red-600/80 rounded-md border-red-400 border-1 font-bold",
+                      {
+                        "bg-white": page === 4,
+                      },
+                    )}
+                  >
+                    <FaMoneyBillWave className='h-5 w-5 text-red-600' />
+                    <div>Expenses</div>
+                  </button>
 
                   <FaAngleDoubleRight className='h-5 w-5 text-gray-500 mx-2' />
                   <button
@@ -289,17 +304,17 @@ export default function Home() {
 
                 <div className='text-sm flex items-center flex-wrap gap-1.5 pt-2'>
                   <button
-                    onClick={() => setPage(4)}
+                    onClick={() => setPage(7)}
                     type='button'
                     className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-red-100 text-red-600/80 rounded-md border-red-400 border-1 font-bold",
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-green-100 text-green-600/80 font-bold rounded-md border-green-500 border-1",
                       {
-                        "bg-white": page === 4,
+                        "bg-white": page === 7,
                       },
                     )}
                   >
-                    <FaMoneyBillWave className='h-5 w-5 text-red-600' />
-                    <div>Expenses</div>
+                    <FaCashRegister className='h-[13px] w-[13px] ' />
+                    <div>Revenue</div>
                   </button>
                   <button
                     onClick={() => setPage(5)}
@@ -354,17 +369,30 @@ export default function Home() {
                     <div>Players</div>
                   </button>
                   <button
-                    onClick={() => setPage(7)}
+                    onClick={() => setPage(13)}
                     type='button'
                     className={clsx(
-                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-green-100 text-green-600/80 font-bold rounded-md border-green-500 border-1",
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-amber-100 text-amber-700 rounded-md border border-amber-400",
                       {
-                        "bg-white": page === 7,
+                        "bg-white": page === 13,
                       },
                     )}
                   >
-                    <FaCashRegister className='h-[13px] w-[13px] ' />
-                    <div>Revenue</div>
+                    <FaIdCard className='h-4 w-4' />
+                    <div>Membership</div>
+                  </button>
+                  <button
+                    onClick={() => setPage(14)}
+                    type='button'
+                    className={clsx(
+                      "flex items-center gap-1.5 px-3 py-2 cursor-pointer bg-gray-200/70 rounded-md border",
+                      {
+                        "bg-white": page === 14,
+                      },
+                    )}
+                  >
+                    <MdEmojiEvents className='h-4 w-4 text-amber-600' />
+                    <div>Tournament</div>
                   </button>
                 </div>
               </div>
@@ -379,11 +407,10 @@ export default function Home() {
         <div className='pt-3'>
           {page === 1 && (
             <>
-            <Tables />
-            <br/>
-            <OtherOrders />
+              <Tables />
+              <br />
+              <OtherOrders />
             </>
-            
           )}
           {page === 3 && <PlasadaList />}
           {page === 4 && (
@@ -407,6 +434,8 @@ export default function Home() {
           {page === 10 && <NameList />}
           {page === 11 && <BaleList />}
           {page === 12 && <UtangList />}
+          {page === 13 && <Membership />}
+          {page === 14 && <Tournament />}
 
           <br />
           <DailyRevenue />

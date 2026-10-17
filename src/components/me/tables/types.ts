@@ -36,6 +36,9 @@ export type TTableOptsData = {
     },
   ];
   remarks: string;
+  membership_user_id?: string;
+  membership_user_name?: string;
+  membership_reward?: "discount" | "free_hour";
 };
 
 export type TTableOpts = TTableOptsData[];
@@ -79,6 +82,24 @@ export type TUtangEntry = TBaleEntry & {
   paidAmount?: string;
 };
 export type TUtangList = TUtangEntry[];
+
+export type TMembershipUser = {
+  id: string;
+  name: string;
+  phone: string;
+  stamps: number;
+  redeemedDiscounts: number;
+  redeemedFreeHours: number;
+  discountClaimsSinceReset?: number;
+  freeHourClaimsSinceReset?: number;
+  rewardAuditLog?: {
+    reward: "discount" | "free_hour";
+    redeemedAt: string;
+    source: "table" | "membership";
+  }[];
+  createdAt: string;
+};
+export type TMembershipUserList = TMembershipUser[];
 
 export type TOptions = { id: string; label: string; value: string }[];
 export type TInventoryData = {

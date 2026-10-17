@@ -10,6 +10,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { convertCurrency } from "@/lib/utils";
 import storage, { onStorageChange, updateStorageItem } from "@/lib/localforage";
 import type { TBaleEntry, TBaleList } from "../tables/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const STORAGE_KEY = "bale_list";
 
@@ -21,6 +29,7 @@ const toDateInput = (date: string) => {
 export default function BaleList() {
   const [items, setItems] = React.useState<TBaleList>([]);
   const [isAdding, setIsAdding] = React.useState(false);
+  const [itemToRemove, setItemToRemove] = React.useState<TBaleEntry | null>(null);
   const [newItem, setNewItem] = React.useState({
     name: "",
     amount: "",
@@ -61,8 +70,9 @@ export default function BaleList() {
     void saveUpdate((current) => current.map((item) => (item.id === id ? { ...item, ...changes } : item)));
   };
 
-  const removeItem = (id: string) => {
-    void saveUpdate((current) => current.filter((item) => item.id !== id));
+  const removeItem = async (id: string) => {
+    await saveUpdate((current) => current.filter((item) => item.id !== id));
+    setItemToRemove(null);
   };
 
   const total = items.reduce((sum, item) => sum + (Number.parseFloat(item.amount) || 0), 0);
@@ -74,6 +84,35 @@ export default function BaleList() {
 
   return (
     <Card className='space-y-4 p-5'>
+      <Dialog
+        open={itemToRemove !== null}
+        onOpenChange={(open) => {
+          if (!open) setItemToRemove(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Bale entry?</DialogTitle>
+            <DialogDescription>
+              This will permanently remove {itemToRemove?.name || "this Bale entry"} from the list.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant='outline' onClick={() => setItemToRemove(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant='destructive'
+              disabled={!itemToRemove}
+              onClick={() => {
+                if (itemToRemove) void removeItem(itemToRemove.id);
+              }}
+            >
+              Remove
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className='flex items-center justify-between gap-3'>
         <h2 className='text-lg font-bold'>Bale / Bali sa Sahod</h2>
         <Button
@@ -186,7 +225,7 @@ export default function BaleList() {
                 </TableCell>
 
                 <TableCell>
-                  <Button variant='destructive' onClick={() => removeItem(item.id)}>
+                  <Button variant='destructive' onClick={() => setItemToRemove(item)}>
                     Remove
                   </Button>
                 </TableCell>

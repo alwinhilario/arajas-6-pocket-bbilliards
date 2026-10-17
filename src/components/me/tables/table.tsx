@@ -20,6 +20,7 @@ import { isEmpty } from "lodash";
 import { convertCurrency } from "@/lib/utils";
 import { IoClose } from "react-icons/io5";
 import { getEffectiveOutTime, getTableDuration } from "./time-utils";
+import { applyMembershipRewardToRate } from "@/lib/membership-rewards";
 
 dayjs.extend(duration);
 dayjs.extend(customParseFormat);
@@ -215,7 +216,7 @@ export default function Table({
                   value = value + 100;
                 }
 
-                return value;
+                return applyMembershipRewardToRate(value, data?.membership_reward);
               };
 
               const totalOthers = data?.others?.reduce((acc, item) => acc + parseInt(item?.amount || "0"), 0);
@@ -364,6 +365,13 @@ export default function Table({
           )}
         </div>
 
+        {data?.membership_reward && (
+          <div className='mx-5 rounded-md border border-amber-400 bg-amber-100 px-3 py-1.5 text-sm font-bold text-amber-900'>
+            CLAIMED · {data.membership_reward === "discount" ? "₱50 DISCOUNT" : "FREE 1 HOUR"}
+            {data.membership_user_name ? ` · ${data.membership_user_name}` : ""}
+          </div>
+        )}
+
         <hr />
 
         <div className='flex-1 px-5 text-base'>
@@ -480,7 +488,7 @@ export default function Table({
                               value = value + 100;
                             }
 
-                            return value;
+                            return applyMembershipRewardToRate(value, data?.membership_reward);
                           };
 
                           const totalOthers = data?.others?.reduce(

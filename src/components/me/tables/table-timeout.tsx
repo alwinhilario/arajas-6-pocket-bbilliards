@@ -23,7 +23,7 @@ export default function TableTimeout({ data, setIsOpen, onConfirm }: IProps) {
 
   return (
     <div
-      className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 pt-60'
+      className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 pt-10'
       onClick={() => {
         setIsOpen((prevState) => !prevState);
       }}

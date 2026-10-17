@@ -214,7 +214,17 @@ const TableData = ({ user }) => {
         </div>
       </TableCell>
       <TableCell>{user?.updated_at || "--"}</TableCell>
-      <TableCell>{user.remarks || "--"}</TableCell>
+      <TableCell>
+        <div className='space-y-1'>
+          {user.membership_reward && (
+            <div className='w-fit rounded bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900'>
+              CLAIMED · {user.membership_reward === "discount" ? "₱50 DISCOUNT" : "FREE 1 HOUR"}
+              {user.membership_user_name ? ` · ${user.membership_user_name}` : ""}
+            </div>
+          )}
+          <div>{user.remarks || "--"}</div>
+        </div>
+      </TableCell>
 
       <TableCell>
         <Button

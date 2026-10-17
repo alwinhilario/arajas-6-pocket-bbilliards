@@ -183,10 +183,10 @@ export default function OutListAll() {
 
         {filtered?.length > 0 && (
           <>
-            <div>
+            <div className='max-h-80 overflow-auto'>
               <div className='space-y-1'>
                 {filtered?.map((item, key) => (
-                  <div className='flex gap-2' key={key}>
+                  <div className='flex min-w-max gap-2' key={key}>
                     <Input
                       placeholder='Label'
                       className='w-40'

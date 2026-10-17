@@ -31,6 +31,7 @@ type InputSelectProps = Omit<React.ComponentProps<"input">, "value" | "defaultVa
   searchPlaceholder?: string;
   emptyMessage?: string;
   allowCreate?: boolean;
+  clearOnReselect?: boolean;
   className?: string;
   onAddClick?: (arg: string) => void;
 };
@@ -45,6 +46,7 @@ function InputSelect({
   searchPlaceholder = "Search or add new...",
   emptyMessage = "No option found.",
   allowCreate = true,
+  clearOnReselect = false,
   className,
   disabled,
   ...inputProps
@@ -81,10 +83,10 @@ function InputSelect({
 
   const handleSelect = React.useCallback(
     (selectedValue: string) => {
-      setValue(selectedValue);
+      setValue(clearOnReselect && selectedValue === value ? "" : selectedValue);
       setOpen(false);
     },
-    [setValue],
+    [clearOnReselect, setValue, value],
   );
 
   const filteredOptions = React.useMemo(() => {

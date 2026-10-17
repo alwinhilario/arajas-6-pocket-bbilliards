@@ -7,16 +7,25 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import duration from "dayjs/plugin/duration";
 import { InputSelect } from "../../ui/input-select";
 import { isEmpty } from "lodash";
-import { HOURLY_RATE, INVENTORY_OPTS, MID_THRESHOLD_RATE, NAME_OPTS } from "@/app/constants";
+import { HOURLY_RATE, INVENTORY_OPTS, MID_THRESHOLD_RATE } from "@/app/constants";
 import { Textarea } from "@/components/ui/textarea";
-import { TInventoryList, TOptions, TTableOptsData } from "./types";
-import storage from "@/lib/localforage";
+import { TInventoryList, TMembershipUserList, TTableOptsData } from "./types";
+import storage, { onStorageChange } from "@/lib/localforage";
 import { capitalizeFirstLetter } from "../other-orders/other-order";
 import { HiSparkles } from "react-icons/hi2";
 import { IoClose } from "react-icons/io5";
 import clsx from "clsx";
 import Payment from "../payment";
 import { combineOutTime, getEffectiveOutTime, getTableDuration } from "./time-utils";
+import {
+  applyMembershipRewardToRate,
+  claimMembershipReward,
+  getAvailableMembershipRewards,
+  MEMBERSHIP_USERS_STORAGE_KEY,
+  releaseMembershipReward,
+  resetMembershipStamps,
+} from "@/lib/membership-rewards";
+import type { MembershipReward } from "@/lib/membership-rewards";
 
 dayjs.extend(duration);
 dayjs.extend(customParseFormat);
@@ -24,7 +33,7 @@ dayjs.extend(customParseFormat);
 interface IProps {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   currentTable?: TTableOptsData;
-  onConfirm: (data: TTableOptsData) => void;
+  onConfirm: (data: TTableOptsData) => void | Promise<void>;
   withPayment?: boolean;
 }
 
@@ -36,6 +45,9 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
     out: "",
     remarks: "",
     status: "",
+    membership_user_id: "",
+    membership_user_name: "",
+    membership_reward: undefined as MembershipReward | undefined,
     is_happy_hour: "",
     table_rates: "",
     hours: "",
@@ -59,23 +71,38 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
     ],
   });
 
-  const [nameOpts, setNameOpts] = React.useState<TOptions>([]);
-  const [inventoryOpts, setInventoryOpts] = React.useState<TOptions>([]);
+  const [inventoryOpts, setInventoryOpts] = React.useState<TInventoryList>([]);
+  const [membershipUsers, setMembershipUsers] = React.useState<TMembershipUserList>([]);
+  const [saveError, setSaveError] = React.useState("");
+  const [showMembershipSection, setShowMembershipSection] = React.useState(true);
 
   React.useEffect(() => {
     const load = async () => {
-      const data1 = ((await storage.getItem("name_list")) || NAME_OPTS) as TOptions;
       const data2 = ((await storage.getItem("inventory_list")) || INVENTORY_OPTS) as TInventoryList;
-
-      setNameOpts(data1);
       setInventoryOpts(data2);
+      setMembershipUsers((await storage.getItem<TMembershipUserList>(MEMBERSHIP_USERS_STORAGE_KEY)) || []);
     };
 
-    load();
+    void load();
+    return onStorageChange(MEMBERSHIP_USERS_STORAGE_KEY, (key, value) => {
+      if (Array.isArray(value)) setMembershipUsers(value as TMembershipUserList);
+      else void load();
+    });
   }, []);
 
   const d = getTableDuration(state.in, state.out);
   const ref = React.useRef(false);
+  const hasExistingMembershipReward = Boolean(currentTable?.membership_reward);
+  const selectedMember = membershipUsers.find((user) => user.id === state.membership_user_id);
+  const availableRewards = selectedMember ? getAvailableMembershipRewards(selectedMember) : null;
+  const membershipOptions = React.useMemo(
+    () =>
+      membershipUsers.map((user) => ({
+        value: user.id,
+        label: `${user.name}${user.phone ? ` · ${user.phone}` : ""} · ${user.stamps} stamps`,
+      })),
+    [membershipUsers],
+  );
 
   const result = React.useMemo(() => {
     let $v = "";
@@ -116,6 +143,9 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
       diff: currentTable?.diff,
       table_rates: currentTable?.table_rates,
       remarks: currentTable?.remarks,
+      membership_user_id: currentTable?.membership_reward ? currentTable.membership_user_id || "" : "",
+      membership_user_name: currentTable?.membership_reward ? currentTable.membership_user_name || "" : "",
+      membership_reward: currentTable?.membership_reward,
       is_happy_hour: currentTable?.is_happy_hour,
       status: currentTable?.status,
     }));
@@ -157,7 +187,7 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
 
   return (
     <div
-      className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 max-h-screen overflow-scroll pt-60'
+      className='fixed bg-black/90 top-0 left-0 h-screen w-screen flex justify-center items-start cursor-pointer z-50 max-h-screen overflow-scroll pt-10'
       onClick={() => {
         setIsOpen((prevState) => !prevState);
       }}
@@ -170,6 +200,96 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
       >
         <div className='flex flex-col gap-3 flex-1'>
           <div className='space-y-3'>
+            {!withPayment && (
+              <div className='rounded-md border p-3'>
+                <div className='flex items-center justify-between gap-2'>
+                  <span className='font-semibold'>Membership</span>
+                  <Button
+                    type='button'
+                    size='sm'
+                    variant='ghost'
+                    onClick={() => setShowMembershipSection((visible) => !visible)}
+                    aria-expanded={showMembershipSection}
+                  >
+                    {showMembershipSection ? "Hide membership" : "Show membership"}
+                  </Button>
+                </div>
+                {showMembershipSection && (
+                  <div className='mt-2 space-y-2'>
+                    <label className='block space-y-1'>
+                      {/* <span className='font-semibold'>Membership user</span> */}
+                      <InputSelect
+                        value={state.membership_user_id}
+                        options={membershipOptions}
+                        placeholder='Select membership user'
+                        searchPlaceholder='Search membership users...'
+                        emptyMessage='No membership user found.'
+                        allowCreate={false}
+                        clearOnReselect
+                        disabled={hasExistingMembershipReward}
+                        onValueChange={(userId) => {
+                          const member = membershipUsers.find((user) => user.id === userId);
+                          setState((previous) => ({
+                            ...previous,
+                            membership_user_id: member?.id || "",
+                            membership_user_name: member?.name || "",
+                            membership_reward: undefined,
+                          }));
+                        }}
+                      />
+                    </label>
+                    {selectedMember && (
+                      <div className='space-y-2'>
+                        {/* <p className='text-sm font-medium'>{selectedMember.name}</p> */}
+                        {/* <p className='text-sm text-muted-foreground'>
+                          {selectedMember.stamps} {selectedMember.stamps === 1 ? "stamp" : "stamps"}
+                        </p> */}
+                        <div className='flex flex-wrap gap-2'>
+                          <Button
+                            type='button'
+                            size='sm'
+                            variant={state.membership_reward === "discount" ? "default" : "outline"}
+                            disabled={
+                              hasExistingMembershipReward ||
+                              !availableRewards ||
+                              availableRewards.discounts <= 0 ||
+                              state.membership_reward === "discount"
+                            }
+                            onClick={() =>
+                              setState((previous) => ({ ...previous, membership_reward: "discount" }))
+                            }
+                          >
+                            Discount ₱50
+                          </Button>
+                          <Button
+                            type='button'
+                            size='sm'
+                            variant={state.membership_reward === "free_hour" ? "default" : "outline"}
+                            disabled={
+                              hasExistingMembershipReward ||
+                              !availableRewards ||
+                              availableRewards.freeHours <= 0 ||
+                              state.membership_reward === "free_hour"
+                            }
+                            onClick={() =>
+                              setState((previous) => ({ ...previous, membership_reward: "free_hour" }))
+                            }
+                          >
+                            Free hour
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    {state.membership_reward && (
+                      <div className='rounded bg-amber-100 px-2 py-1 text-sm font-semibold text-amber-900'>
+                        {hasExistingMembershipReward ? "Claimed: " : "Selected reward: "}
+                        {state.membership_reward === "discount" ? "₱50 discount" : "Free hour"}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             <div className='text-lg font-black pb-1'>IN:</div>
 
             <Input
@@ -666,17 +786,24 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
           </div>
         </div>
         <br />
-        <div className='flex gap-2 pb-2 text-base'>
+        <div className='flex flex-wrap items-center gap-2 pb-2 text-base'>
           <div className='w-24 font-semibold'>Total Hours:</div>
           <div className=''>{result || "0"}</div>
         </div>
+
+        {saveError && (
+          <p role='alert' className='pb-2 text-sm font-semibold text-red-600'>
+            {saveError}
+          </p>
+        )}
 
         <div className='flex gap-2'>
           <Button
             size='xl'
             className={"flex-1 cursor-pointer"}
-            onClick={() => {
-              const getAmount = () => {
+            onClick={async () => {
+              setSaveError("");
+              const getBaseAmount = () => {
                 const d = getTableDuration(state.in, state.out);
 
                 let value;
@@ -696,19 +823,64 @@ export default function TableEdit({ setIsOpen, currentTable, onConfirm, withPaym
                 return value;
               };
 
-              const totalOthers = state?.others?.reduce((acc, item) => acc + parseInt(item?.amount), 0);
-              const $amt = state?.is_happy_hour ? 750 : getAmount();
+              const totalOthers = state?.others?.reduce(
+                (acc, item) => acc + (Number.parseInt(item?.amount || "0", 10) || 0),
+                0,
+              );
+              const baseAmount = state?.is_happy_hour ? 750 : getBaseAmount();
+              const $amt = applyMembershipRewardToRate(baseAmount, state.membership_reward);
               const $amount = $amt > 0 || totalOthers > 0 ? `${($amt || 0) + (totalOthers || 0)}` : "";
+              const reward = state.membership_reward;
+              const memberId = state.membership_user_id || currentTable?.membership_user_id || "";
+              let claimedReward = false;
 
-              console.log({ state });
+              try {
+                if (reward && !memberId) {
+                  setSaveError("Select a membership user before applying a reward.");
+                  return;
+                }
 
-              onConfirm({
-                ...state,
-                amount: $amount,
-                table_rates: `${$amt}`,
-                id: state?.id || dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
-                status: state?.status || "Active",
-              });
+                if (reward && !currentTable?.membership_reward && !withPayment) {
+                  claimedReward = await claimMembershipReward(memberId, reward, "table");
+                  if (!claimedReward) {
+                    setSaveError("This member no longer has that reward available. Refresh and try again.");
+                    return;
+                  }
+                }
+
+                await onConfirm({
+                  ...state,
+                  membership_user_id: memberId,
+                  membership_user_name:
+                    selectedMember?.name ||
+                    state.membership_user_name ||
+                    currentTable?.membership_user_name ||
+                    "",
+                  membership_reward: reward || currentTable?.membership_reward,
+                  amount: $amount,
+                  table_rates: `${$amt}`,
+                  id: state?.id || dayjs().format("YYYY/MM/DD HH:mm:ss.SSSS"),
+                  status: state?.status || "Active",
+                });
+                claimedReward = false;
+                if (reward === "free_hour" && !withPayment) {
+                  try {
+                    const stampsReset = await resetMembershipStamps(memberId);
+                    if (!stampsReset) {
+                      setSaveError("The table was saved, but the member's stamps could not be reset.");
+                    }
+                  } catch (error) {
+                    console.error("The table was saved, but membership stamps could not be reset.", error);
+                    setSaveError("The table was saved, but the member's stamps could not be reset.");
+                  }
+                }
+              } catch (error) {
+                if (claimedReward && reward) {
+                  await releaseMembershipReward(memberId, reward);
+                }
+                console.error("Unable to save the table session.", error);
+                setSaveError("Unable to save the session. Please try again.");
+              }
             }}
           >
             Confirm
