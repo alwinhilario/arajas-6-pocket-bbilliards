@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import storage, { onStorageChange, updateStorageItem } from "@/lib/localforage";
 import { HiOutlineSwitchHorizontal } from "react-icons/hi";
+import { HiMiniTrophy } from "react-icons/hi2";
 
 const STORAGE_KEY = "tournament";
 const AUDIT_STORAGE_KEY = "tournament-audits";
@@ -143,7 +144,7 @@ const buildRounds = (players: TournamentPlayer[], savedRounds: TournamentMatch[]
       nextMatches.push({
         players: matchPlayers,
         winnerId: getMatchWinner(matchPlayers, savedWinner, false),
-        started: isMatchStarted(seededMatch, matchPlayers),
+        started: Boolean(isMatchStarted(seededMatch, matchPlayers)),
       });
     }
     currentMatches = nextMatches.map((match, index) => ({ ...match, index }));
@@ -827,11 +828,11 @@ export default function Tournament() {
                     { column: 3, roundIndex: 2, matchIndexes: [0], startRows: [1], span: 16 },
                     { column: 4, roundIndex: 3, matchIndexes: [0], startRows: [1], span: 16 },
                     { column: 5, roundIndex: 2, matchIndexes: [1], startRows: [1], span: 16 },
-                    { column: 6, roundIndex: 1, matchIndexes: [3, 2], startRows: [1, 9], span: 8 },
+                    { column: 6, roundIndex: 1, matchIndexes: [2, 3], startRows: [1, 9], span: 8 },
                     {
                       column: 7,
                       roundIndex: 0,
-                      matchIndexes: [7, 6, 5, 4],
+                      matchIndexes: [4, 5, 6, 7],
                       startRows: [1, 5, 9, 13],
                       span: 4,
                     },
@@ -844,6 +845,7 @@ export default function Tournament() {
                       (_, index) => matchIndexes[index] === matchIndex,
                     );
                     const bothPlayersReady = match.players.filter(Boolean).length === 2;
+                    const isChampion = roundIndex === 3 && Boolean(match.winnerId);
                     return (
                       <div
                         key={`${roundIndex}-${matchIndex}-${column}`}
@@ -851,7 +853,8 @@ export default function Tournament() {
                           roundIndex === 3
                             ? "h-fit self-center rounded-md  bg-linear-to-b from-amber-50 to-white "
                             : ""
-                        }`}
+                        } 
+                        ${isChampion ? "pb-[1.0625rem]" : ""}`}
                         style={{
                           gridColumn: column,
                           gridRow: `${startRows[visualMatchIndex]} / span ${span}`,
@@ -870,11 +873,13 @@ export default function Tournament() {
                               className={`group/slot relative flex min-h-6 items-center rounded-lg border-2 ${
                                 isEmptySlot
                                   ? "pointer-events-none border-transparent bg-transparent opacity-0"
-                                  : isWinner
-                                    ? "border-amber-500 bg-amber-50"
-                                    : playerId
-                                      ? "border-slate-300 bg-white"
-                                      : "border-slate-200 bg-slate-50"
+                                  : roundIndex === 3 && isWinner
+                                    ? "border-yellow-400 bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 shadow-2xl shadow-amber-200/60 ring-2 ring-yellow-300/70"
+                                    : isWinner
+                                      ? "border-amber-500 bg-amber-50"
+                                      : playerId
+                                        ? "border-slate-300 bg-white"
+                                        : "border-slate-200 bg-slate-50"
                               } ${playerId && match.players.filter(Boolean).length === 2 ? "cursor-pointer" : ""}`}
                               onClick={() => {
                                 if (playerId && match.players.filter(Boolean).length === 2) {
@@ -914,7 +919,9 @@ export default function Tournament() {
                                     ${player?.name || (roundIndex === 0 ? "" : "py-3.5")}
                                     `}
                                   >
-                                    <span className='block truncate font-bold text-sm capitalize'>
+                                    <span
+                                      className={`block truncate font-bold text-sm capitalize ${roundIndex === 3 && isWinner ? "text-amber-800 text-base" : ""}`}
+                                    >
                                       {player?.name || (roundIndex === 0 ? "" : "Winner advances here")}
                                     </span>
                                     {player?.serye && (
@@ -922,15 +929,18 @@ export default function Tournament() {
                                         Serye: {player.serye}
                                       </span>
                                     )}
-                                    {isWinner && (
-                                      <span className='text-[0.65rem] font-bold text-amber-700'>
-                                        {match.players.filter(Boolean).length === 1
-                                          ? ""
-                                          : roundIndex === 3
-                                            ? "FINAL WINNER"
-                                            : ""}
-                                      </span>
-                                    )}
+                                    {isWinner &&
+                                    roundIndex === 3 &&
+                                    match.players.filter(Boolean).length === 2 ? (
+                                      <div className='mt-1.5 flex items-center gap-1 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 px-2 py-0.5 w-fit shadow-sm'>
+                                        <HiMiniTrophy className='h-3 w-3 text-white' />
+                                        <span className='text-[0.6rem] font-black tracking-widest text-white uppercase'>
+                                          Champion
+                                        </span>
+                                      </div>
+                                    ) : isWinner ? (
+                                      <span className='text-[0.65rem] font-bold text-amber-700' />
+                                    ) : null}
                                   </div>
                                   {canEdit && (
                                     <div className='mr-0.5 flex shrink-0 items-center'>
@@ -970,7 +980,7 @@ export default function Tournament() {
                             </div>
                           );
                         })}
-                        {bothPlayersReady && (
+                        {bothPlayersReady && !isChampion && (
                           <button
                             type='button'
                             aria-pressed={Boolean(match.started)}

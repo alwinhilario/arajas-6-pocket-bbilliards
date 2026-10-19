@@ -100,7 +100,7 @@ export default function UtangList() {
     );
   };
 
-  const total = items.reduce((sum, item) => sum + (Number.parseFloat(item.amount) || 0), 0);
+  const total = items.filter((item) => !item.paidAt).reduce((sum, item) => sum + (Number.parseFloat(item.amount) || 0), 0);
   const canAdd =
     newItem.name.trim().length > 0 &&
     newItem.amount.trim().length > 0 &&
