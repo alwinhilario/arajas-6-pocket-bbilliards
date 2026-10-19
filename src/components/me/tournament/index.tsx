@@ -435,16 +435,14 @@ export default function Tournament() {
   };
 
   const toggleMatchStarted = (roundIndex: number, matchIndex: number) => {
-    void updateTournament((current) => {
-      const currentRounds = buildRounds(current.players, current.rounds);
-      const match = currentRounds[roundIndex]?.[matchIndex];
-      if (!match || match.players.filter(Boolean).length < 2) return current;
-      currentRounds[roundIndex][matchIndex] = {
-        ...match,
-        started: !match.started,
-      };
-      return { ...current, rounds: buildRounds(current.players, currentRounds) };
-    });
+    const currentRounds = buildRounds(tournament.players, tournament.rounds);
+    const match = currentRounds[roundIndex]?.[matchIndex];
+    if (!match || match.players.filter(Boolean).length < 2) return;
+    currentRounds[roundIndex][matchIndex] = {
+      ...match,
+      started: !match.started,
+    };
+    void saveTournament({ ...tournament, rounds: buildRounds(tournament.players, currentRounds) });
   };
 
   const startEditingSlot = (
@@ -973,16 +971,14 @@ export default function Tournament() {
                           );
                         })}
                         {bothPlayersReady && (
-                          <Button
+                          <button
                             type='button'
-                            size='xs'
-                            variant={match.started ? "default" : "outline"}
                             aria-pressed={Boolean(match.started)}
                             aria-label={match.started ? `Mark match as not started` : `Start match`}
-                            className={`absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-pointer border ${
+                            className={`absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 rounded-full cursor-pointer border px-3 py-1 text-xs font-medium select-none ${
                               match.started
-                                ? "border-green-600 bg-green-600 text-white hover:bg-green-700 hover:text-white"
-                                : "bg-white border-gray-400"
+                                ? "border-green-600 bg-green-600 text-white hover:bg-green-700"
+                                : "bg-white border-gray-400 hover:bg-gray-50"
                             }`}
                             onClick={(event) => {
                               event.stopPropagation();
@@ -990,7 +986,7 @@ export default function Tournament() {
                             }}
                           >
                             {match.started ? "Started" : "Start"}
-                          </Button>
+                          </button>
                         )}
                       </div>
                     );
